@@ -27,6 +27,7 @@
     .rank-big { font-family: var(--font-display); font-size: 3.5rem; font-weight: 900; line-height: 1; }
     @media (max-width: 768px) {
       .score-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .rank-grid { grid-template-columns: 1fr !important; }
       .analytics-grid { grid-template-columns: 1fr !important; }
       .score-num { font-size: 2rem; }
       .rank-big { font-size: 2.5rem; }
@@ -78,14 +79,18 @@
     <div class="result-hero">
       <div class="eyebrow" style="color:var(--rust); margin-bottom:8px;">Your Result</div>
       <h1 style="font-family:var(--font-display); font-size:2rem; font-weight:900; margin-bottom:6px;" id="examTitle">WBJEE 2026</h1>
-      <p style="color:rgba(234,219,192,0.6); font-size:13px;">Set <span id="setLabel">—</span> · Submitted <span id="submittedAt">—</span></p>
+      <p style="color:rgba(234,219,192,0.6); font-size:13px;">
+        Math Set: <span id="mathSetLabel" style="font-weight:700;">—</span> · 
+        Phys-Chem Set: <span id="pcSetLabel" style="font-weight:700;">—</span> · 
+        Submitted <span id="submittedAt">—</span>
+      </p>
     </div>
 
     <!-- Subject Scores -->
-    <div class="score-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); border:1px solid var(--ink); border-top:none;">
+    <div class="score-grid" style="display:grid; grid-template-columns:repeat(5, 1fr); border:1px solid var(--ink); border-top:none;">
       <div class="score-cell" style="background:var(--paper-soft);">
         <div class="score-num" style="color:var(--rust);" id="mathScore">—</div>
-        <div class="score-label" style="color:var(--ink-mute);">Mathematics</div>
+        <div class="score-label" style="color:var(--ink-mute);">Math</div>
       </div>
       <div class="score-cell" style="background:var(--paper);">
         <div class="score-num" style="color:var(--forest);" id="physicsScore">—</div>
@@ -95,21 +100,30 @@
         <div class="score-num" style="color:var(--rust);" id="chemistryScore">—</div>
         <div class="score-label" style="color:var(--ink-mute);">Chemistry</div>
       </div>
+      <div class="score-cell ink-bg" style="background:var(--ink); color:var(--paper); border-right:1px solid rgba(234,219,192,0.15);">
+        <div class="score-num" id="engScore">—</div>
+        <div class="score-label" style="color:rgba(234,219,192,0.6);">Engg Total</div>
+      </div>
       <div class="score-cell ink-bg" style="background:var(--ink); color:var(--paper);">
-        <div class="score-num" id="totalScore">—</div>
-        <div class="score-label" style="color:rgba(234,219,192,0.6);">Total</div>
+        <div class="score-num" style="color:var(--rust);" id="bphScore">—</div>
+        <div class="score-label" style="color:rgba(234,219,192,0.6);">B-Pharm Total</div>
       </div>
     </div>
 
     <!-- Rank Cards -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--ink); border-top:none; margin-bottom:24px;">
+    <div class="rank-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); border:1px solid var(--ink); border-top:none; margin-bottom:24px;">
       <div class="rank-card" style="border-right:1px solid var(--ink); background:var(--paper-soft);">
-        <div class="eyebrow" style="margin-bottom:12px;">Expected WBJEE Rank</div>
-        <div class="rank-big" style="color:var(--rust);" id="expectedRank">—</div>
-        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="expectedRankNote">Based on previous year data</div>
+        <div class="eyebrow" style="margin-bottom:12px;">Expected Engineering Rank</div>
+        <div class="rank-big" style="color:var(--rust);" id="expectedEngRank">—</div>
+        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="expectedEngRankNote">Based on GMR cutoff data</div>
       </div>
-      <div class="rank-card" style="background:var(--paper);">
-        <div class="eyebrow" style="margin-bottom:12px;">Community Rank</div>
+      <div class="rank-card" style="border-right:1px solid var(--ink); background:var(--paper);">
+        <div class="eyebrow" style="margin-bottom:12px;">Expected B-Pharma Rank</div>
+        <div class="rank-big" style="color:var(--rust);" id="expectedBphRank">—</div>
+        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="expectedBphRankNote">Based on PMR cutoff data</div>
+      </div>
+      <div class="rank-card" style="background:var(--paper-soft);">
+        <div class="eyebrow" style="margin-bottom:12px;">Community Rank (Engg)</div>
         <div class="rank-big" style="color:var(--forest);" id="communityRank">—</div>
         <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="communityRankNote">Loading...</div>
       </div>
@@ -277,22 +291,35 @@ async function loadResult(user) {
 
     // Populate UI
     document.getElementById('examTitle').textContent = examId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    document.getElementById('setLabel').textContent = result.set || '—';
+    document.getElementById('mathSetLabel').textContent = result.mathSet || result.set || '—';
+    document.getElementById('pcSetLabel').textContent = result.physChemSet || result.set || '—';
     document.getElementById('submittedAt').textContent = formatDate(result.submittedAt);
 
     // Scores
     document.getElementById('mathScore').textContent = result.scores.math;
     document.getElementById('physicsScore').textContent = result.scores.physics;
     document.getElementById('chemistryScore').textContent = result.scores.chemistry;
-    document.getElementById('totalScore').textContent = result.scores.total;
+    
+    const engScore = result.scores.engineering !== undefined ? result.scores.engineering : result.scores.total;
+    const bphScore = result.scores.bpharma !== undefined ? result.scores.bpharma : Math.round((result.scores.physics + result.scores.chemistry) * 100) / 100;
+    
+    document.getElementById('engScore').textContent = engScore;
+    document.getElementById('bphScore').textContent = bphScore;
 
-    // Expected rank
-    if (result.expectedRank) {
-      document.getElementById('expectedRank').textContent = `${result.expectedRank.min} — ${result.expectedRank.max}`;
-      document.getElementById('expectedRankNote').textContent = 'Based on previous year cutoff data';
+    // Expected ranks (Engineering & B-Pharma)
+    const engRank = result.expectedRank && result.expectedRank.engineering !== undefined ? result.expectedRank.engineering : (result.expectedRank && result.expectedRank.min !== undefined ? result.expectedRank : null);
+    const bphRank = result.expectedRank && result.expectedRank.bpharma !== undefined ? result.expectedRank.bpharma : null;
+
+    if (engRank) {
+      document.getElementById('expectedEngRank').textContent = `${engRank.min} — ${engRank.max}`;
     } else {
-      document.getElementById('expectedRank').textContent = 'N/A';
-      document.getElementById('expectedRankNote').textContent = 'Rank prediction data not yet available';
+      document.getElementById('expectedEngRank').textContent = 'N/A';
+    }
+
+    if (bphRank) {
+      document.getElementById('expectedBphRank').textContent = `${bphRank.min} — ${bphRank.max}`;
+    } else {
+      document.getElementById('expectedBphRank').textContent = 'N/A';
     }
 
     // Analytics
@@ -332,11 +359,12 @@ async function fetchCommunityRank(token, examId) {
 }
 
 function shareResult() {
-  const total = document.getElementById('totalScore').textContent;
+  const engScore = document.getElementById('engScore').textContent;
+  const bphScore = document.getElementById('bphScore').textContent;
   const math = document.getElementById('mathScore').textContent;
   const physics = document.getElementById('physicsScore').textContent;
   const chemistry = document.getElementById('chemistryScore').textContent;
-  const text = `My WBJEE Score (via Sankalp WBJEE):\n\n📐 Mathematics: ${math}\n⚡ Physics: ${physics}\n🧪 Chemistry: ${chemistry}\n\n🏆 Total: ${total}\n\nEvaluate yours at: ${window.location.origin}/student/evaluate.html`;
+  const text = `My WBJEE Score (via Sankalp WBJEE):\n\n📐 Mathematics: ${math}\n⚡ Physics: ${physics}\n🧪 Chemistry: ${chemistry}\n\n🏆 Engineering Total: ${engScore}\n🏆 B-Pharma Total: ${bphScore}\n\nEvaluate yours at: ${window.location.origin}/student/evaluate.html`;
 
   if (navigator.share) {
     navigator.share({ title: 'My WBJEE Score', text: text }).catch(() => {});

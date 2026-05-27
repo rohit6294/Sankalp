@@ -109,19 +109,24 @@
 
       <!-- Set tabs -->
       <div style="display:flex; gap:0; margin-bottom:0;">
-        <div class="set-tab active" onclick="switchSet('A', this)">Set A</div>
-        <div class="set-tab" onclick="switchSet('B', this)">Set B</div>
-        <div class="set-tab" onclick="switchSet('C', this)">Set C</div>
-        <div class="set-tab" onclick="switchSet('D', this)">Set D</div>
+        <div class="set-tab active" id="setTabA" onclick="switchSet('A', this)">Set A</div>
+        <div class="set-tab" id="setTabB" onclick="switchSet('B', this)">Set B</div>
+        <div class="set-tab" id="setTabC" onclick="switchSet('C', this)">Set C</div>
+        <div class="set-tab" id="setTabD" onclick="switchSet('D', this)">Set D</div>
         <div style="flex:1;"></div>
         <button class="btn-ghost btn-sm" onclick="importJson()" style="margin-left:8px;"><i class="fas fa-file-import"></i> Import JSON</button>
       </div>
 
-      <!-- Subject tabs inside key editor -->
-      <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none; margin-top:0;">
-        <div class="tab-btn active" data-keytab="math" onclick="switchKeySubject('math', this)" style="font-size:11px; padding:10px 16px;">Math <span style="font-family:var(--font-mono); opacity:0.6;">(75)</span></div>
-        <div class="tab-btn" data-keytab="physics" onclick="switchKeySubject('physics', this)" style="font-size:11px; padding:10px 16px;">Physics <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></div>
-        <div class="tab-btn" data-keytab="chemistry" onclick="switchKeySubject('chemistry', this)" style="font-size:11px; padding:10px 16px;">Chemistry <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></div>
+      <!-- Paper selectors (Paper 1 vs Paper 2) -->
+      <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none; margin-top:16px;">
+        <button class="tab-btn active" id="paperMathBtn" onclick="switchPaper('math')" style="font-size:11px; padding:10px 16px;">Paper 1: Mathematics <span style="font-family:var(--font-mono); opacity:0.6;">(Set A/B/C/D)</span></button>
+        <button class="tab-btn" id="paperPhysChemBtn" onclick="switchPaper('physChem')" style="font-size:11px; padding:10px 16px;">Paper 2: Physics & Chemistry <span style="font-family:var(--font-mono); opacity:0.6;">(Set A/B/C/D)</span></button>
+      </div>
+
+      <!-- Subject tabs inside key editor (only shown for Phys-Chem) -->
+      <div id="physChemSubjectTabs" style="display:none; gap:0; border:1px solid var(--ink); border-bottom:none; background:var(--paper-soft);">
+        <button class="tab-btn active" data-keytab="physics" onclick="switchKeySubject('physics', this)" style="font-size:11px; padding:10px 16px; border-top:none;">Physics <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></button>
+        <button class="tab-btn" data-keytab="chemistry" onclick="switchKeySubject('chemistry', this)" style="font-size:11px; padding:10px 16px; border-top:none;">Chemistry <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></button>
       </div>
 
       <div style="border:1px solid var(--ink); background:var(--paper); max-height:500px; overflow-y:auto;" id="keyGrid">
@@ -143,8 +148,14 @@
       </select>
     </div>
 
+    <!-- Rank subtabs (Engineering vs B-Pharma) -->
+    <div id="rankTableSubTabs" style="display:none; gap:0; margin-bottom:16px;">
+      <button class="set-tab active" id="rankEngTab" onclick="switchRankType('engineering')" style="font-size:11px; font-weight:700;">Engineering Rank (PMY/GMR)</button>
+      <button class="set-tab" id="rankBphTab" onclick="switchRankType('bpharma')" style="font-size:11px; font-weight:700;">B-Pharma Rank (PMR)</button>
+    </div>
+
     <div id="rankTableEditor" style="display:none;">
-      <div class="eyebrow" style="margin-bottom:12px;">Marks → Rank Mapping</div>
+      <div class="eyebrow" style="margin-bottom:12px;" id="rankTableHeading">Engineering Marks → Rank Mapping</div>
       <div style="border:1px solid var(--ink); background:var(--paper); padding:16px;">
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 48px; gap:8px; padding:0 0 8px; border-bottom:1px solid var(--ink); margin-bottom:8px;">
           <span class="eyebrow" style="font-size:10px;">Marks Min</span>
@@ -214,8 +225,11 @@ const CAT_RANGES = {
 // ===== State =====
 let selectedExamId = null;
 let currentSet = 'A';
-let currentKeySubject = 'math';
-let keyData = {}; // { A: { math: {...}, physics: {...}, chemistry: {...} }, B: ... }
+let currentPaper = 'math'; // 'math' or 'physChem'
+let currentKeySubject = 'math'; // 'math', 'physics', or 'chemistry'
+let currentRankType = 'engineering'; // 'engineering' or 'bpharma'
+let keyData = {}; // keyed by `docId` (e.g. `math_A`, `physChem_B`)
+let rankRows = [];
 
 function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');
@@ -340,6 +354,24 @@ function switchSet(set, btn) {
   loadAnswerKey();
 }
 
+function switchPaper(paper) {
+  currentPaper = paper;
+  document.getElementById('paperMathBtn').classList.toggle('active', paper === 'math');
+  document.getElementById('paperPhysChemBtn').classList.toggle('active', paper === 'physChem');
+
+  document.getElementById('physChemSubjectTabs').style.display = paper === 'physChem' ? 'flex' : 'none';
+
+  if (paper === 'math') {
+    currentKeySubject = 'math';
+  } else {
+    currentKeySubject = 'physics';
+    document.querySelectorAll('[data-keytab]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.keytab === 'physics');
+    });
+  }
+  loadAnswerKey();
+}
+
 function switchKeySubject(sub, btn) {
   currentKeySubject = sub;
   document.querySelectorAll('[data-keytab]').forEach(b => b.classList.remove('active'));
@@ -349,18 +381,20 @@ function switchKeySubject(sub, btn) {
 
 async function loadAnswerKey() {
   try {
+    const docId = `${currentPaper}_${currentSet}`;
     const doc = await db.collection('exams').doc(selectedExamId)
-      .collection('answerKeys').doc(currentSet).get();
+      .collection('answerKeys').doc(docId).get();
 
     if (doc.exists) {
-      keyData[currentSet] = doc.data();
+      keyData[docId] = doc.data();
     } else {
-      keyData[currentSet] = { math: {}, physics: {}, chemistry: {} };
+      keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
     }
     renderKeyGrid();
   } catch (e) {
     toast('Error loading key: ' + e.message);
-    keyData[currentSet] = { math: {}, physics: {}, chemistry: {} };
+    const docId = `${currentPaper}_${currentSet}`;
+    keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
     renderKeyGrid();
   }
 }
@@ -368,7 +402,8 @@ async function loadAnswerKey() {
 function renderKeyGrid() {
   const sub = currentKeySubject;
   const grid = document.getElementById('keyGrid');
-  const answers = (keyData[currentSet] && keyData[currentSet][sub]) || {};
+  const docId = `${currentPaper}_${currentSet}`;
+  const answers = (keyData[docId] && keyData[docId][sub]) || {};
   grid.innerHTML = '';
 
   let lastCat = 0;
@@ -404,18 +439,18 @@ function renderKeyGrid() {
 }
 
 function toggleKeyOpt(sub, q, letter, cat) {
-  if (!keyData[currentSet]) keyData[currentSet] = { math: {}, physics: {}, chemistry: {} };
-  const answers = keyData[currentSet][sub];
+  const docId = `${currentPaper}_${currentSet}`;
+  if (!keyData[docId]) keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
+  if (!keyData[docId][sub]) keyData[docId][sub] = {};
+  const answers = keyData[docId][sub];
 
   if (cat === 3) {
-    // Multi-select
     const current = (answers[String(q)] || '').split(',').filter(Boolean).map(s => s.trim().toUpperCase());
     const idx = current.indexOf(letter);
     if (idx >= 0) current.splice(idx, 1); else current.push(letter);
     answers[String(q)] = current.sort().join(',');
     if (!answers[String(q)]) delete answers[String(q)];
   } else {
-    // Single-select toggle
     if (answers[String(q)] === letter) {
       delete answers[String(q)];
     } else {
@@ -426,20 +461,26 @@ function toggleKeyOpt(sub, q, letter, cat) {
 }
 
 async function saveAnswerKey() {
-  if (!selectedExamId || !keyData[currentSet]) { toast('No data to save'); return; }
+  const docId = `${currentPaper}_${currentSet}`;
+  if (!selectedExamId || !keyData[docId]) { toast('No data to save'); return; }
   const btn = document.getElementById('saveKeyBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
   try {
     await db.collection('exams').doc(selectedExamId)
-      .collection('answerKeys').doc(currentSet)
-      .set(keyData[currentSet], { merge: true });
+      .collection('answerKeys').doc(docId)
+      .set(keyData[docId], { merge: true });
 
-    // Count filled answers
-    const data = keyData[currentSet];
-    const filled = Object.keys(data.math || {}).length + Object.keys(data.physics || {}).length + Object.keys(data.chemistry || {}).length;
-    toast(`Set ${currentSet} saved! (${filled} answers)`);
+    const data = keyData[docId];
+    let filled = 0;
+    if (currentPaper === 'math') {
+      filled = Object.keys(data.math || {}).length;
+    } else {
+      filled = Object.keys(data.physics || {}).length + Object.keys(data.chemistry || {}).length;
+    }
+    const paperLabel = currentPaper === 'math' ? 'Mathematics' : 'Physics & Chemistry';
+    toast(`${paperLabel} Set ${currentSet} saved! (${filled} answers)`);
   } catch (e) {
     toast('Error saving: ' + e.message);
   }
@@ -460,52 +501,71 @@ function doImportJson() {
   if (!raw) { toast('Paste JSON first'); return; }
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed.math && !parsed.physics && !parsed.chemistry) {
-      toast('JSON must have math, physics, and/or chemistry keys');
-      return;
+    const docId = `${currentPaper}_${currentSet}`;
+    if (currentPaper === 'math') {
+      if (!parsed.math) { toast('JSON must contain a "math" key'); return; }
+      if (Object.keys(parsed.math).length > 75) { toast('Math has more than 75 entries!'); return; }
+      keyData[docId] = { math: parsed.math };
+      toast(`Imported Mathematics Set ${currentSet} (${Object.keys(parsed.math).length} answers)`);
+    } else {
+      if (!parsed.physics && !parsed.chemistry) { toast('JSON must contain "physics" and/or "chemistry" keys'); return; }
+      if (parsed.physics && Object.keys(parsed.physics).length > 40) { toast('Physics has more than 40 entries!'); return; }
+      if (parsed.chemistry && Object.keys(parsed.chemistry).length > 40) { toast('Chemistry has more than 40 entries!'); return; }
+      keyData[docId] = {
+        physics: parsed.physics || {},
+        chemistry: parsed.chemistry || {},
+      };
+      const phyLen = Object.keys(parsed.physics || {}).length;
+      const chemLen = Object.keys(parsed.chemistry || {}).length;
+      toast(`Imported Physics & Chemistry Set ${currentSet} (Phy: ${phyLen}, Chem: ${chemLen})`);
     }
-    // Validate counts
-    if (parsed.math && Object.keys(parsed.math).length > 75) { toast('Math has more than 75 entries!'); return; }
-    if (parsed.physics && Object.keys(parsed.physics).length > 40) { toast('Physics has more than 40 entries!'); return; }
-    if (parsed.chemistry && Object.keys(parsed.chemistry).length > 40) { toast('Chemistry has more than 40 entries!'); return; }
-
-    keyData[currentSet] = {
-      math: parsed.math || {},
-      physics: parsed.physics || {},
-      chemistry: parsed.chemistry || {},
-    };
     hideImportModal();
     renderKeyGrid();
-    toast(`Imported! Math: ${Object.keys(parsed.math||{}).length}, Phy: ${Object.keys(parsed.physics||{}).length}, Chem: ${Object.keys(parsed.chemistry||{}).length}`);
   } catch (e) {
     toast('Invalid JSON: ' + e.message);
   }
 }
 
 // ===== Rank Prediction Table =====
-let rankRows = [];
+function switchRankType(type) {
+  currentRankType = type;
+  document.getElementById('rankEngTab').classList.toggle('active', type === 'engineering');
+  document.getElementById('rankBphTab').classList.toggle('active', type === 'bpharma');
+  document.getElementById('rankTableHeading').textContent = (type === 'engineering' ? 'Engineering' : 'B-Pharma') + ' Marks → Rank Mapping';
+  loadRankTable();
+}
 
 async function loadRankTable() {
   const examId = document.getElementById('rankExamSelect').value;
   if (!examId) {
     document.getElementById('rankTableEditor').style.display = 'none';
+    document.getElementById('rankTableSubTabs').style.display = 'none';
     return;
   }
+  document.getElementById('rankTableSubTabs').style.display = 'flex';
   document.getElementById('rankTableEditor').style.display = 'block';
 
   try {
     const doc = await db.collection('exams').doc(examId)
-      .collection('rankTable').doc('data').get();
+      .collection('rankTable').doc(currentRankType).get();
     rankRows = doc.exists ? (doc.data().rows || []) : [];
     if (rankRows.length === 0) {
-      // Add default rows
-      rankRows = [
-        { marksMin: 0, marksMax: 49, rankMin: 15000, rankMax: 50000 },
-        { marksMin: 50, marksMax: 99, rankMin: 5000, rankMax: 14999 },
-        { marksMin: 100, marksMax: 139, rankMin: 2000, rankMax: 4999 },
-        { marksMin: 140, marksMax: 159, rankMin: 400, rankMax: 1999 },
-        { marksMin: 160, marksMax: 200, rankMin: 1, rankMax: 399 },
-      ];
+      if (currentRankType === 'engineering') {
+        rankRows = [
+          { marksMin: 0, marksMax: 49, rankMin: 15000, rankMax: 50000 },
+          { marksMin: 50, marksMax: 99, rankMin: 5000, rankMax: 14999 },
+          { marksMin: 100, marksMax: 139, rankMin: 2000, rankMax: 4999 },
+          { marksMin: 140, marksMax: 159, rankMin: 400, rankMax: 1999 },
+          { marksMin: 160, marksMax: 200, rankMin: 1, rankMax: 399 },
+        ];
+      } else {
+        rankRows = [
+          { marksMin: 0, marksMax: 19, rankMin: 10000, rankMax: 30000 },
+          { marksMin: 20, marksMax: 39, rankMin: 4000, rankMax: 9999 },
+          { marksMin: 40, marksMax: 59, rankMin: 1000, rankMax: 3999 },
+          { marksMin: 60, marksMax: 80, rankMin: 1, rankMax: 999 },
+        ];
+      }
     }
     renderRankRows();
   } catch (e) {
@@ -543,7 +603,6 @@ async function saveRankTable() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
   try {
-    // Validate: all values should be numbers
     for (const r of rankRows) {
       if (isNaN(r.marksMin) || isNaN(r.marksMax) || isNaN(r.rankMin) || isNaN(r.rankMax)) {
         toast('All fields must be valid numbers'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table'; return;
@@ -551,14 +610,16 @@ async function saveRankTable() {
     }
 
     await db.collection('exams').doc(examId)
-      .collection('rankTable').doc('data')
+      .collection('rankTable').doc(currentRankType)
       .set({ rows: rankRows });
-    toast(`Rank table saved (${rankRows.length} bands)`);
+    const rankLabel = currentRankType === 'engineering' ? 'Engineering' : 'B-Pharma';
+    toast(`${rankLabel} rank table saved (${rankRows.length} bands)`);
   } catch (e) {
     toast('Error: ' + e.message);
   }
   btn.disabled = false;
   btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table';
+}> Save Rank Table';
 }
 
 // ===== Auth gate =====

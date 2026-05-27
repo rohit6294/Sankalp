@@ -1,17 +1,18 @@
 const express = require('express');
 const { admin, db } = require('../firebase');
 const { verifyToken } = require('../auth');
-const { scoreSubmission } = require('../scoring/calculate');
+const { scoreSubmission, round2 } = require('../scoring/calculate');
 const { predictRank } = require('../scoring/ranking');
 
 const router = express.Router();
 
 router.post('/', verifyToken, async (req, res) => {
-  const { examId, set, answers } = req.body || {};
-  if (!examId || !set || !answers) {
+  const { examId, mathSet, physChemSet, answers } = req.body || {};
+  if (!examId || !mathSet || !physChemSet || !answers) {
     return res.status(400).json({ error: 'missing_fields' });
   }
-  if (!['A', 'B', 'C', 'D'].includes(set)) {
+  const sets = ['A', 'B', 'C', 'D'];
+  if (!sets.includes(mathSet) || !sets.includes(physChemSet)) {
     return res.status(400).json({ error: 'invalid_set' });
   }
 
@@ -25,30 +26,57 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(409).json({ error: 'already_submitted' });
     }
 
-    const keyDoc = await db
-      .collection('exams').doc(examId)
-      .collection('answerKeys').doc(set)
-      .get();
-    if (!keyDoc.exists) {
+    // Fetch the two separate answer key documents
+    const mathKeyRef = db.collection('exams').doc(examId).collection('answerKeys').doc(`math_${mathSet}`);
+    const physChemKeyRef = db.collection('exams').doc(examId).collection('answerKeys').doc(`physChem_${physChemSet}`);
+
+    const [mathKeyDoc, physChemKeyDoc] = await Promise.all([
+      mathKeyRef.get(),
+      physChemKeyRef.get(),
+    ]);
+
+    if (!mathKeyDoc.exists || !physChemKeyDoc.exists) {
       return res.status(404).json({ error: 'answer_key_not_found' });
     }
-    const keys = keyDoc.data();
+
+    const mathData = mathKeyDoc.data() || {};
+    const physChemData = physChemKeyDoc.data() || {};
+
+    const keys = {
+      math: mathData.math || {},
+      physics: physChemData.physics || {},
+      chemistry: physChemData.chemistry || {},
+    };
 
     const { scores, analytics, perSubject } = scoreSubmission(answers, keys);
 
-    let expectedRank = null;
-    const rankDoc = await db
-      .collection('exams').doc(examId)
-      .collection('rankTable').doc('data')
-      .get();
-    if (rankDoc.exists) {
-      expectedRank = predictRank(scores.total, rankDoc.data().rows || []);
+    // Compute Engineering and B-Pharma scores
+    scores.engineering = scores.total;
+    scores.bpharma = round2(scores.physics + scores.chemistry);
+
+    // Fetch both rank tables
+    const engRankRef = db.collection('exams').doc(examId).collection('rankTable').doc('engineering');
+    const bphRankRef = db.collection('exams').doc(examId).collection('rankTable').doc('bpharma');
+
+    const [engRankDoc, bphRankDoc] = await Promise.all([
+      engRankRef.get(),
+      bphRankRef.get(),
+    ]);
+
+    let expectedRank = { engineering: null, bpharma: null };
+
+    if (engRankDoc.exists) {
+      expectedRank.engineering = predictRank(scores.engineering, engRankDoc.data().rows || []);
+    }
+    if (bphRankDoc.exists) {
+      expectedRank.bpharma = predictRank(scores.bpharma, bphRankDoc.data().rows || []);
     }
 
     const payload = {
       userId: uid,
       examId,
-      set,
+      mathSet,
+      physChemSet,
       answers,
       scores,
       analytics,

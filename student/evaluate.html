@@ -36,6 +36,7 @@
     .step-pill { display: inline-block; padding: 4px 10px; border: 1px solid var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
     .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
     .toast.show { opacity: 1; }
+    .set-card-mini.active { background: var(--rust) !important; color: var(--paper) !important; border-color: var(--rust) !important; }
     @media (max-width: 640px) {
       .qrow { grid-template-columns: 44px repeat(4, 1fr) 56px; gap: 4px; padding: 6px; }
       .opt { padding: 6px 2px; font-size: 12px; }
@@ -94,16 +95,36 @@
   <!-- STEP 2: PICK SET -->
   <div id="pickSetView" style="display:none;">
     <div style="margin-bottom:8px;"><span class="step-pill">Step 2 of 4</span></div>
-    <h1 class="display-lg">Select your <span class="rust-accent">paper set</span></h1>
-    <p style="color:var(--ink-mute); font-size:14px; margin-top:4px; margin-bottom:24px;">Your set is printed on the cover page of the question booklet.</p>
-    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; max-width:560px;">
-      <div class="set-card" onclick="chooseSet('A')"><div class="letter">A</div><div class="eyebrow" style="margin-top:6px;">Set A</div></div>
-      <div class="set-card" onclick="chooseSet('B')"><div class="letter">B</div><div class="eyebrow" style="margin-top:6px;">Set B</div></div>
-      <div class="set-card" onclick="chooseSet('C')"><div class="letter">C</div><div class="eyebrow" style="margin-top:6px;">Set C</div></div>
-      <div class="set-card" onclick="chooseSet('D')"><div class="letter">D</div><div class="eyebrow" style="margin-top:6px;">Set D</div></div>
+    <h1 class="display-lg">Select your <span class="rust-accent">paper sets</span></h1>
+    <p style="color:var(--ink-mute); font-size:14px; margin-top:4px; margin-bottom:24px;">WBJEE booklets have independent sets. Please choose the sets printed on your cover pages.</p>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:640px; margin-bottom:32px;">
+      <!-- Math Booklet Set -->
+      <div style="border:1px solid var(--ink); padding:24px; background:var(--paper-soft);">
+        <label class="input-label" style="margin-bottom:12px; font-weight:700; font-size:12px;">📐 Paper 1: Mathematics Set</label>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+          <div class="set-card-mini" id="mathSetBtnA" onclick="selectMathSet('A')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">A</div>
+          <div class="set-card-mini" id="mathSetBtnB" onclick="selectMathSet('B')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">B</div>
+          <div class="set-card-mini" id="mathSetBtnC" onclick="selectMathSet('C')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">C</div>
+          <div class="set-card-mini" id="mathSetBtnD" onclick="selectMathSet('D')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">D</div>
+        </div>
+      </div>
+
+      <!-- Phys Chem Booklet Set -->
+      <div style="border:1px solid var(--ink); padding:24px; background:var(--paper-soft);">
+        <label class="input-label" style="margin-bottom:12px; font-weight:700; font-size:12px;">⚡ Paper 2: Physics & Chem Set</label>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+          <div class="set-card-mini" id="pcSetBtnA" onclick="selectPhysChemSet('A')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">A</div>
+          <div class="set-card-mini" id="pcSetBtnB" onclick="selectPhysChemSet('B')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">B</div>
+          <div class="set-card-mini" id="pcSetBtnC" onclick="selectPhysChemSet('C')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">C</div>
+          <div class="set-card-mini" id="pcSetBtnD" onclick="selectPhysChemSet('D')" style="padding:12px; border:1px solid var(--ink); text-align:center; font-weight:700; cursor:pointer; background:var(--paper);">D</div>
+        </div>
+      </div>
     </div>
-    <div style="margin-top:20px;">
+
+    <div style="display:flex; gap:12px; align-items:center;">
       <button class="btn-ghost btn-sm" onclick="back('pickSetView','pickExamView')"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn-rust" onclick="confirmSets()" id="confirmSetsBtn" style="padding:12px 24px;">Continue <i class="fas fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -218,7 +239,8 @@ let state = {
   idToken: null,
   examId: null,
   examName: null,
-  set: null,
+  mathSet: null,
+  physChemSet: null,
   tab: 'math',
   answers: { math: {}, physics: {}, chemistry: {} },
 };
@@ -255,7 +277,7 @@ function draftKey() {
 }
 function saveDraft() {
   try {
-    localStorage.setItem(draftKey(), JSON.stringify({ set: state.set, answers: state.answers, ts: Date.now() }));
+    localStorage.setItem(draftKey(), JSON.stringify({ mathSet: state.mathSet, physChemSet: state.physChemSet, answers: state.answers, ts: Date.now() }));
     const b = document.getElementById('saveBadge');
     if (b) b.textContent = 'Draft saved · ' + new Date().toLocaleTimeString();
   } catch (e) {}
@@ -289,7 +311,7 @@ async function loadExams() {
       el.innerHTML = `
         <div class="eyebrow">WBJEE Evaluator</div>
         <div style="font-family:var(--font-display); font-weight:700; font-size:1.3rem; margin:8px 0;">${ex.name}</div>
-        <div style="font-size:13px; color:var(--ink-mute);">155 questions · 4 sets</div>
+        <div style="font-size:13px; color:var(--ink-mute);">155 questions · Dual sets</div>
         <div style="margin-top:14px;"><span class="btn-rust btn-sm">Start <i class="fas fa-arrow-right"></i></span></div>
       `;
       el.onclick = () => chooseExam(ex.id, ex.name);
@@ -304,37 +326,59 @@ async function loadExams() {
 async function chooseExam(examId, name) {
   state.examId = examId;
   state.examName = name;
-  // Check if already submitted
   try {
     const res = await fetch(`${EVALUATOR_API}/api/result/${examId}`, {
       headers: { Authorization: `Bearer ${state.idToken}` }
     });
     if (res.ok) {
-      // already submitted -> show "already" view with link to result page
       document.getElementById('viewResultLink').href = `result.html?examId=${encodeURIComponent(examId)}`;
       show('alreadyView');
       return;
     }
   } catch {}
-  // Load any draft for this exam
+  
+  document.querySelectorAll('.set-card-mini').forEach(btn => btn.classList.remove('active'));
+  state.mathSet = null;
+  state.physChemSet = null;
+
   const draft = loadDraft();
   if (draft) {
-    state.set = draft.set || null;
+    state.mathSet = draft.mathSet || null;
+    state.physChemSet = draft.physChemSet || null;
     state.answers = draft.answers || { math: {}, physics: {}, chemistry: {} };
+    if (state.mathSet) selectMathSet(state.mathSet);
+    if (state.physChemSet) selectPhysChemSet(state.physChemSet);
   }
   show('pickSetView');
 }
 
-// ===== Step 2: Set =====
-function chooseSet(s) {
-  state.set = s;
+// ===== Step 2: Set Selector =====
+function selectMathSet(set) {
+  state.mathSet = set;
+  document.querySelectorAll('[id^="mathSetBtn"]').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `mathSetBtn${set}`);
+  });
+}
+
+function selectPhysChemSet(set) {
+  state.physChemSet = set;
+  document.querySelectorAll('[id^="pcSetBtn"]').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `pcSetBtn${set}`);
+  });
+}
+
+function confirmSets() {
+  if (!state.mathSet || !state.physChemSet) {
+    toast('Please select sets for both papers');
+    return;
+  }
   saveDraft();
   startEntry();
 }
 
 // ===== Step 3: Answer entry =====
 function startEntry() {
-  document.getElementById('entryMeta').textContent = `${state.examName} · Set ${state.set}`;
+  document.getElementById('entryMeta').textContent = `${state.examName} · Math Set: ${state.mathSet} · Phys-Chem Set: ${state.physChemSet}`;
   state.tab = 'math';
   renderTabs();
   renderGrid();
@@ -469,7 +513,12 @@ async function doSubmit() {
     const res = await fetch(`${EVALUATOR_API}/api/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ examId: state.examId, set: state.set, answers: state.answers })
+      body: JSON.stringify({
+        examId: state.examId,
+        mathSet: state.mathSet,
+        physChemSet: state.physChemSet,
+        answers: state.answers
+      })
     });
     if (res.status === 409) {
       toast('You have already submitted this exam');

@@ -13,7 +13,9 @@ router.get('/:examId', verifyToken, async (req, res) => {
     const data = snap.data();
     res.json({
       examId,
-      set: data.set,
+      set: data.set || data.mathSet,
+      mathSet: data.mathSet,
+      physChemSet: data.physChemSet,
       scores: data.scores,
       analytics: data.analytics,
       perSubject: data.perSubject,

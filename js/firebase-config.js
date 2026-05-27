@@ -14,4 +14,4 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // Evaluator API base URL (update after deploying to Render)
-window.EVALUATOR_API = 'http://localhost:3000';
+window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';

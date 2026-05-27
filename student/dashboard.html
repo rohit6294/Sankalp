@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Sankalp WBJEE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+</head>
+<body>
+
+<!-- Mobile menu toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="dashboard.html" class="sidebar-link active"><i class="fas fa-home" style="width:18px"></i> Dashboard</a>
+    <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> My Courses</a>
+    <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Mock Tests</a>
+    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Counseling</a>
+    <a href="leaderboard.html" class="sidebar-link"><i class="fas fa-trophy" style="width:18px"></i> Leaderboard</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+  <!-- User info at bottom -->
+  <div style="position:absolute; bottom:0; left:0; right:0; padding:16px 22px; border-top:1px solid var(--ink);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="avatarSidebar" class="brand-mark" style="width:34px; height:34px; font-size:14px;">?</div>
+      <div style="overflow:hidden;">
+        <div id="sidebarName" style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading...</div>
+        <div id="sidebarEmail" style="font-size:11px; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:32px;">
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="display-lg">Good morning, <span id="userName" class="rust-accent">Student</span></h1>
+      <p style="color:var(--ink-mute); font-size:14px; margin-top:4px;">Continue your WBJEE preparation journey</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="badge badge-warning"><i class="fas fa-fire" style="font-size:11px;"></i> <span id="streakCount">0 day streak</span></div>
+      <div class="badge badge-ink"><i class="fas fa-bolt" style="font-size:11px;"></i> <span id="xpCount">0 XP</span></div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stat-row" style="margin-bottom:28px;">
+    <div class="stat-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <span class="eyebrow">Modules Done</span>
+        <i class="fas fa-check-circle" style="color:var(--rust);"></i>
+      </div>
+      <div id="modulesCompleted" class="stat-number" style="font-size:2rem;">0</div>
+      <div style="font-size:12px; color:var(--ink-mute); margin-top:4px;">of 123 total modules</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <span class="eyebrow">Tests Taken</span>
+        <i class="fas fa-clipboard-check" style="color:var(--forest);"></i>
+      </div>
+      <div id="testsTaken" class="stat-number" style="font-size:2rem;">0</div>
+      <div style="font-size:12px; color:var(--ink-mute); margin-top:4px;">mock tests attempted</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <span class="eyebrow">Avg Score</span>
+        <i class="fas fa-chart-line" style="color:var(--rust);"></i>
+      </div>
+      <div id="avgScore" class="stat-number" style="font-size:2rem;">—</div>
+      <div style="font-size:12px; color:var(--ink-mute); margin-top:4px;">across all mock tests</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <span class="eyebrow">Study Time</span>
+        <i class="fas fa-clock" style="color:var(--forest);"></i>
+      </div>
+      <div class="stat-number" style="font-size:2rem;" id="studyTime">0h</div>
+      <div style="font-size:12px; color:var(--ink-mute); margin-top:4px;">total this week</div>
+    </div>
+  </div>
+  <!-- Evaluate CTA -->
+  <a href="evaluate.html" style="text-decoration:none; display:block; margin-bottom:24px;">
+    <div style="border:1px solid var(--ink); padding:24px 28px; background:var(--ink); color:var(--paper); display:flex; align-items:center; justify-content:space-between; gap:16px; transition:all 0.15s;" onmouseover="this.style.boxShadow='6px 6px 0 var(--rust)'" onmouseout="this.style.boxShadow='none'">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="width:48px; height:48px; background:var(--rust); display:flex; align-items:center; justify-content:center; font-size:22px;">📝</div>
+        <div>
+          <div style="font-family:var(--font-display); font-weight:800; font-size:1.1rem;">Evaluate your WBJEE Response Sheet</div>
+          <div style="font-size:13px; color:rgba(234,219,192,0.6); margin-top:4px;">Enter your answers → get instant marks, rank prediction & community ranking</div>
+        </div>
+      </div>
+      <div style="font-size:24px; color:var(--rust); flex-shrink:0;"><i class="fas fa-arrow-right"></i></div>
+    </div>
+  </a>
+
+  <!-- Two column layout -->
+  <div style="display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start;">
+    <!-- Left -->
+    <div>
+      <!-- Continue Learning -->
+      <div style="border:1px solid var(--ink); padding:28px; margin-bottom:24px; background:var(--paper-soft);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+          <h2 class="display-md" style="font-size:1.1rem;">Continue Learning</h2>
+          <a href="courses.html" style="font-size:13px; color:var(--rust); font-weight:700;">View all →</a>
+        </div>
+        <!-- Continue card -->
+        <div style="border:1px solid var(--ink); padding:20px; margin-bottom:16px; background:var(--paper);">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div class="subject-icon rust" style="width:52px; height:52px; font-size:1.6rem;">P</div>
+              <div>
+                <div class="eyebrow" style="margin-bottom:4px;">Physics · Chapter 12</div>
+                <div style="font-size:16px; font-weight:700; font-family:var(--font-display); margin-bottom:6px;">Electrostatics — Coulomb's Law</div>
+                <div style="font-size:12px; color:var(--ink-mute);">Interactive Module · 15 min remaining</div>
+              </div>
+            </div>
+            <a href="module.html" class="btn-rust btn-sm">
+              <i class="fas fa-play"></i> Continue
+            </a>
+          </div>
+          <div style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--ink-mute); margin-bottom:6px;">
+              <span>Progress</span><span>65%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:65%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Subject progress bars -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; border:1px solid var(--ink);">
+          <div style="padding:16px; border-right:1px solid var(--ink);">
+            <div class="subject-icon rust" style="width:32px; height:32px; font-size:1rem; margin-bottom:8px;">P</div>
+            <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Physics</div>
+            <div class="progress-bar" style="margin-bottom:4px;"><div class="progress-fill" id="physicsBar" style="width:0%;"></div></div>
+            <div style="font-size:11px; color:var(--ink-mute); font-family:var(--font-mono);" id="physicsPercent">0%</div>
+          </div>
+          <div style="padding:16px; border-right:1px solid var(--ink);">
+            <div class="subject-icon forest" style="width:32px; height:32px; font-size:1rem; margin-bottom:8px;">C</div>
+            <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Chemistry</div>
+            <div class="progress-bar" style="margin-bottom:4px;"><div class="progress-fill" id="chemBar" style="width:0%;"></div></div>
+            <div style="font-size:11px; color:var(--ink-mute); font-family:var(--font-mono);" id="chemPercent">0%</div>
+          </div>
+          <div style="padding:16px;">
+            <div class="subject-icon ink" style="width:32px; height:32px; font-size:1rem; margin-bottom:8px;">M</div>
+            <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Maths</div>
+            <div class="progress-bar" style="margin-bottom:4px;"><div class="progress-fill" id="mathBar" style="width:0%;"></div></div>
+            <div style="font-size:11px; color:var(--ink-mute); font-family:var(--font-mono);" id="mathPercent">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
+        <h2 class="display-md" style="font-size:1.1rem; margin-bottom:20px;">Recent Activity</h2>
+        <div id="activityList">
+          <div style="text-align:center; padding:32px; color:var(--ink-mute);">
+            <i class="fas fa-history" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.3;"></i>
+            No activity yet. Start a module!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div>
+      <!-- XP & Level -->
+      <div style="border:1px solid var(--ink); padding:28px; margin-bottom:24px; background:var(--ink); color:var(--paper);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div>
+            <div class="eyebrow" style="color:var(--rust); margin-bottom:6px;">Your Level</div>
+            <div style="font-family:var(--font-display); font-size:1.3rem; font-weight:800;" id="levelName">Beginner 🌱</div>
+          </div>
+          <div style="width:52px; height:52px; border-radius:50%; background:var(--rust); display:flex; align-items:center; justify-content:center; font-size:24px;" id="levelIcon">🌱</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:rgba(234,219,192,0.6); margin-bottom:6px;">
+          <span>XP Progress</span><span><span id="xpCurrent">0</span> / <span id="xpNext">100</span> XP</span>
+        </div>
+        <div class="progress-bar" style="border-color:rgba(234,219,192,0.3);"><div class="progress-fill" id="xpBar" style="width:0%;"></div></div>
+        <div style="margin-top:12px; font-size:12px; color:rgba(234,219,192,0.5);">Complete modules to earn XP and level up!</div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="border:1px solid var(--ink); padding:28px; margin-bottom:24px; background:var(--paper-soft);">
+        <h2 style="font-size:15px; font-weight:700; margin-bottom:16px; font-family:var(--font-display);">Quick Actions</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--ink);">
+          <a href="mock-test.html" class="lift" style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:20px 12px; text-decoration:none; color:var(--ink); border-right:1px solid var(--ink); border-bottom:1px solid var(--ink); background:var(--paper); transition:all 0.15s;">
+            <span style="font-size:22px;">📝</span>
+            <span style="font-size:12px; font-weight:700; text-align:center; letter-spacing:0.1em; text-transform:uppercase;">Mock Test</span>
+          </a>
+          <a href="notes.html" class="lift" style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:20px 12px; text-decoration:none; color:var(--ink); border-bottom:1px solid var(--ink); background:var(--paper); transition:all 0.15s;">
+            <span style="font-size:22px;">📚</span>
+            <span style="font-size:12px; font-weight:700; text-align:center; letter-spacing:0.1em; text-transform:uppercase;">Get Notes</span>
+          </a>
+          <a href="module.html" class="lift" style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:20px 12px; text-decoration:none; color:var(--ink); border-right:1px solid var(--ink); background:var(--paper); transition:all 0.15s;">
+            <span style="font-size:22px;">⚡</span>
+            <span style="font-size:12px; font-weight:700; text-align:center; letter-spacing:0.1em; text-transform:uppercase;">Learn Now</span>
+          </a>
+          <a href="counseling.html" class="lift" style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:20px 12px; text-decoration:none; color:var(--ink); background:var(--paper); transition:all 0.15s;">
+            <span style="font-size:22px;">🎯</span>
+            <span style="font-size:12px; font-weight:700; text-align:center; letter-spacing:0.1em; text-transform:uppercase;">Counseling</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Upcoming tests -->
+      <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
+        <h2 style="font-size:15px; font-weight:700; margin-bottom:16px; font-family:var(--font-display);">Upcoming Mock Tests</h2>
+        <div style="display:flex; flex-direction:column; gap:0;">
+          <div style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--rule);">
+            <div class="subject-icon rust" style="width:40px; height:40px; font-size:1.1rem;">T</div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13px; font-weight:700;">Full Mock Test #13</div>
+              <div style="font-size:11px; color:var(--ink-mute);">Physics + Chemistry + Maths</div>
+            </div>
+            <div style="text-align:right; flex-shrink:0;">
+              <div style="font-size:11px; font-weight:700; color:var(--rust);">Sunday</div>
+              <div style="font-size:11px; color:var(--ink-mute);">3 hrs</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; padding:14px 0;">
+            <div class="subject-icon forest" style="width:40px; height:40px; font-size:1.1rem;">P</div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13px; font-weight:700;">Physics Chapter Test</div>
+              <div style="font-size:11px; color:var(--ink-mute);">Electrostatics only</div>
+            </div>
+            <div style="text-align:right; flex-shrink:0;">
+              <div style="font-size:11px; font-weight:700; color:var(--forest);">Tomorrow</div>
+              <div style="font-size:11px; color:var(--ink-mute);">1 hr</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+
+  function logout() {
+    auth.signOut().then(() => window.location.href = '../login.html');
+  }
+
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = '../login.html'; return; }
+
+    const firstName = (user.displayName || 'Student').split(' ')[0];
+    document.getElementById('userName').textContent = firstName;
+    document.querySelector('h1').innerHTML = `${getGreeting()}, <span id="userName" class="rust-accent">${firstName}</span>`;
+
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+    document.getElementById('sidebarEmail').textContent = user.email;
+
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        const xp = data.xp || 0;
+        const streak = data.streak || 0;
+        const modules = (data.completedModules || []).length;
+
+        document.getElementById('streakCount').textContent = `${streak} day streak`;
+        document.getElementById('xpCount').textContent = `${xp} XP`;
+        document.getElementById('modulesCompleted').textContent = modules;
+
+        // XP level
+        const levels = [{name:'Beginner 🌱',icon:'🌱',max:100},{name:'Explorer 🔥',icon:'🔥',max:300},{name:'Scholar 📚',icon:'📚',max:600},{name:'Expert ⚡',icon:'⚡',max:1000},{name:'Master 🏆',icon:'🏆',max:Infinity}];
+        let level = levels[0], prevMax = 0;
+        for (let i = 0; i < levels.length; i++) {
+          if (xp < levels[i].max) { level = levels[i]; if (i > 0) prevMax = levels[i-1].max; break; }
+        }
+        document.getElementById('levelName').textContent = level.name;
+        document.getElementById('levelIcon').textContent = level.icon;
+        document.getElementById('xpCurrent').textContent = xp - prevMax;
+        document.getElementById('xpNext').textContent = level.max === Infinity ? '∞' : level.max - prevMax;
+        const pct = level.max === Infinity ? 100 : Math.round(((xp - prevMax) / (level.max - prevMax)) * 100);
+        setTimeout(() => { document.getElementById('xpBar').style.width = pct + '%'; }, 300);
+
+        // Subject progress (demo values for now)
+        setTimeout(() => {
+          document.getElementById('physicsBar').style.width = '35%';
+          document.getElementById('physicsPercent').textContent = '35%';
+          document.getElementById('chemBar').style.width = '20%';
+          document.getElementById('chemPercent').textContent = '20%';
+          document.getElementById('mathBar').style.width = '45%';
+          document.getElementById('mathPercent').textContent = '45%';
+        }, 500);
+      }
+    } catch (e) { console.error(e); }
+  });
+</script>
+</body>
+</html>

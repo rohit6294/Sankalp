@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif;min-height:100vh}
+    .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s;overflow-y:auto}
+    .admin-main{margin-left:240px;min-height:100vh}
+    .anl{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;color:#64748B;text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;margin:2px 0}
+    .anl:hover{background:rgba(79,70,229,0.1);color:#94A3B8}
+    .anl.active{background:rgba(79,70,229,0.2);color:white;border-left:3px solid #4F46E5}
+    @media(max-width:768px){.admin-sidebar{transform:translateX(-100%)}.admin-sidebar.open{transform:translateX(0)}.admin-main{margin-left:0}}
+    .glass{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px}
+    .stat-card{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;transition:transform 0.2s}
+    .stat-card:hover{transform:translateY(-2px)}
+    .btn-primary{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.2s;display:inline-flex;align-items:center;gap:8px}
+    .btn-primary:hover{opacity:0.9}
+    .btn-danger{background:rgba(239,68,68,0.15);color:#F87171;border:1px solid rgba(239,68,68,0.2);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-danger:hover{background:rgba(239,68,68,0.25)}
+    .btn-edit{background:rgba(79,70,229,0.15);color:#818CF8;border:1px solid rgba(79,70,229,0.2);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-edit:hover{background:rgba(79,70,229,0.25)}
+    .inp{width:100%;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:14px;outline:none;transition:border 0.2s}
+    .inp:focus{border-color:rgba(79,70,229,0.5)}
+    .inp option{background:#0F172A}
+    textarea.inp{resize:vertical}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+    .modal-box{background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+    .modal-box::-webkit-scrollbar{width:4px}
+    .modal-box::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.3);border-radius:4px}
+    label{display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px}
+    .form-grid{display:grid;gap:16px}
+    .type-option{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:500;color:#CBD5E1;flex:1}
+    .type-option:has(input:checked){border-color:currentColor;background:rgba(255,255,255,0.04)}
+    .type-option input{accent-color:currentColor}
+    .type-info{color:#60A5FA}
+    .type-success{color:#34D399}
+    .type-warning{color:#FBBF24}
+    .type-urgent{color:#F87171}
+    .ann-card{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:18px 20px;transition:all 0.2s;display:flex;gap:16px;align-items:flex-start}
+    .ann-card:hover{background:rgba(15,23,42,0.9);border-color:rgba(255,255,255,0.1)}
+    .ann-indicator{width:4px;border-radius:4px;min-height:60px;flex-shrink:0}
+    .toast{position:fixed;bottom:24px;right:24px;background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 20px;font-size:13px;font-weight:500;z-index:200;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s}
+    .toast.show{transform:translateY(0);opacity:1}
+    .badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:600}
+    .empty-state{text-align:center;padding:60px 20px;color:#334155}
+    .empty-state i{font-size:40px;margin-bottom:12px;display:block}
+    .modal-footer{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+    .btn-cancel{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94A3B8;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="admin-sidebar" id="adminSidebar">
+  <div style="padding:20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
+    </div>
+    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
+    <a href="students.html" class="anl"><i class="fas fa-users" style="width:16px"></i> Students</a>
+    <a href="content.html" class="anl"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
+    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
+    <a href="announcements.html" class="anl active"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
+    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
+    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
+    <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
+    <a href="../login.html" class="anl" onclick="auth.signOut()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="admin-main" style="padding:28px 32px">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;color:white">Announcements</h1>
+      <p style="font-size:13px;color:#64748B;margin-top:2px">Broadcast messages to your students</p>
+    </div>
+    <button class="btn-primary" onclick="openNewModal()">
+      <i class="fas fa-plus"></i> New Announcement
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px">
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Total Sent</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(79,70,229,0.15);display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-paper-plane" style="color:#818CF8;font-size:13px"></i>
+        </div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="statTotal">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">All time</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">This Week</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-calendar-week" style="color:#34D399;font-size:13px"></i>
+        </div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="statWeek">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Last 7 days</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Pinned</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-thumbtack" style="color:#FBBF24;font-size:13px"></i>
+        </div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="statPinned">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Currently pinned</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Urgent</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-exclamation-triangle" style="color:#F87171;font-size:13px"></i>
+        </div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="statUrgent">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Urgent alerts</div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+    <div style="position:relative;flex:1;min-width:200px">
+      <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;font-size:13px"></i>
+      <input type="text" placeholder="Search announcements…" id="searchInput" oninput="filterAnnouncements()"
+        style="width:100%;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px 10px 38px;color:#E2E8F0;font-size:13px;outline:none">
+    </div>
+    <select id="filterType" onchange="filterAnnouncements()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="">All Types</option>
+      <option value="Info">Info</option>
+      <option value="Success">Success</option>
+      <option value="Warning">Warning</option>
+      <option value="Urgent">Urgent</option>
+    </select>
+    <select id="filterTarget" onchange="filterAnnouncements()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="">All Targets</option>
+      <option value="All Students">All Students</option>
+      <option value="WBJEE 2025">WBJEE 2025</option>
+      <option value="WBJEE 2026">WBJEE 2026</option>
+      <option value="WBJEE 2027">WBJEE 2027</option>
+    </select>
+  </div>
+
+  <!-- Announcements List -->
+  <div id="annList" style="display:grid;gap:12px">
+    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading announcements…</div>
+  </div>
+</main>
+
+<!-- ===== NEW ANNOUNCEMENT MODAL ===== -->
+<div class="modal-overlay" id="annModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white" id="annModalTitle">New Announcement</h2>
+      <button onclick="closeModal()" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="annForm" onsubmit="saveAnnouncement(event)">
+      <input type="hidden" id="annId">
+      <div class="form-grid">
+        <div>
+          <label>Title *</label>
+          <input class="inp" type="text" id="annTitle" placeholder="e.g. Exam schedule update" required>
+        </div>
+        <div>
+          <label>Message *</label>
+          <textarea class="inp" id="annMessage" rows="5" placeholder="Write your announcement here. This will be visible to selected students…" required></textarea>
+        </div>
+        <div>
+          <label>Type</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <label class="type-option type-info" style="flex:1;min-width:100px">
+              <input type="radio" name="annType" value="Info" checked> <i class="fas fa-info-circle"></i> Info
+            </label>
+            <label class="type-option type-success" style="flex:1;min-width:100px">
+              <input type="radio" name="annType" value="Success"> <i class="fas fa-check-circle"></i> Success
+            </label>
+            <label class="type-option type-warning" style="flex:1;min-width:100px">
+              <input type="radio" name="annType" value="Warning"> <i class="fas fa-exclamation-circle"></i> Warning
+            </label>
+            <label class="type-option type-urgent" style="flex:1;min-width:100px">
+              <input type="radio" name="annType" value="Urgent"> <i class="fas fa-fire"></i> Urgent
+            </label>
+          </div>
+        </div>
+        <!-- Live preview -->
+        <div id="typePreview" style="padding:14px 16px;border-radius:10px;border-left:3px solid #60A5FA;background:rgba(59,130,246,0.08);font-size:13px;color:#94A3B8;display:flex;align-items:center;gap:10px">
+          <i class="fas fa-info-circle" style="color:#60A5FA"></i>
+          <span>Info announcement preview</span>
+        </div>
+        <div>
+          <label>Target Audience</label>
+          <select class="inp" id="annTarget">
+            <option value="All Students">All Students</option>
+            <option value="WBJEE 2025">WBJEE 2025</option>
+            <option value="WBJEE 2026">WBJEE 2026</option>
+            <option value="WBJEE 2027">WBJEE 2027</option>
+          </select>
+        </div>
+        <div>
+          <label class="radio-opt" style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-size:13px;color:#CBD5E1;font-weight:500">
+            <input type="checkbox" id="annPinned" style="accent-color:#FBBF24;width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;color:white">Pin to top</div>
+              <div style="font-size:11px;color:#64748B;margin-top:2px">Pinned announcements always appear first</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="annSaveBtn"><i class="fas fa-paper-plane"></i> Send Announcement</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon" style="color:#34D399"></i><span id="toastMsg">Sent!</span></div>
+
+<script>
+let allAnnouncements = [];
+let editingId = null;
+let currentUser = null;
+
+const typeColors = {
+  Info: {color:'#60A5FA', bg:'rgba(59,130,246,0.1)', border:'rgba(59,130,246,0.3)', icon:'fa-info-circle'},
+  Success: {color:'#34D399', bg:'rgba(16,185,129,0.1)', border:'rgba(16,185,129,0.3)', icon:'fa-check-circle'},
+  Warning: {color:'#FBBF24', bg:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', icon:'fa-exclamation-circle'},
+  Urgent: {color:'#F87171', bg:'rgba(239,68,68,0.1)', border:'rgba(239,68,68,0.3)', icon:'fa-fire'},
+};
+
+function fmtDate(ts){
+  if(!ts) return '—';
+  try{
+    const d=ts.toDate?ts.toDate():new Date(ts);
+    const diff = Date.now()-d.getTime();
+    if(diff<60000) return 'Just now';
+    if(diff<3600000) return Math.floor(diff/60000)+' min ago';
+    if(diff<86400000) return Math.floor(diff/3600000)+' hr ago';
+    if(diff<604800000) return Math.floor(diff/86400000)+' days ago';
+    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }catch(e){return '—';}
+}
+
+function showToast(msg, isErr=false){
+  const t=document.getElementById('toast');
+  const ic=document.getElementById('toastIcon');
+  ic.className = isErr?'fas fa-times-circle':'fas fa-check-circle';
+  ic.style.color = isErr?'#F87171':'#34D399';
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+async function loadAnnouncements(){
+  try{
+    const snap = await db.collection('announcements').orderBy('createdAt','desc').get();
+    allAnnouncements = snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ allAnnouncements=[]; }
+  updateStats();
+  renderAnnouncements(allAnnouncements);
+}
+
+function updateStats(){
+  document.getElementById('statTotal').textContent = allAnnouncements.length;
+  const weekAgo = Date.now() - 7*86400000;
+  document.getElementById('statWeek').textContent = allAnnouncements.filter(a=>{
+    try{ const d=a.createdAt?.toDate?a.createdAt.toDate():new Date(a.createdAt); return d.getTime()>weekAgo; }catch(e){return false;}
+  }).length;
+  document.getElementById('statPinned').textContent = allAnnouncements.filter(a=>a.pinned).length;
+  document.getElementById('statUrgent').textContent = allAnnouncements.filter(a=>a.type==='Urgent').length;
+}
+
+function filterAnnouncements(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const type = document.getElementById('filterType').value;
+  const target = document.getElementById('filterTarget').value;
+  const filtered = allAnnouncements.filter(a=>{
+    if(q && !a.title?.toLowerCase().includes(q) && !a.message?.toLowerCase().includes(q)) return false;
+    if(type && a.type!==type) return false;
+    if(target && a.target!==target) return false;
+    return true;
+  });
+  renderAnnouncements(filtered);
+}
+
+function renderAnnouncements(list){
+  const container = document.getElementById('annList');
+  if(!list.length){
+    container.innerHTML=`<div class="empty-state"><i class="fas fa-bullhorn"></i><div style="font-size:15px;font-weight:600;color:#475569">No announcements found</div><div style="font-size:13px;margin-top:4px">Click "+ New Announcement" to send your first one</div></div>`;
+    return;
+  }
+  // Pinned first
+  const sorted = [...list].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  container.innerHTML = sorted.map(a=>{
+    const tc = typeColors[a.type]||typeColors.Info;
+    const preview = a.message ? (a.message.length>140 ? a.message.substring(0,140)+'…' : a.message) : '';
+    return `<div class="ann-card">
+      <div class="ann-indicator" style="background:${tc.color}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+              ${a.pinned?`<span style="background:rgba(245,158,11,0.15);color:#FBBF24;border:1px solid rgba(245,158,11,0.2);padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px"><i class="fas fa-thumbtack"></i> PINNED</span>`:''}
+              <span style="background:${tc.bg};color:${tc.color};border:1px solid ${tc.border};padding:2px 10px;border-radius:100px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="fas ${tc.icon}"></i> ${a.type||'Info'}</span>
+              <span style="background:rgba(79,70,229,0.1);color:#818CF8;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:600">${a.target||'All Students'}</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:white;margin-bottom:6px">${a.title||'Untitled'}</div>
+            <div style="font-size:13px;color:#64748B;line-height:1.6">${preview}</div>
+            <div style="font-size:11px;color:#334155;margin-top:10px;display:flex;align-items:center;gap:12px">
+              <span><i class="fas fa-clock" style="margin-right:4px"></i>${fmtDate(a.createdAt)}</span>
+              ${a.sentBy?`<span><i class="fas fa-user" style="margin-right:4px"></i>${a.sentBy}</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn-edit" onclick="editAnnouncement('${a.id}')"><i class="fas fa-pen"></i></button>
+            <button class="btn-danger" onclick="deleteAnnouncement('${a.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openNewModal(){
+  editingId = null;
+  document.getElementById('annId').value = '';
+  document.getElementById('annForm').reset();
+  document.querySelector('input[name="annType"][value="Info"]').checked = true;
+  updateTypePreview();
+  document.getElementById('annModalTitle').textContent = 'New Announcement';
+  document.getElementById('annSaveBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Send Announcement';
+  document.getElementById('annModal').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('annModal').style.display = 'none';
+}
+
+function updateTypePreview(){
+  const type = document.querySelector('input[name="annType"]:checked')?.value || 'Info';
+  const tc = typeColors[type];
+  const prev = document.getElementById('typePreview');
+  prev.style.borderLeftColor = tc.color;
+  prev.style.background = tc.bg;
+  prev.innerHTML = `<i class="fas ${tc.icon}" style="color:${tc.color}"></i><span style="color:${tc.color};font-weight:600">${type}</span><span style="color:#64748B">— announcement preview</span>`;
+}
+
+document.querySelectorAll('input[name="annType"]').forEach(r=>r.addEventListener('change',updateTypePreview));
+
+async function saveAnnouncement(e){
+  e.preventDefault();
+  const btn = document.getElementById('annSaveBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…'; btn.disabled=true;
+  const id = document.getElementById('annId').value;
+  const data = {
+    title: document.getElementById('annTitle').value.trim(),
+    message: document.getElementById('annMessage').value.trim(),
+    type: document.querySelector('input[name="annType"]:checked').value,
+    target: document.getElementById('annTarget').value,
+    pinned: document.getElementById('annPinned').checked,
+    sentBy: currentUser?.email || 'admin',
+  };
+  try{
+    if(id){
+      await db.collection('announcements').doc(id).update(data);
+      showToast('Announcement updated!');
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('announcements').add(data);
+      showToast('Announcement sent!');
+    }
+    closeModal();
+    loadAnnouncements();
+  }catch(err){ showToast('Error: '+err.message, true); }
+  btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Announcement'; btn.disabled=false;
+}
+
+async function editAnnouncement(id){
+  const a = allAnnouncements.find(x=>x.id===id); if(!a)return;
+  editingId = id;
+  document.getElementById('annId').value = id;
+  document.getElementById('annTitle').value = a.title||'';
+  document.getElementById('annMessage').value = a.message||'';
+  const typeVal = a.type||'Info';
+  document.querySelector(`input[name="annType"][value="${typeVal}"]`).checked = true;
+  updateTypePreview();
+  document.getElementById('annTarget').value = a.target||'All Students';
+  document.getElementById('annPinned').checked = !!a.pinned;
+  document.getElementById('annModalTitle').textContent = 'Edit Announcement';
+  document.getElementById('annSaveBtn').innerHTML = '<i class="fas fa-save"></i> Save Changes';
+  document.getElementById('annModal').style.display = 'flex';
+}
+
+async function deleteAnnouncement(id){
+  if(!confirm('Delete this announcement? This cannot be undone.'))return;
+  try{
+    await db.collection('announcements').doc(id).delete();
+    showToast('Announcement deleted');
+    loadAnnouncements();
+  }catch(e){ showToast('Error: '+e.message, true); }
+}
+
+document.getElementById('annModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+auth.onAuthStateChanged(user=>{
+  if(!user){window.location.href='../login.html';return;}
+  currentUser = user;
+  loadAnnouncements();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif;min-height:100vh}
+    .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s;overflow-y:auto}
+    .admin-main{margin-left:240px;min-height:100vh}
+    .anl{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;color:#64748B;text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;margin:2px 0}
+    .anl:hover{background:rgba(79,70,229,0.1);color:#94A3B8}
+    .anl.active{background:rgba(79,70,229,0.2);color:white;border-left:3px solid #4F46E5}
+    @media(max-width:768px){.admin-sidebar{transform:translateX(-100%)}.admin-sidebar.open{transform:translateX(0)}.admin-main{margin-left:0}}
+    .glass{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px}
+    .stat-card{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;transition:transform 0.2s}
+    .stat-card:hover{transform:translateY(-2px)}
+    .inp{width:100%;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:14px;outline:none;transition:border 0.2s}
+    .inp:focus{border-color:rgba(79,70,229,0.5)}
+    .inp option{background:#0F172A}
+    textarea.inp{resize:vertical}
+    .btn-primary{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;border:none;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.2s;display:inline-flex;align-items:center;gap:7px}
+    .btn-primary:hover{opacity:0.9}
+    .btn-sm{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:4px}
+    .btn-view{background:rgba(79,70,229,0.15);color:#818CF8;border:1px solid rgba(79,70,229,0.2)}
+    .btn-view:hover{background:rgba(79,70,229,0.3)}
+    .btn-edit2{background:rgba(16,185,129,0.12);color:#34D399;border:1px solid rgba(16,185,129,0.2)}
+    .btn-edit2:hover{background:rgba(16,185,129,0.25)}
+    .btn-msg{background:rgba(59,130,246,0.12);color:#60A5FA;border:1px solid rgba(59,130,246,0.2)}
+    .btn-msg:hover{background:rgba(59,130,246,0.25)}
+    .btn-del{background:rgba(239,68,68,0.12);color:#F87171;border:1px solid rgba(239,68,68,0.2)}
+    .btn-del:hover{background:rgba(239,68,68,0.25)}
+    .btn-ghost{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94A3B8;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s}
+    .btn-ghost:hover{background:rgba(255,255,255,0.08)}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+    .modal-box{background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+    .modal-box.wide{max-width:680px}
+    .modal-box::-webkit-scrollbar{width:4px}
+    .modal-box::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.3);border-radius:4px}
+    label{display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px}
+    .form-grid{display:grid;gap:16px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .tbl{width:100%;border-collapse:collapse}
+    .tbl th{padding:10px 14px;font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid rgba(255,255,255,0.05);text-align:left;white-space:nowrap}
+    .tbl td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+    .tbl tr:hover td{background:rgba(255,255,255,0.02)}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
+    .badge-active{background:rgba(16,185,129,0.15);color:#34D399}
+    .badge-suspended{background:rgba(239,68,68,0.15);color:#F87171}
+    .badge-admin{background:rgba(245,158,11,0.15);color:#FBBF24}
+    .badge-student{background:rgba(79,70,229,0.15);color:#818CF8}
+    .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+    .toast{position:fixed;bottom:24px;right:24px;background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 20px;font-size:13px;font-weight:500;z-index:200;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s}
+    .toast.show{transform:translateY(0);opacity:1}
+    .empty-state{text-align:center;padding:60px 20px;color:#334155}
+    .empty-state i{font-size:40px;margin-bottom:12px;display:block}
+    .pager-btn{background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);color:#94A3B8;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:12px;transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center}
+    .pager-btn:hover:not(:disabled){background:rgba(79,70,229,0.2);color:white;border-color:rgba(79,70,229,0.3)}
+    .pager-btn:disabled{opacity:0.3;cursor:not-allowed}
+    .pager-num{background:rgba(79,70,229,0.2);color:#818CF8;border:1px solid rgba(79,70,229,0.3);width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+    .detail-row:last-child{border-bottom:none}
+    .modal-footer{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+    .btn-cancel{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94A3B8;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="admin-sidebar" id="adminSidebar">
+  <div style="padding:20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
+    </div>
+    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
+    <a href="students.html" class="anl active"><i class="fas fa-users" style="width:16px"></i> Students</a>
+    <a href="content.html" class="anl"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
+    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
+    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
+    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
+    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
+    <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
+    <a href="../login.html" class="anl" onclick="auth.signOut()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="admin-main" style="padding:28px 32px">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;color:white">Students</h1>
+      <p style="font-size:13px;color:#64748B;margin-top:2px">Manage student accounts and monitor progress</p>
+    </div>
+    <button class="btn-primary" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:28px">
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Total</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(79,70,229,0.15);display:flex;align-items:center;justify-content:center"><i class="fas fa-users" style="color:#818CF8;font-size:13px"></i></div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="statTotal">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Registered students</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Active Today</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center"><i class="fas fa-circle" style="color:#34D399;font-size:10px"></i></div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="statActive">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Active status</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">WBJEE 2026</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center"><i class="fas fa-calendar" style="color:#60A5FA;font-size:12px"></i></div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="stat2026">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Targeting 2026</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">WBJEE 2025</span>
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(168,85,247,0.15);display:flex;align-items:center;justify-content:center"><i class="fas fa-graduation-cap" style="color:#C084FC;font-size:12px"></i></div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:white" id="stat2025">—</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px">Targeting 2025</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="position:relative;flex:1;min-width:220px">
+      <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;font-size:13px"></i>
+      <input type="text" id="searchInput" placeholder="Search by name or email…" oninput="applyFilters()"
+        style="width:100%;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px 10px 38px;color:#E2E8F0;font-size:13px;outline:none">
+    </div>
+    <select id="filterYear" onchange="applyFilters()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="">All Years</option>
+      <option value="2025">WBJEE 2025</option>
+      <option value="2026">WBJEE 2026</option>
+      <option value="2027">WBJEE 2027</option>
+    </select>
+    <select id="filterStatus" onchange="applyFilters()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="suspended">Suspended</option>
+    </select>
+    <select id="sortBy" onchange="applyFilters()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="name">Sort: Name</option>
+      <option value="xp">Sort: XP</option>
+      <option value="streak">Sort: Streak</option>
+      <option value="joined">Sort: Joined</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="glass" style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr>
+        <th>Student</th>
+        <th>Year</th>
+        <th>XP / Level</th>
+        <th>Streak</th>
+        <th>Modules</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody id="studentsBody">
+        <tr><td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading students…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:12px">
+    <div style="font-size:13px;color:#64748B" id="pagerInfo">—</div>
+    <div style="display:flex;align-items:center;gap:6px" id="pagerBtns"></div>
+  </div>
+</main>
+
+<!-- ===== VIEW MODAL ===== -->
+<div class="modal-overlay" id="viewModal" style="display:none">
+  <div class="modal-box wide">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white">Student Profile</h2>
+      <button onclick="closeModal('viewModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="viewContent"></div>
+  </div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div class="modal-overlay" id="editModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white">Edit Student</h2>
+      <button onclick="closeModal('editModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="editForm" onsubmit="saveStudent(event)">
+      <input type="hidden" id="editUid">
+      <div class="form-grid">
+        <div class="grid-2">
+          <div>
+            <label>Full Name</label>
+            <input class="inp" type="text" id="eName" placeholder="Student name">
+          </div>
+          <div>
+            <label>Phone</label>
+            <input class="inp" type="text" id="ePhone" placeholder="10-digit number">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>WBJEE Target Year</label>
+            <select class="inp" id="eYear">
+              <option value="">Not set</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+          <div>
+            <label>Role</label>
+            <select class="inp" id="eRole">
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>XP Points (admin set)</label>
+            <input class="inp" type="number" id="eXp" placeholder="0" min="0">
+          </div>
+          <div>
+            <label>Status</label>
+            <select class="inp" id="eStatus">
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="editSaveBtn"><i class="fas fa-save"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MESSAGE MODAL ===== -->
+<div class="modal-overlay" id="msgModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white">Send Message</h2>
+      <button onclick="closeModal('msgModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="msgStudentInfo" style="background:rgba(79,70,229,0.08);border:1px solid rgba(79,70,229,0.15);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#94A3B8"></div>
+    <form id="msgForm" onsubmit="sendMessage(event)">
+      <input type="hidden" id="msgUid">
+      <input type="hidden" id="msgStudentName">
+      <div class="form-grid">
+        <div>
+          <label>Message Title *</label>
+          <input class="inp" type="text" id="msgTitle" placeholder="e.g. Study reminder" required>
+        </div>
+        <div>
+          <label>Message *</label>
+          <textarea class="inp" id="msgBody" rows="4" placeholder="Write your personal message…" required></textarea>
+        </div>
+        <div>
+          <label>Type</label>
+          <select class="inp" id="msgType">
+            <option value="Info">Info</option>
+            <option value="Success">Success</option>
+            <option value="Warning">Warning</option>
+            <option value="Urgent">Urgent</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('msgModal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="msgSendBtn"><i class="fas fa-paper-plane"></i> Send Message</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon" style="color:#34D399"></i><span id="toastMsg">Done!</span></div>
+
+<script>
+let allStudents = [];
+let filteredStudents = [];
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let currentAdmin = null;
+
+const DEMO_STUDENTS = [
+  {id:'demo1',name:'Arjun Sharma',email:'arjun@example.com',wbjeeYear:'2026',xp:4200,level:8,streak:14,modulesCompleted:32,status:'active',role:'student',phone:'9876543210',joinedAt:null},
+  {id:'demo2',name:'Priya Das',email:'priya@example.com',wbjeeYear:'2026',xp:5800,level:11,streak:28,modulesCompleted:58,status:'active',role:'student',phone:'9123456789',joinedAt:null},
+  {id:'demo3',name:'Rahul Mondal',email:'rahul@example.com',wbjeeYear:'2025',xp:7100,level:14,streak:5,modulesCompleted:71,status:'active',role:'student',phone:'8765432109',joinedAt:null},
+  {id:'demo4',name:'Sneha Roy',email:'sneha@example.com',wbjeeYear:'2027',xp:1900,level:4,streak:3,modulesCompleted:18,status:'active',role:'student',phone:'7654321098',joinedAt:null},
+  {id:'demo5',name:'Koustav Ghosh',email:'koustav@example.com',wbjeeYear:'2026',xp:3300,level:7,streak:0,modulesCompleted:28,status:'suspended',role:'student',phone:'6543210987',joinedAt:null},
+];
+
+const avatarColors=['#4F46E5','#7C3AED','#0EA5E9','#EC4899','#F59E0B','#10B981','#EF4444'];
+function getAvatarColor(str){ let h=0; for(let c of(str||'')) h=(h*31+c.charCodeAt(0))%avatarColors.length; return avatarColors[h]; }
+function getInitials(name){ if(!name)return'?'; const p=name.trim().split(' '); return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():p[0].substring(0,2).toUpperCase(); }
+
+function showToast(msg, isErr=false){
+  const t=document.getElementById('toast');
+  const ic=document.getElementById('toastIcon');
+  ic.className=isErr?'fas fa-times-circle':'fas fa-check-circle';
+  ic.style.color=isErr?'#F87171':'#34D399';
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+function fmtDate(ts){
+  if(!ts)return'—';
+  try{ const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'}); }catch(e){return'—';}
+}
+
+function calcLevel(xp){ return Math.max(1,Math.floor(Math.sqrt((xp||0)/100))+1); }
+
+async function loadStudents(){
+  try{
+    const snap = await db.collection('users').get();
+    if(snap.empty){
+      allStudents = DEMO_STUDENTS;
+    } else {
+      allStudents = snap.docs.map(d=>({id:d.id,...d.data()}));
+    }
+  }catch(e){ allStudents=DEMO_STUDENTS; }
+  updateStats();
+  applyFilters();
+}
+
+function updateStats(){
+  document.getElementById('statTotal').textContent = allStudents.length;
+  document.getElementById('statActive').textContent = allStudents.filter(s=>s.status==='active'||!s.status).length;
+  document.getElementById('stat2026').textContent = allStudents.filter(s=>String(s.wbjeeYear)==='2026').length;
+  document.getElementById('stat2025').textContent = allStudents.filter(s=>String(s.wbjeeYear)==='2025').length;
+}
+
+function applyFilters(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  const year=document.getElementById('filterYear').value;
+  const status=document.getElementById('filterStatus').value;
+  const sort=document.getElementById('sortBy').value;
+
+  filteredStudents = allStudents.filter(s=>{
+    if(q && !s.name?.toLowerCase().includes(q) && !s.email?.toLowerCase().includes(q)) return false;
+    if(year && String(s.wbjeeYear)!==year) return false;
+    if(status){
+      const st=s.status||'active';
+      if(status==='active'&&st!=='active') return false;
+      if(status==='suspended'&&st!=='suspended') return false;
+    }
+    return true;
+  });
+
+  filteredStudents.sort((a,b)=>{
+    if(sort==='xp') return (b.xp||0)-(a.xp||0);
+    if(sort==='streak') return (b.streak||0)-(a.streak||0);
+    if(sort==='joined'){
+      try{ const da=a.joinedAt?.toDate?a.joinedAt.toDate():new Date(a.joinedAt||0); const db2=b.joinedAt?.toDate?b.joinedAt.toDate():new Date(b.joinedAt||0); return db2-da; }catch(e){return 0;}
+    }
+    return (a.name||'').localeCompare(b.name||'');
+  });
+
+  currentPage = 1;
+  renderPage();
+}
+
+function renderPage(){
+  const start=(currentPage-1)*PAGE_SIZE;
+  const pageItems = filteredStudents.slice(start, start+PAGE_SIZE);
+  const tbody = document.getElementById('studentsBody');
+
+  if(!pageItems.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-user-slash"></i><div style="font-size:15px;font-weight:600;color:#475569">No students found</div><div style="font-size:12px;margin-top:4px">Try adjusting your filters</div></div></td></tr>`;
+    document.getElementById('pagerInfo').textContent='No results';
+    document.getElementById('pagerBtns').innerHTML='';
+    return;
+  }
+
+  tbody.innerHTML = pageItems.map(s=>{
+    const name=s.name||s.displayName||'Unknown';
+    const email=s.email||'—';
+    const year=s.wbjeeYear||'—';
+    const xp=s.xp||0;
+    const level=s.level||calcLevel(xp);
+    const streak=s.streak||0;
+    const modules=s.modulesCompleted||0;
+    const status=s.status||'active';
+    const role=s.role||'student';
+    const bg=getAvatarColor(name);
+    const init=getInitials(name);
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar" style="background:${bg}">${init}</div>
+        <div>
+          <div style="font-weight:600;color:white;font-size:13px">${name}</div>
+          <div style="font-size:11px;color:#64748B">${email}</div>
+        </div>
+      </div></td>
+      <td><span style="background:rgba(79,70,229,0.1);color:#818CF8;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">${year!=='—'?'WBJEE '+year:year}</span></td>
+      <td>
+        <div style="font-weight:700;color:white;font-size:13px">${xp.toLocaleString()} XP</div>
+        <div style="font-size:11px;color:#64748B;margin-top:2px">Level ${level}</div>
+      </td>
+      <td><div style="display:flex;align-items:center;gap:5px"><span style="font-size:14px">${streak>0?'🔥':'—'}</span><span style="font-weight:600;color:${streak>0?'#FBBF24':'#475569'}">${streak>0?streak+' days':0}</span></div></td>
+      <td style="font-weight:600;color:#818CF8">${modules}</td>
+      <td><span class="badge ${status==='active'?'badge-active':'badge-suspended'}">${status}</span>
+        ${role==='admin'?'<span class="badge badge-admin" style="margin-left:4px">admin</span>':''}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn-sm btn-view" onclick="viewStudent('${s.id}')"><i class="fas fa-eye"></i></button>
+        <button class="btn-sm btn-edit2" onclick="openEdit('${s.id}')"><i class="fas fa-pen"></i></button>
+        <button class="btn-sm btn-msg" onclick="openMsg('${s.id}')"><i class="fas fa-paper-plane"></i></button>
+        <button class="btn-sm btn-del" onclick="deleteStudent('${s.id}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  // Pager info
+  const total = filteredStudents.length;
+  const totalPages = Math.ceil(total/PAGE_SIZE);
+  document.getElementById('pagerInfo').textContent = `Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total} students`;
+
+  // Pager buttons
+  const pager = document.getElementById('pagerBtns');
+  let btns = `<button class="pager-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-chevron-left"></i></button>`;
+  for(let i=1;i<=totalPages;i++){
+    if(i===currentPage) btns+=`<span class="pager-num">${i}</span>`;
+    else if(i===1||i===totalPages||Math.abs(i-currentPage)<=1) btns+=`<button class="pager-btn" onclick="goPage(${i})">${i}</button>`;
+    else if(Math.abs(i-currentPage)===2) btns+=`<span style="color:#334155;padding:0 4px">…</span>`;
+  }
+  btns+=`<button class="pager-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}><i class="fas fa-chevron-right"></i></button>`;
+  pager.innerHTML = btns;
+}
+
+function goPage(p){
+  const total = Math.ceil(filteredStudents.length/PAGE_SIZE);
+  if(p<1||p>total) return;
+  currentPage=p; renderPage();
+}
+
+function viewStudent(id){
+  const s=allStudents.find(x=>x.id===id); if(!s) return;
+  const name=s.name||s.displayName||'Unknown';
+  const email=s.email||'—';
+  const xp=s.xp||0;
+  const level=s.level||calcLevel(xp);
+  const bg=getAvatarColor(name);
+  const init=getInitials(name);
+  const rows = [
+    ['Email', email],
+    ['Phone', s.phone||'—'],
+    ['WBJEE Year', s.wbjeeYear?'WBJEE '+s.wbjeeYear:'Not set'],
+    ['Role', s.role||'student'],
+    ['XP Points', (xp).toLocaleString()+' XP'],
+    ['Level', 'Level '+level],
+    ['Streak', (s.streak||0)+' days'],
+    ['Modules Completed', s.modulesCompleted||0],
+    ['Status', s.status||'active'],
+    ['Joined', fmtDate(s.joinedAt||s.createdAt)],
+  ];
+  document.getElementById('viewContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div class="avatar" style="width:56px;height:56px;background:${bg};font-size:20px;font-weight:800">${init}</div>
+      <div>
+        <div style="font-size:19px;font-weight:700;color:white">${name}</div>
+        <div style="font-size:13px;color:#64748B;margin-top:2px">${email}</div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge ${s.status==='suspended'?'badge-suspended':'badge-active'}">${s.status||'active'}</span>
+          <span class="badge badge-student">${s.role||'student'}</span>
+          ${s.wbjeeYear?`<span style="background:rgba(79,70,229,0.15);color:#818CF8;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">WBJEE ${s.wbjeeYear}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:rgba(79,70,229,0.08);border:1px solid rgba(79,70,229,0.15);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:#818CF8">${xp.toLocaleString()}</div>
+        <div style="font-size:11px;color:#64748B;margin-top:2px">XP Points</div>
+      </div>
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:#FBBF24">${s.streak||0} 🔥</div>
+        <div style="font-size:11px;color:#64748B;margin-top:2px">Day Streak</div>
+      </div>
+    </div>
+    <div style="background:rgba(15,23,42,0.5);border-radius:12px;padding:4px 16px">
+      ${rows.map(([k,v])=>`<div class="detail-row"><span style="font-size:13px;color:#64748B;font-weight:500">${k}</span><span style="font-size:13px;color:white;font-weight:600">${v}</span></div>`).join('')}
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('viewModal')">Close</button>
+      <button class="btn-primary" onclick="closeModal('viewModal');openEdit('${id}')"><i class="fas fa-pen"></i> Edit Student</button>
+    </div>`;
+  document.getElementById('viewModal').style.display='flex';
+}
+
+function openEdit(id){
+  const s=allStudents.find(x=>x.id===id); if(!s)return;
+  document.getElementById('editUid').value=id;
+  document.getElementById('eName').value=s.name||s.displayName||'';
+  document.getElementById('ePhone').value=s.phone||'';
+  document.getElementById('eYear').value=s.wbjeeYear||'';
+  document.getElementById('eRole').value=s.role||'student';
+  document.getElementById('eXp').value=s.xp||0;
+  document.getElementById('eStatus').value=s.status||'active';
+  document.getElementById('editModal').style.display='flex';
+}
+
+async function saveStudent(e){
+  e.preventDefault();
+  const btn=document.getElementById('editSaveBtn');
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving…'; btn.disabled=true;
+  const id=document.getElementById('editUid').value;
+  const data={
+    name:document.getElementById('eName').value.trim(),
+    phone:document.getElementById('ePhone').value.trim(),
+    wbjeeYear:document.getElementById('eYear').value,
+    role:document.getElementById('eRole').value,
+    xp:parseInt(document.getElementById('eXp').value)||0,
+    status:document.getElementById('eStatus').value,
+  };
+  data.level = calcLevel(data.xp);
+  try{
+    await db.collection('users').doc(id).update(data);
+    // Update local cache
+    const idx=allStudents.findIndex(x=>x.id===id);
+    if(idx>=0) allStudents[idx]={...allStudents[idx],...data};
+    showToast('Student updated!');
+    closeModal('editModal');
+    updateStats(); applyFilters();
+  }catch(err){ showToast('Error: '+err.message,true); }
+  btn.innerHTML='<i class="fas fa-save"></i> Save Changes'; btn.disabled=false;
+}
+
+function openMsg(id){
+  const s=allStudents.find(x=>x.id===id); if(!s)return;
+  const name=s.name||s.displayName||'Student';
+  document.getElementById('msgUid').value=id;
+  document.getElementById('msgStudentName').value=name;
+  document.getElementById('msgForm').reset();
+  document.getElementById('msgUid').value=id;
+  document.getElementById('msgStudentName').value=name;
+  document.getElementById('msgStudentInfo').innerHTML=`<i class="fas fa-user-circle" style="margin-right:8px;color:#818CF8"></i>Sending personal message to <strong style="color:white">${name}</strong> (${s.email||'no email'})`;
+  document.getElementById('msgModal').style.display='flex';
+}
+
+async function sendMessage(e){
+  e.preventDefault();
+  const btn=document.getElementById('msgSendBtn');
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Sending…'; btn.disabled=true;
+  const uid=document.getElementById('msgUid').value;
+  const sName=document.getElementById('msgStudentName').value;
+  const data={
+    title:document.getElementById('msgTitle').value.trim(),
+    message:document.getElementById('msgBody').value.trim(),
+    type:document.getElementById('msgType').value,
+    target:'Personal',
+    targetUid:uid,
+    targetName:sName,
+    pinned:false,
+    sentBy:currentAdmin?.email||'admin',
+    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  try{
+    await db.collection('announcements').add(data);
+    showToast('Message sent to '+sName+'!');
+    closeModal('msgModal');
+  }catch(err){ showToast('Error: '+err.message,true); }
+  btn.innerHTML='<i class="fas fa-paper-plane"></i> Send Message'; btn.disabled=false;
+}
+
+async function deleteStudent(id){
+  const s=allStudents.find(x=>x.id===id);
+  const name=s?.name||s?.displayName||'this student';
+  if(!confirm(`Delete ${name}? This permanently removes their account data and cannot be undone.`))return;
+  try{
+    await db.collection('users').doc(id).delete();
+    allStudents=allStudents.filter(x=>x.id!==id);
+    showToast('Student deleted');
+    updateStats(); applyFilters();
+  }catch(e){ showToast('Error: '+e.message,true); }
+}
+
+function exportCSV(){
+  const headers=['Name','Email','Phone','WBJEE Year','XP','Level','Streak','Modules','Status','Role'];
+  const rows=filteredStudents.map(s=>[
+    s.name||s.displayName||'',s.email||'',s.phone||'',
+    s.wbjeeYear||'',s.xp||0,s.level||calcLevel(s.xp||0),
+    s.streak||0,s.modulesCompleted||0,s.status||'active',s.role||'student'
+  ]);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='sankalp_students_'+Date.now()+'.csv';
+  a.click();
+  showToast('CSV exported!');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+});
+
+auth.onAuthStateChanged(user=>{
+  if(!user){window.location.href='../login.html';return;}
+  currentAdmin=user;
+  loadStudents();
+});
+</script>
+</body>
+</html>

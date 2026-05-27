@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Module — Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .step-item { cursor:pointer; border-radius:10px; padding:10px 14px; display:flex; align-items:center; gap:10px; transition:all 0.2s; margin-bottom:4px; }
+    .step-item:hover { background:rgba(79,70,229,0.1); }
+    .step-item.active { background:rgba(79,70,229,0.2); border:1px solid rgba(79,70,229,0.3); }
+    .step-item.done .step-icon { background:rgba(16,185,129,0.2); color:#34D399; }
+    .step-item.active .step-icon { background:rgba(79,70,229,0.3); color:#818CF8; }
+    .step-icon { width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+    .content-section { display:none; }
+    .content-section.active { display:block; animation:fadeInUp 0.4s ease; }
+    .quiz-opt { background:rgba(30,41,59,0.7); border:2px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px 18px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .quiz-opt:hover:not(.disabled) { border-color:#4F46E5; background:rgba(79,70,229,0.1); }
+    .quiz-opt.selected { border-color:#4F46E5; background:rgba(79,70,229,0.15); }
+    .quiz-opt.correct { border-color:#10B981; background:rgba(16,185,129,0.1); }
+    .quiz-opt.wrong { border-color:#EF4444; background:rgba(239,68,68,0.1); }
+    .opt-label { width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; flex-shrink:0; }
+    .module-panel { position:fixed; left:0; top:0; bottom:0; width:280px; background:rgba(10,15,30,0.98); border-right:1px solid rgba(255,255,255,0.06); z-index:40; overflow-y:auto; transition:transform 0.3s; }
+    .module-content { margin-left:280px; min-height:100vh; padding:32px; max-width:calc(100vw - 280px); }
+    @media(max-width:768px) { .module-panel { transform:translateX(-100%); } .module-panel.open { transform:translateX(0); } .module-content { margin-left:0; max-width:100vw; padding:20px; padding-top:64px; } }
+    .concept-card { background:linear-gradient(135deg,rgba(79,70,229,0.12),rgba(124,58,237,0.06)); border:1px solid rgba(79,70,229,0.2); border-radius:16px; padding:24px; margin-bottom:20px; }
+    .formula-highlight { background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.25); border-radius:12px; padding:18px 24px; text-align:center; font-family:'Courier New',monospace; font-size:1.15em; color:#67E8F9; margin:16px 0; }
+    .example-box { background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:14px; padding:20px; margin:16px 0; }
+    .particle { position:fixed; border-radius:50%; opacity:0.08; animation:particleFloat linear infinite; pointer-events:none; z-index:0; }
+    .progress-ring { transform:rotate(-90deg); }
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+
+<!-- Particles -->
+<div id="particles" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden"></div>
+
+<!-- Mobile toggle -->
+<button onclick="togglePanel()" style="display:none;position:fixed;top:12px;left:12px;z-index:60;background:#4F46E5;border:none;border-radius:10px;padding:10px 12px;color:white;cursor:pointer;font-size:16px" id="panelToggle">
+  <i class="fas fa-bars"></i>
+</button>
+<div onclick="togglePanel()" id="panelOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:35"></div>
+
+<!-- Left Panel: Module Outline -->
+<div class="module-panel" id="modulePanel">
+  <!-- Back -->
+  <div style="padding:20px 20px 0">
+    <a href="courses.html" style="display:flex;align-items:center;gap:6px;color:#64748B;text-decoration:none;font-size:13px;margin-bottom:20px;transition:color 0.2s" onmouseover="this.style.color='#94A3B8'" onmouseout="this.style.color='#64748B'">
+      <i class="fas fa-arrow-left"></i> Back to Courses
+    </a>
+    <div id="panelSubjectBadge" class="badge badge-primary" style="margin-bottom:10px">Physics</div>
+    <h2 id="panelTitle" style="font-size:16px;font-weight:700;line-height:1.4;margin-bottom:4px">Electrostatics — Coulomb's Law</h2>
+    <p style="font-size:12px;color:#475569;margin-bottom:16px">Interactive Module • 5 sections</p>
+    <!-- Overall progress -->
+    <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:14px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748B;margin-bottom:6px">
+        <span>Module Progress</span><span id="progressLabel">0%</span>
+      </div>
+      <div class="progress-bar"><div id="overallProgress" class="progress-fill" style="width:0%;transition:width 0.5s"></div></div>
+    </div>
+  </div>
+
+  <!-- Steps -->
+  <div style="padding:0 12px 80px" id="stepsList"></div>
+
+  <!-- Bottom: XP preview -->
+  <div style="position:sticky;bottom:0;left:0;right:0;padding:16px 20px;background:rgba(10,15,30,0.98);border-top:1px solid rgba(255,255,255,0.05)">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center">
+        <i class="fas fa-bolt" style="color:#FCD34D;font-size:13px"></i>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#FCD34D">+50 XP on completion</div>
+        <div style="font-size:11px;color:#475569">Complete all sections</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="module-content" style="position:relative;z-index:1">
+  <div style="max-width:760px;margin:0 auto">
+    <!-- Section Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div id="sectionBadge" class="badge badge-primary" style="margin-bottom:6px">Concept</div>
+        <h1 id="sectionTitle" style="font-size:24px;font-weight:800;font-family:'Poppins',sans-serif;line-height:1.3"></h1>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="sectionCounter" style="font-size:13px;color:#475569"></span>
+      </div>
+    </div>
+
+    <!-- Content Sections -->
+    <div id="contentArea"></div>
+
+    <!-- Navigation -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.06)">
+      <button onclick="prevSection()" id="prevBtn" class="btn-secondary" style="opacity:0.4;pointer-events:none">
+        <i class="fas fa-arrow-left"></i> Previous
+      </button>
+      <button onclick="nextSection()" id="nextBtn" class="btn-primary">
+        Next <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Completion Modal -->
+<div id="completionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:none;align-items:center;justify-content:center;padding:24px">
+  <div class="glass-card p-10" style="max-width:480px;width:100%;text-align:center;background:rgba(15,23,42,0.97)">
+    <div style="font-size:72px;margin-bottom:16px;animation:float 3s ease-in-out infinite">🏆</div>
+    <h2 style="font-size:28px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:8px">Module Complete!</h2>
+    <p style="color:#64748B;margin-bottom:24px">You've mastered this section. Keep going!</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
+      <div style="background:rgba(245,158,11,0.1);border-radius:12px;padding:16px">
+        <div style="font-size:28px;font-weight:800;color:#FCD34D">+50</div>
+        <div style="font-size:12px;color:#64748B">XP Earned</div>
+      </div>
+      <div style="background:rgba(16,185,129,0.1);border-radius:12px;padding:16px">
+        <div style="font-size:28px;font-weight:800;color:#34D399" id="quizScore">—</div>
+        <div style="font-size:12px;color:#64748B">Quiz Score</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a href="courses.html" class="btn-primary" style="justify-content:center;padding:14px">
+        <i class="fas fa-book-open"></i> Continue Learning
+      </a>
+      <a href="dashboard.html" class="btn-secondary" style="justify-content:center;padding:14px">
+        <i class="fas fa-home"></i> Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Particles
+  const pc = document.getElementById('particles');
+  const colors = ['#4F46E5','#7C3AED','#F59E0B','#06B6D4'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random()*6+3;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${Math.random()*18+12}s;animation-delay:${Math.random()*10}s;`;
+    pc.appendChild(p);
+  }
+
+  // Module Data
+  const moduleData = {
+    subject: 'Physics',
+    title: "Electrostatics — Coulomb's Law",
+    sections: [
+      {
+        type: 'concept',
+        title: "What is Electrostatics?",
+        badge: 'Concept',
+        badgeClass: 'badge-primary',
+        content: `
+          <div class="concept-card">
+            <h3 style="font-size:18px;font-weight:700;margin-bottom:12px;color:#818CF8">⚡ Key Concept</h3>
+            <p style="line-height:1.8;color:#94A3B8">Electrostatics is the branch of physics that deals with the phenomena arising from stationary (or slow-moving) electric charges. Every charged particle creates an electric field around it that exerts force on other charges.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+            <div style="background:rgba(79,70,229,0.08);border-radius:14px;padding:18px">
+              <div style="font-size:24px;margin-bottom:8px">⊕</div>
+              <h4 style="font-weight:700;margin-bottom:6px;color:#818CF8">Positive Charge</h4>
+              <p style="font-size:13px;color:#64748B;line-height:1.6">Has deficit of electrons. Attracts negative charges, repels positive charges.</p>
+            </div>
+            <div style="background:rgba(239,68,68,0.08);border-radius:14px;padding:18px">
+              <div style="font-size:24px;margin-bottom:8px">⊖</div>
+              <h4 style="font-weight:700;margin-bottom:6px;color:#F87171">Negative Charge</h4>
+              <p style="font-size:13px;color:#64748B;line-height:1.6">Has excess of electrons. Attracts positive charges, repels negative charges.</p>
+            </div>
+          </div>
+          <div style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);border-radius:14px;padding:18px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <i class="fas fa-lightbulb" style="color:#67E8F9"></i>
+              <span style="font-weight:600;color:#67E8F9">Remember</span>
+            </div>
+            <p style="font-size:14px;color:#94A3B8;line-height:1.7">Like charges repel each other, while unlike charges attract. This is the fundamental principle of electrostatics.</p>
+          </div>
+        `
+      },
+      {
+        type: 'formula',
+        title: "Coulomb's Law",
+        badge: 'Formula',
+        badgeClass: 'badge-warning',
+        content: `
+          <p style="color:#94A3B8;line-height:1.8;margin-bottom:20px">Charles-Augustin de Coulomb formulated the law governing the force between two point charges. The force depends on the magnitude of charges and the distance between them.</p>
+          <div class="formula-highlight" style="font-size:1.4em;padding:24px">
+            F = k × (q₁ × q₂) / r²
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0">
+            <div style="background:rgba(30,41,59,0.6);border-radius:12px;padding:16px">
+              <div style="font-size:12px;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Variables</div>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;gap:8px"><span style="color:#818CF8;font-weight:600;min-width:20px">F</span><span style="color:#94A3B8">= Electrostatic Force (N)</span></div>
+                <div style="display:flex;gap:8px"><span style="color:#818CF8;font-weight:600;min-width:20px">k</span><span style="color:#94A3B8">= Coulomb's constant</span></div>
+                <div style="display:flex;gap:8px"><span style="color:#818CF8;font-weight:600;min-width:20px">q₁,q₂</span><span style="color:#94A3B8">= Charges (C)</span></div>
+                <div style="display:flex;gap:8px"><span style="color:#818CF8;font-weight:600;min-width:20px">r</span><span style="color:#94A3B8">= Distance (m)</span></div>
+              </div>
+            </div>
+            <div style="background:rgba(30,41,59,0.6);border-radius:12px;padding:16px">
+              <div style="font-size:12px;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Constants</div>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;gap:8px"><span style="color:#FCD34D;font-weight:600;min-width:20px">k</span><span style="color:#94A3B8">= 9 × 10⁹ N·m²/C²</span></div>
+                <div style="display:flex;gap:8px"><span style="color:#FCD34D;font-weight:600;min-width:20px">ε₀</span><span style="color:#94A3B8">= 8.85 × 10⁻¹² C²/N·m²</span></div>
+                <div style="display:flex;gap:8px"><span style="color:#FCD34D;font-weight:600;min-width:20px">k</span><span style="color:#94A3B8">= 1/(4πε₀)</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <i class="fas fa-exclamation-triangle" style="color:#FCD34D"></i>
+              <span style="font-weight:600;color:#FCD34D">Important Note</span>
+            </div>
+            <p style="font-size:14px;color:#94A3B8;line-height:1.7">The force is inversely proportional to the <strong style="color:#E2E8F0">square</strong> of the distance. If you double the distance, the force becomes <strong style="color:#E2E8F0">1/4th</strong>. This is the inverse square law!</p>
+          </div>
+        `
+      },
+      {
+        type: 'example',
+        title: "Worked Example",
+        badge: 'Example',
+        badgeClass: 'badge-success',
+        content: `
+          <div class="example-box" style="border-color:rgba(245,158,11,0.3)">
+            <div style="font-size:12px;color:#FCD34D;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">Problem</div>
+            <p style="color:#E2E8F0;font-size:15px;line-height:1.7">Two point charges q₁ = <strong>+3μC</strong> and q₂ = <strong>−2μC</strong> are placed <strong>10 cm</strong> apart in vacuum. Find the force between them.</p>
+          </div>
+          <div style="margin:20px 0">
+            <div style="font-size:13px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:16px">Step-by-Step Solution</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;gap:14px;align-items:flex-start">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(79,70,229,0.2);color:#818CF8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px">1</div>
+                <div>
+                  <div style="font-weight:600;margin-bottom:4px">Identify given values</div>
+                  <div style="font-size:13px;color:#94A3B8;font-family:'Courier New',monospace">q₁ = 3×10⁻⁶ C, q₂ = 2×10⁻⁶ C (magnitude), r = 0.1 m</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;align-items:flex-start">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(79,70,229,0.2);color:#818CF8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px">2</div>
+                <div>
+                  <div style="font-weight:600;margin-bottom:4px">Apply Coulomb's Law</div>
+                  <div style="font-size:13px;color:#94A3B8;font-family:'Courier New',monospace">F = (9×10⁹ × 3×10⁻⁶ × 2×10⁻⁶) / (0.1)²</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;align-items:flex-start">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(79,70,229,0.2);color:#818CF8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px">3</div>
+                <div>
+                  <div style="font-weight:600;margin-bottom:4px">Calculate numerator</div>
+                  <div style="font-size:13px;color:#94A3B8;font-family:'Courier New',monospace">9×10⁹ × 6×10⁻¹² = 54×10⁻³ = 0.054</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;align-items:flex-start">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(16,185,129,0.2);color:#34D399;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px">4</div>
+                <div>
+                  <div style="font-weight:600;margin-bottom:4px;color:#34D399">Final Answer</div>
+                  <div class="formula-highlight" style="text-align:left;padding:12px 16px;font-size:1em">F = 0.054 / 0.01 = <strong>5.4 N</strong> (Attractive force)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="concept-card">
+            <div style="font-size:13px;font-weight:600;color:#818CF8;margin-bottom:6px"><i class="fas fa-brain"></i> Quick Tip</div>
+            <p style="font-size:13px;color:#94A3B8;line-height:1.7">Since q₁ is positive and q₂ is negative (opposite charges), the force is <strong style="color:#E2E8F0">attractive</strong>. Always check the signs of charges to determine the direction of force!</p>
+          </div>
+        `
+      },
+      {
+        type: 'visualization',
+        title: "Interactive Visualization",
+        badge: 'Explore',
+        badgeClass: 'badge-primary',
+        content: `
+          <p style="color:#94A3B8;margin-bottom:20px;line-height:1.7">Drag the slider below to see how the force changes with distance. This demonstrates the inverse square law in action.</p>
+          <div style="background:rgba(30,41,59,0.6);border:1px solid rgba(79,70,229,0.2);border-radius:20px;padding:24px;margin-bottom:20px">
+            <div style="text-align:center;margin-bottom:20px">
+              <div id="vizCanvas" style="height:180px;position:relative;background:rgba(0,0,0,0.2);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:space-between;padding:0 40px">
+                <div id="charge1" style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,#818CF8,#4F46E5);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;box-shadow:0 0 20px rgba(79,70,229,0.5);transition:all 0.4s">+q</div>
+                <div id="forceLine" style="flex:1;height:3px;background:linear-gradient(90deg,rgba(79,70,229,0.6),rgba(239,68,68,0.6));margin:0 10px;position:relative;transition:all 0.4s">
+                  <div style="position:absolute;left:50%;transform:translateX(-50%) translateY(-50%);top:50%;background:rgba(15,23,42,0.9);padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;color:#94A3B8;white-space:nowrap" id="forceLabel">F = 5.4 N</div>
+                </div>
+                <div id="charge2" style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,#F87171,#EF4444);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;box-shadow:0 0 20px rgba(239,68,68,0.5);transition:all 0.4s">-q</div>
+              </div>
+            </div>
+            <div style="margin-top:16px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;margin-bottom:8px">
+                <span>Distance (r)</span>
+                <span style="font-weight:600;color:#818CF8" id="distLabel">0.10 m</span>
+              </div>
+              <input type="range" id="distSlider" min="5" max="50" value="10" oninput="updateViz(this.value)" style="width:100%;accent-color:#4F46E5;cursor:pointer">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#334155;margin-top:4px"><span>Close</span><span>Far</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+              <div style="background:rgba(79,70,229,0.1);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:11px;color:#64748B;margin-bottom:4px">Distance</div>
+                <div id="vizDist" style="font-size:18px;font-weight:700;color:#818CF8">0.10 m</div>
+              </div>
+              <div style="background:rgba(16,185,129,0.1);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:11px;color:#64748B;margin-bottom:4px">Force</div>
+                <div id="vizForce" style="font-size:18px;font-weight:700;color:#34D399">5.40 N</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box">
+            <p style="font-size:13px;color:#94A3B8;line-height:1.7">Notice how the force <strong style="color:#E2E8F0">drops rapidly</strong> as distance increases. This is because F ∝ 1/r² — doubling the distance reduces force by 4×!</p>
+          </div>
+        `
+      },
+      {
+        type: 'quiz',
+        title: "Quiz — Test Your Knowledge",
+        badge: 'Quiz',
+        badgeClass: 'badge-danger',
+        content: '' // rendered dynamically
+      }
+    ]
+  };
+
+  const quizQuestions = [
+    { q:"Two charges of +4μC and +4μC are placed 2m apart. The force between them is:", opts:["0.036 N","0.072 N","0.009 N","0.018 N"], ans:0, exp:"F = (9×10⁹ × 4×10⁻⁶ × 4×10⁻⁶) / 4 = 144×10⁻³/4 = 0.036 N" },
+    { q:"If the distance between two charges is halved, the force becomes:", opts:["Half","Double","4 times","Quarter"], ans:2, exp:"F ∝ 1/r². If r → r/2, F → 4F. The force becomes 4 times." },
+    { q:"Coulomb's constant k = 9×10⁹ N·m²/C² is equal to:", opts:["1/(2πε₀)","1/(4πε₀)","4πε₀","2πε₀"], ans:1, exp:"By definition, k = 1/(4πε₀) where ε₀ is the permittivity of free space." },
+    { q:"The force between two charges is attractive. What can we say about them?", opts:["Both positive","Both negative","One positive, one negative","Cannot determine"], ans:2, exp:"Unlike charges (one positive, one negative) attract each other." },
+  ];
+
+  let currentSection = 0;
+  let sectionsDone = new Set();
+  let quizAnswers = {};
+  let quizSubmitted = false;
+
+  function buildSteps() {
+    const list = document.getElementById('stepsList');
+    list.innerHTML = moduleData.sections.map((s, i) => `
+      <div class="step-item ${i === 0 ? 'active' : ''} ${sectionsDone.has(i) ? 'done' : ''}" id="step_${i}" onclick="goToSection(${i})">
+        <div class="step-icon" id="stepIcon_${i}">
+          ${sectionsDone.has(i) ? '<i class="fas fa-check" style="color:#34D399"></i>' : getStepIcon(s.type)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.title}</div>
+          <div style="font-size:11px;color:#475569">${getTypeLabel(s.type)}</div>
+        </div>
+        ${sectionsDone.has(i) ? '<i class="fas fa-check-circle" style="color:#34D399;font-size:14px;flex-shrink:0"></i>' : ''}
+      </div>`).join('');
+  }
+
+  function getStepIcon(type) {
+    const icons = { concept:'💡', formula:'∫', example:'📖', visualization:'🎮', quiz:'📝' };
+    return `<span style="font-size:14px">${icons[type] || '📌'}</span>`;
+  }
+
+  function getTypeLabel(type) {
+    const labels = { concept:'Concept', formula:'Formula', example:'Example', visualization:'Interactive', quiz:'Quiz' };
+    return labels[type] || type;
+  }
+
+  function renderQuiz() {
+    return `
+      <div id="quizContainer">
+        ${quizQuestions.map((q, qi) => `
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+              <div style="width:28px;height:28px;border-radius:8px;background:rgba(239,68,68,0.15);color:#F87171;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${qi+1}</div>
+              <p style="font-size:15px;font-weight:600;line-height:1.5">${q.q}</p>
+            </div>
+            <div id="opts_${qi}">
+              ${q.opts.map((opt,oi) => `
+                <div class="quiz-opt" id="opt_${qi}_${oi}" onclick="selectQuizAnswer(${qi},${oi})">
+                  <div class="opt-label">${String.fromCharCode(65+oi)}</div>
+                  <span style="font-size:14px">${opt}</span>
+                </div>`).join('')}
+            </div>
+            <div id="exp_${qi}" style="display:none;margin-top:12px;padding:14px;border-radius:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)">
+              <div style="font-size:12px;font-weight:600;color:#34D399;margin-bottom:4px"><i class="fas fa-lightbulb"></i> Explanation</div>
+              <div style="font-size:13px;color:#94A3B8;line-height:1.6">${q.exp}</div>
+            </div>
+          </div>`).join('')}
+        <button onclick="submitQuiz()" id="quizSubmitBtn" class="btn-primary" style="padding:14px 32px;font-size:15px">
+          <i class="fas fa-paper-plane"></i> Submit Quiz
+        </button>
+      </div>
+      <div id="quizResult" style="display:none;text-align:center;padding:24px">
+        <div id="quizResultEmoji" style="font-size:56px;margin-bottom:12px">🎉</div>
+        <div id="quizResultText" style="font-size:22px;font-weight:700;margin-bottom:8px"></div>
+        <div id="quizResultScore" style="font-size:42px;font-weight:900;background:linear-gradient(135deg,#818CF8,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px"></div>
+        <button onclick="showCompletion()" class="btn-primary" style="padding:14px 32px">
+          <i class="fas fa-trophy"></i> Complete Module
+        </button>
+      </div>`;
+  }
+
+  function selectQuizAnswer(qi, oi) {
+    if (quizSubmitted) return;
+    quizAnswers[qi] = oi;
+    document.querySelectorAll(`#opts_${qi} .quiz-opt`).forEach((el,idx) => {
+      el.classList.toggle('selected', idx === oi);
+    });
+  }
+
+  function submitQuiz() {
+    if (Object.keys(quizAnswers).length < quizQuestions.length) {
+      showToast('Please answer all questions first!', 'warning');
+      return;
+    }
+    quizSubmitted = true;
+    let correct = 0;
+    quizQuestions.forEach((q, qi) => {
+      const userAns = quizAnswers[qi];
+      const isCorrect = userAns === q.ans;
+      if (isCorrect) correct++;
+      document.querySelectorAll(`#opts_${qi} .quiz-opt`).forEach((el,idx) => {
+        el.classList.add('disabled');
+        el.style.pointerEvents = 'none';
+        if (idx === q.ans) el.classList.add('correct');
+        else if (idx === userAns && !isCorrect) el.classList.add('wrong');
+      });
+      document.getElementById(`exp_${qi}`).style.display = 'block';
+    });
+    const pct = Math.round((correct/quizQuestions.length)*100);
+    document.getElementById('quizSubmitBtn').style.display = 'none';
+    document.getElementById('quizResult').style.display = 'block';
+    document.getElementById('quizResultScore').textContent = `${pct}%`;
+    document.getElementById('quizResultText').textContent = pct >= 75 ? 'Excellent Work! 🎉' : pct >= 50 ? 'Good Effort! 👍' : 'Keep Practicing! 💪';
+    document.getElementById('quizResultEmoji').textContent = pct >= 75 ? '🏆' : pct >= 50 ? '⭐' : '📚';
+    window._quizScore = pct;
+    sectionsDone.add(currentSection);
+    buildSteps();
+    updateProgress();
+  }
+
+  function showCompletion() {
+    document.getElementById('quizScore').textContent = `${window._quizScore || 0}%`;
+    document.getElementById('completionModal').style.display = 'flex';
+  }
+
+  function renderSection(idx) {
+    const s = moduleData.sections[idx];
+    document.getElementById('sectionTitle').textContent = s.title;
+    document.getElementById('sectionBadge').textContent = s.badge;
+    document.getElementById('sectionBadge').className = `badge ${s.badgeClass}`;
+    document.getElementById('sectionCounter').textContent = `${idx+1} / ${moduleData.sections.length}`;
+
+    let content = s.type === 'quiz' ? renderQuiz() : s.content;
+    document.getElementById('contentArea').innerHTML = `<div class="content-section active">${content}</div>`;
+
+    if (s.type === 'visualization') {
+      setTimeout(() => updateViz(10), 100);
+    }
+
+    // nav buttons
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    prevBtn.style.opacity = idx === 0 ? '0.4' : '1';
+    prevBtn.style.pointerEvents = idx === 0 ? 'none' : 'auto';
+
+    if (idx === moduleData.sections.length - 1) {
+      nextBtn.style.display = 'none';
+    } else {
+      nextBtn.style.display = 'flex';
+      nextBtn.innerHTML = idx < moduleData.sections.length - 2 ? 'Next <i class="fas fa-arrow-right"></i>' : 'Take Quiz <i class="fas fa-pen"></i>';
+    }
+
+    // Mark non-quiz sections as done when viewed
+    if (s.type !== 'quiz') {
+      setTimeout(() => {
+        sectionsDone.add(idx);
+        buildSteps();
+        updateProgress();
+      }, 1500);
+    }
+
+    // Highlight active step
+    document.querySelectorAll('.step-item').forEach((el, i) => el.classList.toggle('active', i === idx));
+  }
+
+  function goToSection(idx) {
+    currentSection = idx;
+    renderSection(idx);
+    if (window.innerWidth <= 768) {
+      document.getElementById('modulePanel').classList.remove('open');
+      document.getElementById('panelOverlay').style.display = 'none';
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function nextSection() {
+    if (currentSection < moduleData.sections.length - 1) goToSection(currentSection + 1);
+  }
+  function prevSection() {
+    if (currentSection > 0) goToSection(currentSection - 1);
+  }
+
+  function updateProgress() {
+    const pct = Math.round((sectionsDone.size / moduleData.sections.length) * 100);
+    document.getElementById('overallProgress').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = pct + '%';
+  }
+
+  function updateViz(val) {
+    const dist = (val / 100).toFixed(2);
+    const force = ((9e9 * 3e-6 * 2e-6) / Math.pow(val/100, 2)).toFixed(2);
+    document.getElementById('distLabel').textContent = dist + ' m';
+    document.getElementById('vizDist').textContent = dist + ' m';
+    document.getElementById('vizForce').textContent = parseFloat(force).toFixed(2) + ' N';
+    document.getElementById('forceLabel').textContent = 'F = ' + parseFloat(force).toFixed(2) + ' N';
+    const gap = 20 + (val/50)*60;
+    document.getElementById('vizCanvas').style.justifyContent = 'space-between';
+    document.getElementById('vizCanvas').style.padding = `0 ${20 + val}px`;
+  }
+
+  function togglePanel() {
+    const panel = document.getElementById('modulePanel');
+    const overlay = document.getElementById('panelOverlay');
+    panel.classList.toggle('open');
+    overlay.style.display = panel.classList.contains('open') ? 'block' : 'none';
+  }
+
+  function showToast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // Init
+  document.getElementById('panelTitle').textContent = moduleData.title;
+  buildSteps();
+  renderSection(0);
+
+  // Mobile toggle visibility
+  if (window.innerWidth <= 768) {
+    document.getElementById('panelToggle').style.display = 'block';
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (!user) window.location.href = '../login.html';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Admin | Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s}
+    .admin-main{margin-left:240px;min-height:100vh}
+    .anl{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;color:#64748B;text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;margin:2px 0}
+    .anl:hover{background:rgba(79,70,229,0.1);color:#94A3B8}
+    .anl.active{background:rgba(79,70,229,0.2);color:white;border-left:3px solid #4F46E5}
+    .setting-section{margin-bottom:28px}
+    .toggle{position:relative;display:inline-block;width:44px;height:24px}
+    .toggle input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.1);border-radius:100px;transition:0.3s}
+    .toggle-slider:before{position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s}
+    .toggle input:checked+.toggle-slider{background:#4F46E5}
+    .toggle input:checked+.toggle-slider:before{transform:translateX(20px)}
+    @media(max-width:768px){.admin-sidebar{transform:translateX(-100%)}.admin-sidebar.open{transform:translateX(0)}.admin-main{margin-left:0}}
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="admin-sidebar" id="adminSidebar">
+  <div style="padding:20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
+    </div>
+    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
+    <a href="students.html" class="anl"><i class="fas fa-users" style="width:16px"></i> Students</a>
+    <a href="content.html" class="anl"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
+    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
+    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
+    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
+    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
+    <a href="settings.html" class="anl active"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
+    <a href="../login.html" class="anl" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
+  </div>
+</aside>
+
+<main class="admin-main" style="padding:28px 32px">
+  <div style="margin-bottom:28px">
+    <h1 style="font-size:22px;font-weight:700;font-family:'Poppins',sans-serif">Platform Settings</h1>
+    <p style="font-size:13px;color:#475569;margin-top:2px">Configure platform integrations and preferences</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
+    <div>
+
+      <!-- General Settings -->
+      <div class="glass-card p-6 setting-section">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">General Settings</h2>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Basic platform configuration</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Platform Name</label>
+            <input type="text" class="input-field" value="Sankalp Learning" id="platformName">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Tagline</label>
+            <input type="text" class="input-field" value="Interactive WBJEE Learning" id="platformTagline">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Support Email</label>
+              <input type="email" class="input-field" value="support@sankalplearning.in" id="supportEmail">
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">YouTube Channel URL</label>
+              <input type="url" class="input-field" value="https://youtube.com/@sankalp_wbjee12" id="ytChannel">
+            </div>
+          </div>
+          <button onclick="saveGeneral()" class="btn-primary" style="padding:11px 24px;font-size:13px;width:fit-content"><i class="fas fa-save"></i> Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Payment Gateway -->
+      <div class="glass-card p-6 setting-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <h2 style="font-size:16px;font-weight:700">Payment Gateway (Razorpay)</h2>
+          <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending Setup</span>
+        </div>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure Razorpay to start collecting payments</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Razorpay Key ID</label>
+            <div style="position:relative">
+              <input type="text" class="input-field" id="rzpKeyId" placeholder="rzp_live_xxxxxxxxxxxxxxxx" style="padding-right:44px">
+              <button onclick="copyField('rzpKeyId')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#475569;cursor:pointer"><i class="fas fa-copy"></i></button>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Razorpay Key Secret</label>
+            <div style="position:relative">
+              <input type="password" class="input-field" id="rzpKeySecret" placeholder="Enter your Razorpay secret" style="padding-right:44px">
+              <button onclick="toggleInputVis('rzpKeySecret','eyeRzp')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#475569;cursor:pointer"><i class="fas fa-eye" id="eyeRzp"></i></button>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Webhook Secret</label>
+            <input type="password" class="input-field" id="rzpWebhook" placeholder="Razorpay webhook secret">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:12px">
+            <i class="fas fa-exclamation-triangle" style="color:#FCD34D;flex-shrink:0"></i>
+            <p style="font-size:12px;color:#94A3B8;line-height:1.6">Provide your Razorpay API keys to enable payment collection. Use test keys for sandbox mode first.</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button onclick="savePayment()" class="btn-primary" style="padding:11px 24px;font-size:13px"><i class="fas fa-save"></i> Save & Test Connection</button>
+            <button onclick="testRazorpay()" class="btn-secondary" style="padding:11px 24px;font-size:13px"><i class="fas fa-vial"></i> Test Payment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Toggles -->
+      <div class="glass-card p-6 setting-section">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Feature Toggles</h2>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Enable or disable platform features</p>
+        <div style="display:flex;flex-direction:column;gap:0">
+          ${[
+            {label:'Student Registration',desc:'Allow new students to register',id:'reg',on:true},
+            {label:'Mock Tests',desc:'Students can access and take tests',id:'tests',on:true},
+            {label:'Counseling Bookings',desc:'Allow students to book sessions',id:'counsel',on:true},
+            {label:'Notes Marketplace',desc:'Notes & PDFs visible to students',id:'notes',on:true},
+            {label:'Leaderboard',desc:'Show XP leaderboard to students',id:'leaderboard',on:true},
+            {label:'Maintenance Mode',desc:'Show maintenance page to visitors',id:'maintenance',on:false},
+          ].map(f=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div><div style="font-size:14px;font-weight:600">${f.label}</div><div style="font-size:12px;color:#475569">${f.desc}</div></div>
+              <label class="toggle">
+                <input type="checkbox" ${f.on?'checked':''} onchange="saveFeatureToggle('${f.id}',this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Email Settings -->
+      <div class="glass-card p-6 setting-section">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Email Notifications</h2>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Control when emails are sent to students</p>
+        <div style="display:flex;flex-direction:column;gap:0">
+          ${[
+            {label:'Welcome Email',desc:'Send welcome email after registration',on:true},
+            {label:'Booking Confirmation',desc:'Email on counseling session booking',on:true},
+            {label:'Test Result Summary',desc:'Send results after mock test completion',on:false},
+            {label:'Weekly Progress Report',desc:'Weekly progress email every Sunday',on:false},
+          ].map(e=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div><div style="font-size:14px;font-weight:600">${e.label}</div><div style="font-size:12px;color:#475569">${e.desc}</div></div>
+              <label class="toggle"><input type="checkbox" ${e.on?'checked':''}><span class="toggle-slider"></span></label>
+            </div>`).join('')}
+        </div>
+        <button onclick="saveEmail()" class="btn-secondary" style="padding:10px 22px;font-size:13px;margin-top:16px"><i class="fas fa-save"></i> Save Email Settings</button>
+      </div>
+
+    </div>
+
+    <!-- Right: Info -->
+    <div style="position:sticky;top:24px">
+      <div class="glass-card p-6 mb-6" style="background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(124,58,237,0.08))">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">System Info</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Platform</span><span style="font-weight:600">Sankalp Learning</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Firebase Project</span><span style="font-weight:600;font-size:11px">sankalp-learning-5442f</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Database</span><span style="font-weight:600">Firestore</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Auth</span><span style="font-weight:600">Firebase Auth</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Payments</span><span class="badge badge-warning" style="font-size:10px">Pending</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Version</span><span style="font-weight:600">1.0.0</span></div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 mb-6">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">Quick Links</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="https://dashboard.razorpay.com" target="_blank" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#818CF8;text-decoration:none;padding:8px;border-radius:8px;background:rgba(79,70,229,0.08)"><i class="fas fa-external-link-alt" style="font-size:11px"></i> Razorpay Dashboard</a>
+          <a href="https://console.firebase.google.com" target="_blank" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#FCD34D;text-decoration:none;padding:8px;border-radius:8px;background:rgba(245,158,11,0.08)"><i class="fas fa-external-link-alt" style="font-size:11px"></i> Firebase Console</a>
+          <a href="https://youtube.com/@sankalp_wbjee12" target="_blank" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#F87171;text-decoration:none;padding:8px;border-radius:8px;background:rgba(239,68,68,0.08)"><i class="fab fa-youtube" style="font-size:11px"></i> YouTube Channel</a>
+        </div>
+      </div>
+
+      <div class="glass-card p-6">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:#F87171">Danger Zone</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onclick="exportAllData()" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(100,116,139,0.3);background:transparent;color:#64748B;font-size:13px;font-weight:600;cursor:pointer;text-align:left"><i class="fas fa-download"></i> Export All Data</button>
+          <button onclick="confirmClearCache()" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.05);color:#FCD34D;font-size:13px;font-weight:600;cursor:pointer;text-align:left"><i class="fas fa-broom"></i> Clear Cache</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+  function logout(){auth.signOut()}
+
+  function toast(msg,type='success'){const t=document.createElement('div');t.className=`notification ${type}`;t.innerHTML=`<i class="fas fa-${type==='success'?'check':'info'}-circle"></i> ${msg}`;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+
+  function saveGeneral(){toast('General settings saved!')}
+  function savePayment(){
+    const k=document.getElementById('rzpKeyId').value.trim();
+    if(!k){toast('Please enter your Razorpay Key ID','error');return}
+    toast('Payment settings saved! Test payment before going live.')
+  }
+  function testRazorpay(){toast('Opening Razorpay test checkout...','info')}
+  function saveFeatureToggle(id,val){toast(`Feature "${id}" ${val?'enabled':'disabled'}`)}
+  function saveEmail(){toast('Email notification settings saved!')}
+  function exportAllData(){toast('Exporting data... CSV will download shortly','info')}
+  function confirmClearCache(){if(confirm('Clear platform cache?'))toast('Cache cleared successfully!')}
+  function copyField(id){navigator.clipboard.writeText(document.getElementById(id).value);toast('Copied to clipboard!','info')}
+  function toggleInputVis(id,iconId){
+    const inp=document.getElementById(id);const icon=document.getElementById(iconId);
+    if(inp.type==='password'){inp.type='text';icon.className='fas fa-eye-slash'}
+    else{inp.type='password';icon.className='fas fa-eye'}
+  }
+
+  if(window.innerWidth<=768){
+    document.querySelector('[style*="grid-template-columns:1fr 320px"]').style.gridTemplateColumns='1fr';
+  }
+
+  auth.onAuthStateChanged(user=>{if(!user)window.location.href='../login.html'});
+</script>
+</body>
+</html>

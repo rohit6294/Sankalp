@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard — Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .podium-1 { background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(251,191,36,0.15)); border-color:rgba(245,158,11,0.4); }
+    .podium-2 { background:linear-gradient(135deg,rgba(148,163,184,0.2),rgba(100,116,139,0.1)); border-color:rgba(148,163,184,0.3); }
+    .podium-3 { background:linear-gradient(135deg,rgba(180,83,9,0.2),rgba(146,64,14,0.1)); border-color:rgba(180,83,9,0.4); }
+    .rank-row { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s; }
+    .rank-row:hover { background:rgba(255,255,255,0.02); }
+    .rank-row.you { background:rgba(79,70,229,0.1); border-color:rgba(79,70,229,0.2); }
+    .period-btn { padding:7px 16px; border-radius:100px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.08); background:transparent; color:#64748B; transition:all 0.2s; }
+    .period-btn.active { background:rgba(79,70,229,0.15); color:#818CF8; border-color:rgba(79,70,229,0.4); }
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px">
+    <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:32px">
+      <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:16px;font-family:'Poppins',sans-serif">Sankalp</div><div style="color:#818CF8;font-size:11px">Learning</div></div>
+    </a>
+    <nav>
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open w-5"></i> My Courses</a>
+      <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list w-5"></i> Mock Tests</a>
+      <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note w-5"></i> Notes</a>
+      <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check w-5"></i> Counseling</a>
+      <a href="leaderboard.html" class="sidebar-link active"><i class="fas fa-trophy w-5"></i> Leaderboard</a>
+      <a href="profile.html" class="sidebar-link"><i class="fas fa-user w-5"></i> Profile</a>
+      <a href="#" class="sidebar-link" onclick="logout()" style="margin-top:8px"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+</aside>
+
+<main class="main-content" style="padding:32px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">🏆 Leaderboard</h1>
+      <p style="color:#475569;font-size:14px;margin-top:4px">Compete with fellow WBJEE aspirants</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="period-btn active" onclick="setPeriod('weekly',this)">This Week</button>
+      <button class="period-btn" onclick="setPeriod('monthly',this)">This Month</button>
+      <button class="period-btn" onclick="setPeriod('alltime',this)">All Time</button>
+    </div>
+  </div>
+
+  <!-- Your Rank Banner -->
+  <div id="yourRankBanner" style="background:linear-gradient(135deg,rgba(79,70,229,0.2),rgba(124,58,237,0.12));border:1px solid rgba(79,70,229,0.3);border-radius:16px;padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-size:20px;font-weight:700;flex-shrink:0" id="myInitial">?</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700" id="myRankName">Loading...</div>
+      <div style="font-size:12px;color:#64748B">Your current rank this week</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:24px;font-weight:900;color:#818CF8" id="myRankNum">#—</div>
+      <div style="font-size:12px;color:#64748B" id="myXPLabel">0 XP</div>
+    </div>
+  </div>
+
+  <!-- Top 3 Podium -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:28px;align-items:end" id="podiumSection">
+    <!-- 2nd -->
+    <div class="glass-card p-5 podium-2" style="border-radius:16px;text-align:center;padding-bottom:24px">
+      <div style="font-size:32px;margin-bottom:8px">🥈</div>
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#64748B,#94A3B8);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:700;margin:0 auto 10px" id="p2init">?</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px" id="p2name">—</div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:8px" id="p2year">—</div>
+      <div style="font-size:20px;font-weight:800;color:#94A3B8" id="p2xp">—</div>
+      <div style="font-size:11px;color:#475569">XP</div>
+    </div>
+    <!-- 1st -->
+    <div class="glass-card p-5 podium-1" style="border-radius:16px;text-align:center;transform:scale(1.05)">
+      <div style="font-size:40px;margin-bottom:8px;animation:float 3s ease-in-out infinite">👑</div>
+      <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;color:white;font-size:26px;font-weight:700;margin:0 auto 10px;box-shadow:0 0 20px rgba(245,158,11,0.4)" id="p1init">?</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:2px" id="p1name">—</div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:8px" id="p1year">—</div>
+      <div style="font-size:24px;font-weight:900;color:#FCD34D" id="p1xp">—</div>
+      <div style="font-size:11px;color:#475569">XP</div>
+    </div>
+    <!-- 3rd -->
+    <div class="glass-card p-5 podium-3" style="border-radius:16px;text-align:center;padding-bottom:24px">
+      <div style="font-size:32px;margin-bottom:8px">🥉</div>
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#92400E,#B45309);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:700;margin:0 auto 10px" id="p3init">?</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px" id="p3name">—</div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:8px" id="p3year">—</div>
+      <div style="font-size:20px;font-weight:800;color:#D97706" id="p3xp">—</div>
+      <div style="font-size:11px;color:#475569">XP</div>
+    </div>
+  </div>
+
+  <!-- Full Rankings -->
+  <div class="glass-card" style="overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(15,23,42,0.5)">
+      <h2 style="font-size:15px;font-weight:700">Full Rankings</h2>
+    </div>
+    <div id="rankList"></div>
+  </div>
+</main>
+
+<script>
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+  const leaderboardData = [
+    { name:'Debashis Basu', year:'2025', xp:1020, streak:21, modules:35 },
+    { name:'Rohan Ghosh', year:'2025', xp:820, streak:14, modules:24 },
+    { name:'Rahul Sen', year:'2025', xp:650, streak:9, modules:18 },
+    { name:'Arjun Das', year:'2025', xp:450, streak:7, modules:12 },
+    { name:'Ankita Singh', year:'2026', xp:340, streak:0, modules:9 },
+    { name:'Priya Mondal', year:'2026', xp:280, streak:3, modules:6 },
+    { name:'Debasmita Das', year:'2026', xp:200, streak:2, modules:5 },
+    { name:'Sneha Pal', year:'2026', xp:120, streak:0, modules:3 },
+    { name:'Tanisha Roy', year:'2027', xp:90, streak:1, modules:2 },
+  ];
+
+  function getLevelIcon(xp) {
+    if (xp >= 1000) return '🏆';
+    if (xp >= 600) return '⚡';
+    if (xp >= 300) return '📚';
+    if (xp >= 100) return '🔥';
+    return '🌱';
+  }
+
+  function setPeriod(period, btn) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    const sorted = [...leaderboardData].sort((a,b) => b.xp - a.xp);
+    const top3 = sorted.slice(0,3);
+    const rest = sorted.slice(3);
+
+    if (top3[0]) { document.getElementById('p1name').textContent = top3[0].name; document.getElementById('p1init').textContent = top3[0].name[0]; document.getElementById('p1xp').textContent = top3[0].xp; document.getElementById('p1year').textContent = 'WBJEE ' + top3[0].year; }
+    if (top3[1]) { document.getElementById('p2name').textContent = top3[1].name; document.getElementById('p2init').textContent = top3[1].name[0]; document.getElementById('p2xp').textContent = top3[1].xp; document.getElementById('p2year').textContent = 'WBJEE ' + top3[1].year; }
+    if (top3[2]) { document.getElementById('p3name').textContent = top3[2].name; document.getElementById('p3init').textContent = top3[2].name[0]; document.getElementById('p3xp').textContent = top3[2].xp; document.getElementById('p3year').textContent = 'WBJEE ' + top3[2].year; }
+
+    document.getElementById('rankList').innerHTML = rest.map((s,i) => `
+      <div class="rank-row">
+        <div style="width:32px;text-align:center;font-size:14px;font-weight:700;color:#475569">#${i+4}</div>
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;font-weight:700;flex-shrink:0">${s.name[0]}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${s.name}</div>
+          <div style="font-size:11px;color:#475569">WBJEE ${s.year} • ${s.modules} modules • ${s.streak}🔥</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:15px;font-weight:700;color:#818CF8">${s.xp} XP</div>
+          <div style="font-size:11px;color:#475569">${getLevelIcon(s.xp)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  renderLeaderboard();
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = '../login.html'; return; }
+    const name = user.displayName || 'You';
+    document.getElementById('myInitial').textContent = name[0].toUpperCase();
+    document.getElementById('myRankName').textContent = name;
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const xp = doc.data().xp || 0;
+        document.getElementById('myXPLabel').textContent = xp + ' XP';
+        const allSorted = [...leaderboardData].sort((a,b) => b.xp - a.xp);
+        const rank = allSorted.findIndex(s => s.xp <= xp) + 1 || allSorted.length + 1;
+        document.getElementById('myRankNum').textContent = '#' + Math.max(1, rank);
+      }
+    } catch(e) {}
+  });
+</script>
+</body>
+</html>

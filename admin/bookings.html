@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings — Admin | Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s}
+    .admin-main{margin-left:240px;min-height:100vh}
+    .anl{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;color:#64748B;text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;margin:2px 0}
+    .anl:hover{background:rgba(79,70,229,0.1);color:#94A3B8}
+    .anl.active{background:rgba(79,70,229,0.2);color:white;border-left:3px solid #4F46E5}
+    @media(max-width:768px){.admin-sidebar{transform:translateX(-100%)}.admin-sidebar.open{transform:translateX(0)}.admin-main{margin-left:0}}
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="admin-sidebar" id="adminSidebar">
+  <div style="padding:20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
+    </div>
+    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
+    <a href="students.html" class="anl"><i class="fas fa-users" style="width:16px"></i> Students</a>
+    <a href="content.html" class="anl"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
+    <a href="bookings.html" class="anl active"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
+    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
+    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
+    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
+    <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
+    <a href="../login.html" class="anl" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
+  </div>
+</aside>
+
+<main class="admin-main" style="padding:28px 32px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;font-family:'Poppins',sans-serif">Counseling Bookings</h1>
+      <p style="font-size:13px;color:#475569;margin-top:2px">Manage all 1-on-1 session requests</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="setStatusFilter('all',this)" class="filter-btn active" style="padding:8px 16px;border-radius:100px;border:1px solid rgba(79,70,229,0.4);background:rgba(79,70,229,0.15);color:#818CF8;font-size:12px;font-weight:600;cursor:pointer">All</button>
+      <button onclick="setStatusFilter('pending',this)" class="filter-btn" style="padding:8px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748B;font-size:12px;font-weight:600;cursor:pointer">Pending</button>
+      <button onclick="setStatusFilter('confirmed',this)" class="filter-btn" style="padding:8px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748B;font-size:12px;font-weight:600;cursor:pointer">Confirmed</button>
+      <button onclick="setStatusFilter('completed',this)" class="filter-btn" style="padding:8px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748B;font-size:12px;font-weight:600;cursor:pointer">Completed</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px">
+    <div class="glass-card p-4 text-center"><div style="font-size:24px;font-weight:800;color:#818CF8" id="totalBookings">0</div><div style="font-size:12px;color:#64748B">Total Bookings</div></div>
+    <div class="glass-card p-4 text-center"><div style="font-size:24px;font-weight:800;color:#FCD34D" id="pendingCount">0</div><div style="font-size:12px;color:#64748B">Pending</div></div>
+    <div class="glass-card p-4 text-center"><div style="font-size:24px;font-weight:800;color:#34D399" id="confirmedCount">0</div><div style="font-size:12px;color:#64748B">Confirmed</div></div>
+    <div class="glass-card p-4 text-center"><div style="font-size:24px;font-weight:800;color:#94A3B8" id="completedCount">0</div><div style="font-size:12px;color:#64748B">Completed</div></div>
+  </div>
+
+  <!-- Bookings Table -->
+  <div class="glass-card" style="overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="data-table" style="min-width:700px" id="bookingsTable">
+        <thead>
+          <tr style="background:rgba(15,23,42,0.6)">
+            <th>Student</th>
+            <th>Session Type</th>
+            <th>Date & Time</th>
+            <th>Duration</th>
+            <th>Topic</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bookingsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Meet Link Modal -->
+<div id="meetModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;padding:24px">
+  <div class="glass-card p-8" style="max-width:420px;width:100%;background:rgba(15,23,42,0.98);position:relative">
+    <button onclick="closeMeetModal()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.05);border:none;border-radius:8px;width:30px;height:30px;color:#64748B;cursor:pointer;font-size:16px">&times;</button>
+    <h2 style="font-size:17px;font-weight:700;margin-bottom:16px"><i class="fas fa-video" style="color:#818CF8"></i> Send Google Meet Link</h2>
+    <div style="margin-bottom:14px">
+      <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Google Meet Link</label>
+      <input type="url" id="meetLinkInput" class="input-field" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Message to Student (optional)</label>
+      <textarea class="input-field" rows="3" placeholder="Any notes for the student..." style="resize:none;line-height:1.6"></textarea>
+    </div>
+    <button onclick="sendMeetLink()" class="btn-primary" style="width:100%;justify-content:center;padding:13px"><i class="fas fa-paper-plane"></i> Send Link & Confirm</button>
+  </div>
+</div>
+
+<script>
+  function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+  function logout(){auth.signOut()}
+
+  const bookings=[
+    {student:'Rohan Ghosh',email:'rohan@example.com',type:'Strategy Session',date:'Sun, 19 May',time:'4:00 PM',duration:'60 min',topic:'60-day WBJEE strategy and subject prioritization',status:'pending',price:'₹499'},
+    {student:'Priya Mondal',email:'priya@example.com',type:'Doubt Clearing',date:'Sat, 18 May',time:'5:00 PM',duration:'30 min',topic:'Organic Chemistry reaction mechanisms',status:'confirmed',price:'Free'},
+    {student:'Arjun Das',email:'arjun@example.com',type:'Mock Analysis',date:'Fri, 17 May',time:'6:30 PM',duration:'45 min',topic:'Review of Mock Test #11 performance',status:'completed',price:'₹299'},
+    {student:'Sneha Pal',email:'sneha@example.com',type:'Doubt Clearing',date:'Thu, 16 May',time:'7:00 PM',duration:'30 min',topic:'Calculus — Integration by parts doubts',status:'completed',price:'Free'},
+    {student:'Rahul Sen',email:'rahul@example.com',type:'Complete Mentoring',date:'Wed, 15 May',time:'4:30 PM',duration:'90 min',topic:'Full plan, PYQ review, weak area analysis',status:'completed',price:'₹799'},
+    {student:'Tanisha Roy',email:'tanisha@example.com',type:'Doubt Clearing',date:'Mon, 20 May',time:'5:30 PM',duration:'30 min',topic:'Physics — Modern Physics doubts',status:'pending',price:'Free'},
+  ];
+
+  let activeFilter='all';
+  let activeBookingIdx=null;
+
+  const statusColors={pending:'rgba(245,158,11,0.15)',confirmed:'rgba(79,70,229,0.15)',completed:'rgba(16,185,129,0.15)'};
+  const statusTextColors={pending:'#FCD34D',confirmed:'#818CF8',completed:'#34D399'};
+
+  function renderBookings(){
+    const filtered=activeFilter==='all'?bookings:bookings.filter(b=>b.status===activeFilter);
+    document.getElementById('totalBookings').textContent=bookings.length;
+    document.getElementById('pendingCount').textContent=bookings.filter(b=>b.status==='pending').length;
+    document.getElementById('confirmedCount').textContent=bookings.filter(b=>b.status==='confirmed').length;
+    document.getElementById('completedCount').textContent=bookings.filter(b=>b.status==='completed').length;
+
+    document.getElementById('bookingsBody').innerHTML=filtered.map((b,i)=>`
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;flex-shrink:0">${b.student[0]}</div>
+            <div><div style="font-size:13px;font-weight:600">${b.student}</div><div style="font-size:11px;color:#475569">${b.email}</div></div>
+          </div>
+        </td>
+        <td><span class="badge badge-primary" style="font-size:11px">${b.type}</span><div style="font-size:11px;color:#64748B;margin-top:2px">${b.price}</div></td>
+        <td><div style="font-size:13px;font-weight:600">${b.date}</div><div style="font-size:11px;color:#475569">${b.time}</div></td>
+        <td style="font-size:13px;color:#64748B">${b.duration}</td>
+        <td style="font-size:12px;color:#94A3B8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.topic}</td>
+        <td><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:${statusColors[b.status]};color:${statusTextColors[b.status]}">${b.status.charAt(0).toUpperCase()+b.status.slice(1)}</span></td>
+        <td>
+          <div style="display:flex;gap:6px">
+            ${b.status==='pending'?`<button onclick="openMeetModal(${i})" style="background:rgba(79,70,229,0.1);border:1px solid rgba(79,70,229,0.2);border-radius:7px;padding:6px 10px;color:#818CF8;font-size:11px;cursor:pointer;white-space:nowrap"><i class="fas fa-video"></i> Send Link</button>`:''}
+            ${b.status==='confirmed'?`<button onclick="markCompleted(${i})" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:7px;padding:6px 10px;color:#34D399;font-size:11px;cursor:pointer;white-space:nowrap"><i class="fas fa-check"></i> Done</button>`:''}
+            ${b.status==='completed'?`<span style="font-size:11px;color:#334155">Completed</span>`:''}
+          </div>
+        </td>
+      </tr>`).join('');
+    if(!filtered.length){
+      document.getElementById('bookingsBody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:#334155">No bookings found</td></tr>';
+    }
+  }
+
+  function setStatusFilter(status,btn){
+    activeFilter=status;
+    document.querySelectorAll('.filter-btn').forEach(b=>{b.style.background='transparent';b.style.color='#64748B';b.style.borderColor='rgba(255,255,255,0.08)'});
+    btn.style.background='rgba(79,70,229,0.15)';btn.style.color='#818CF8';btn.style.borderColor='rgba(79,70,229,0.4)';
+    renderBookings();
+  }
+
+  function openMeetModal(i){activeBookingIdx=i;document.getElementById('meetModal').style.display='flex'}
+  function closeMeetModal(){document.getElementById('meetModal').style.display='none'}
+  document.getElementById('meetModal').addEventListener('click',e=>{if(e.target===document.getElementById('meetModal'))closeMeetModal()})
+
+  function sendMeetLink(){
+    if(activeBookingIdx!==null){bookings[activeBookingIdx].status='confirmed'}
+    closeMeetModal();renderBookings();
+    const t=document.createElement('div');t.className='notification success';t.innerHTML='<i class="fas fa-paper-plane"></i> Meet link sent & session confirmed!';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+  }
+
+  function markCompleted(i){
+    bookings[i].status='completed';renderBookings();
+    const t=document.createElement('div');t.className='notification success';t.innerHTML='<i class="fas fa-check"></i> Session marked as completed!';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+  }
+
+  renderBookings();
+  auth.onAuthStateChanged(user=>{if(!user)window.location.href='../login.html'});
+</script>
+</body>
+</html>

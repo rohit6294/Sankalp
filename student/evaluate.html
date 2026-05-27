@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluate Response Sheet — Sankalp WBJEE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .qrow { display: grid; grid-template-columns: 56px repeat(4, 1fr) 72px; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+    .qrow:hover { background: var(--paper-soft); }
+    .qrow .qno { font-family: var(--font-mono); font-size: 13px; color: var(--ink-mute); font-weight: 700; }
+    .opt { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 4px; border: 1px solid var(--rule); cursor: pointer; background: var(--paper); transition: all 0.1s; font-size: 13px; font-weight: 700; font-family: var(--font-mono); user-select: none; }
+    .opt:hover { border-color: var(--ink); }
+    .opt.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .opt.cat3.selected { background: var(--forest); border-color: var(--forest); color: var(--paper); }
+    .opt input { display: none; }
+    .skip-btn { padding: 8px 6px; border: 1px solid var(--rule); background: var(--paper-soft); cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-mute); }
+    .skip-btn.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+    .cat-banner { background: var(--paper-soft); border: 1px solid var(--ink); padding: 10px 14px; margin: 16px 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+    .cat-banner .marking { font-family: var(--font-mono); font-size: 11px; color: var(--ink-mute); font-weight: 400; text-transform: none; letter-spacing: 0; }
+    .subject-tab { padding: 12px 22px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .subject-tab.active { background: var(--ink); color: var(--paper); }
+    .subject-tab .count { font-family: var(--font-mono); font-size: 11px; margin-left: 6px; opacity: 0.7; font-weight: 400; }
+    .set-card { padding: 28px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; text-align: center; transition: all 0.15s; }
+    .set-card:hover { background: var(--ink); color: var(--paper); }
+    .set-card .letter { font-family: var(--font-display); font-size: 3rem; font-weight: 800; }
+    .exam-card { padding: 24px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; transition: all 0.15s; }
+    .exam-card:hover { background: var(--paper-soft); }
+    .step-pill { display: inline-block; padding: 4px 10px; border: 1px solid var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
+    .toast.show { opacity: 1; }
+    @media (max-width: 640px) {
+      .qrow { grid-template-columns: 44px repeat(4, 1fr) 56px; gap: 4px; padding: 6px; }
+      .opt { padding: 6px 2px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home" style="width:18px"></i> Dashboard</a>
+    <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> My Courses</a>
+    <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Mock Tests</a>
+    <a href="evaluate.html" class="sidebar-link active"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Counseling</a>
+    <a href="leaderboard.html" class="sidebar-link"><i class="fas fa-trophy" style="width:18px"></i> Leaderboard</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<main class="main-content" style="padding:32px; max-width: 1024px;">
+
+  <!-- LOADING -->
+  <div id="loadingView" style="text-align:center; padding:80px 0;">
+    <i class="fas fa-spinner fa-spin" style="font-size:32px; color:var(--rust);"></i>
+    <div style="margin-top:12px; color:var(--ink-mute); font-size:13px;">Loading...</div>
+  </div>
+
+  <!-- STEP 1: PICK EXAM -->
+  <div id="pickExamView" style="display:none;">
+    <div style="margin-bottom:8px;"><span class="step-pill">Step 1 of 4</span></div>
+    <h1 class="display-lg">Evaluate your <span class="rust-accent">WBJEE response sheet</span></h1>
+    <p style="color:var(--ink-mute); font-size:14px; margin-top:4px; margin-bottom:24px;">Pick the exam you appeared for. Marks are calculated server-side using the official answer key.</p>
+    <div id="examList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px;"></div>
+    <div id="examEmpty" style="display:none; padding:48px; text-align:center; border:1px dashed var(--ink); background:var(--paper-soft); color:var(--ink-mute);">
+      No exam evaluators are open right now. Check back soon.
+    </div>
+  </div>
+
+  <!-- STEP 2: PICK SET -->
+  <div id="pickSetView" style="display:none;">
+    <div style="margin-bottom:8px;"><span class="step-pill">Step 2 of 4</span></div>
+    <h1 class="display-lg">Select your <span class="rust-accent">paper set</span></h1>
+    <p style="color:var(--ink-mute); font-size:14px; margin-top:4px; margin-bottom:24px;">Your set is printed on the cover page of the question booklet.</p>
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; max-width:560px;">
+      <div class="set-card" onclick="chooseSet('A')"><div class="letter">A</div><div class="eyebrow" style="margin-top:6px;">Set A</div></div>
+      <div class="set-card" onclick="chooseSet('B')"><div class="letter">B</div><div class="eyebrow" style="margin-top:6px;">Set B</div></div>
+      <div class="set-card" onclick="chooseSet('C')"><div class="letter">C</div><div class="eyebrow" style="margin-top:6px;">Set C</div></div>
+      <div class="set-card" onclick="chooseSet('D')"><div class="letter">D</div><div class="eyebrow" style="margin-top:6px;">Set D</div></div>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="btn-ghost btn-sm" onclick="back('pickSetView','pickExamView')"><i class="fas fa-arrow-left"></i> Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: ANSWER ENTRY -->
+  <div id="answerEntryView" style="display:none;">
+    <div style="margin-bottom:8px;"><span class="step-pill">Step 3 of 4</span></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 class="display-lg">Enter your <span class="rust-accent">answers</span></h1>
+        <p style="color:var(--ink-mute); font-size:13px; margin-top:4px;" id="entryMeta">—</p>
+      </div>
+      <div id="saveBadge" style="font-size:11px; color:var(--ink-mute); font-family:var(--font-mono);">Draft auto-saved</div>
+    </div>
+
+    <div style="display:flex; gap:0; margin-top:24px;">
+      <div class="subject-tab active" data-tab="math" onclick="switchTab('math')">Mathematics <span class="count" id="countMath">0 / 75</span></div>
+      <div class="subject-tab" data-tab="physics" onclick="switchTab('physics')">Physics <span class="count" id="countPhysics">0 / 40</span></div>
+      <div class="subject-tab" data-tab="chemistry" onclick="switchTab('chemistry')">Chemistry <span class="count" id="countChemistry">0 / 40</span></div>
+    </div>
+
+    <div style="border:1px solid var(--ink); background:var(--paper); padding:0;">
+      <div id="answerGrid"></div>
+    </div>
+
+    <div style="margin-top:20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <button class="btn-ghost btn-sm" onclick="back('answerEntryView','pickSetView')"><i class="fas fa-arrow-left"></i> Change Set</button>
+      <button class="btn-rust" onclick="goReview()">Continue to Review <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 4: REVIEW -->
+  <div id="reviewView" style="display:none;">
+    <div style="margin-bottom:8px;"><span class="step-pill">Step 4 of 4</span></div>
+    <h1 class="display-lg">Review before <span class="rust-accent">final submit</span></h1>
+    <p style="color:var(--ink-mute); font-size:14px; margin-top:4px; margin-bottom:24px;">You can submit only once. Make sure your entries match your response sheet.</p>
+
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0; border:1px solid var(--ink);" id="reviewSummary"></div>
+
+    <div style="margin-top:20px; padding:16px 20px; background:var(--paper-soft); border:1px solid var(--rule); font-size:13px; color:var(--ink-mute);">
+      <i class="fas fa-info-circle" style="color:var(--rust);"></i>
+      Skipped questions count as <strong>0 marks</strong> (no negative). Wrong answers in Category 1 lose <strong>0.25</strong>, in Category 2 lose <strong>0.5</strong>. Category 3 partial credit, but any wrong selection makes the whole question 0.
+    </div>
+
+    <div style="margin-top:24px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <button class="btn-ghost btn-sm" onclick="back('reviewView','answerEntryView')"><i class="fas fa-arrow-left"></i> Edit Answers</button>
+      <button class="btn-rust" onclick="confirmSubmit()" id="finalSubmitBtn"><i class="fas fa-check"></i> Final Submit</button>
+    </div>
+  </div>
+
+  <!-- SUBMITTING -->
+  <div id="submittingView" style="display:none; text-align:center; padding:80px 0;">
+    <i class="fas fa-cog fa-spin" style="font-size:32px; color:var(--rust);"></i>
+    <div style="margin-top:12px; font-weight:700;">Calculating your marks...</div>
+    <div style="margin-top:4px; color:var(--ink-mute); font-size:13px;">Server is verifying your answers against the official key.</div>
+  </div>
+
+  <!-- ALREADY SUBMITTED -->
+  <div id="alreadyView" style="display:none;">
+    <div style="border:1px solid var(--ink); padding:32px; background:var(--paper-soft);">
+      <div class="eyebrow">Already Submitted</div>
+      <h1 class="display-md" style="margin-top:8px;">You've already submitted this exam.</h1>
+      <p style="color:var(--ink-mute); margin-top:8px;">One submission per exam. View your result below.</p>
+      <a id="viewResultLink" class="btn-rust btn-sm" style="margin-top:16px; display:inline-block;"><i class="fas fa-chart-line"></i> View Result</a>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorView" style="display:none;">
+    <div style="border:1px solid var(--rust); padding:32px; background:var(--paper-soft);">
+      <div class="eyebrow" style="color:var(--rust);">Error</div>
+      <h1 class="display-md" style="margin-top:8px;" id="errorTitle">Something went wrong</h1>
+      <p style="color:var(--ink-mute); margin-top:8px;" id="errorMsg"></p>
+      <button class="btn-rust btn-sm" style="margin-top:16px;" onclick="window.location.reload()">Reload</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmOverlay" style="display:none; position:fixed; inset:0; background:rgba(26,20,16,0.7); z-index:1000; align-items:center; justify-content:center; padding:24px;">
+  <div style="background:var(--paper); border:1px solid var(--ink); padding:28px; max-width:480px; width:100%;">
+    <div class="eyebrow">Final Submit</div>
+    <h2 class="display-md" style="margin-top:8px;">Are you sure?</h2>
+    <p style="color:var(--ink-mute); margin-top:8px; font-size:14px;">Once submitted, you cannot change your answers. Your score will be added to the community leaderboard.</p>
+    <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn-ghost btn-sm" onclick="hideConfirm()">Cancel</button>
+      <button class="btn-rust btn-sm" onclick="doSubmit()"><i class="fas fa-check"></i> Yes, Submit</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ===== Config =====
+const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
+const COUNTS = { math: 75, physics: 40, chemistry: 40 };
+const CAT_RANGES = {
+  math:      { 1:[1,50], 2:[51,65], 3:[66,75] },
+  physics:   { 1:[1,30], 2:[31,35], 3:[36,40] },
+  chemistry: { 1:[1,30], 2:[31,35], 3:[36,40] },
+};
+const MARKING = {
+  1: '+1 correct · -0.25 wrong',
+  2: '+2 correct · -0.5 wrong',
+  3: 'Partial credit · 0 if any wrong option marked'
+};
+
+// ===== State =====
+let state = {
+  user: null,
+  idToken: null,
+  examId: null,
+  examName: null,
+  set: null,
+  tab: 'math',
+  answers: { math: {}, physics: {}, chemistry: {} },
+};
+let saveTimer = null;
+
+// ===== View switching =====
+function show(id) {
+  ['loadingView','pickExamView','pickSetView','answerEntryView','reviewView','submittingView','alreadyView','errorView']
+    .forEach(v => document.getElementById(v).style.display = (v === id ? 'block' : 'none'));
+  window.scrollTo({ top: 0 });
+}
+function back(from, to) { show(to); }
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+function categoryFor(subject, qNo) {
+  const r = CAT_RANGES[subject];
+  if (qNo >= r[1][0] && qNo <= r[1][1]) return 1;
+  if (qNo >= r[2][0] && qNo <= r[2][1]) return 2;
+  return 3;
+}
+
+// ===== Storage =====
+function draftKey() {
+  return `evaluator-draft-${state.user?.uid || ''}-${state.examId || ''}`;
+}
+function saveDraft() {
+  try {
+    localStorage.setItem(draftKey(), JSON.stringify({ set: state.set, answers: state.answers, ts: Date.now() }));
+    const b = document.getElementById('saveBadge');
+    if (b) b.textContent = 'Draft saved · ' + new Date().toLocaleTimeString();
+  } catch (e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(draftKey());
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+function clearDraft() { try { localStorage.removeItem(draftKey()); } catch {} }
+
+// ===== Step 1: Exams =====
+async function loadExams() {
+  try {
+    state.idToken = await state.user.getIdToken();
+    const res = await fetch(`${EVALUATOR_API}/api/exams`, {
+      headers: { Authorization: `Bearer ${state.idToken}` }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { exams } = await res.json();
+    const list = document.getElementById('examList');
+    const empty = document.getElementById('examEmpty');
+    list.innerHTML = '';
+    if (!exams.length) { empty.style.display = 'block'; show('pickExamView'); return; }
+    empty.style.display = 'none';
+    exams.forEach(ex => {
+      const el = document.createElement('div');
+      el.className = 'exam-card';
+      el.innerHTML = `
+        <div class="eyebrow">WBJEE Evaluator</div>
+        <div style="font-family:var(--font-display); font-weight:700; font-size:1.3rem; margin:8px 0;">${ex.name}</div>
+        <div style="font-size:13px; color:var(--ink-mute);">155 questions · 4 sets</div>
+        <div style="margin-top:14px;"><span class="btn-rust btn-sm">Start <i class="fas fa-arrow-right"></i></span></div>
+      `;
+      el.onclick = () => chooseExam(ex.id, ex.name);
+      list.appendChild(el);
+    });
+    show('pickExamView');
+  } catch (e) {
+    showError('Could not load exams', e.message);
+  }
+}
+
+async function chooseExam(examId, name) {
+  state.examId = examId;
+  state.examName = name;
+  // Check if already submitted
+  try {
+    const res = await fetch(`${EVALUATOR_API}/api/result/${examId}`, {
+      headers: { Authorization: `Bearer ${state.idToken}` }
+    });
+    if (res.ok) {
+      // already submitted -> show "already" view with link to result page
+      document.getElementById('viewResultLink').href = `result.html?examId=${encodeURIComponent(examId)}`;
+      show('alreadyView');
+      return;
+    }
+  } catch {}
+  // Load any draft for this exam
+  const draft = loadDraft();
+  if (draft) {
+    state.set = draft.set || null;
+    state.answers = draft.answers || { math: {}, physics: {}, chemistry: {} };
+  }
+  show('pickSetView');
+}
+
+// ===== Step 2: Set =====
+function chooseSet(s) {
+  state.set = s;
+  saveDraft();
+  startEntry();
+}
+
+// ===== Step 3: Answer entry =====
+function startEntry() {
+  document.getElementById('entryMeta').textContent = `${state.examName} · Set ${state.set}`;
+  state.tab = 'math';
+  renderTabs();
+  renderGrid();
+  show('answerEntryView');
+  startAutoSave();
+}
+
+function startAutoSave() {
+  if (saveTimer) clearInterval(saveTimer);
+  saveTimer = setInterval(saveDraft, 10000);
+}
+function stopAutoSave() {
+  if (saveTimer) { clearInterval(saveTimer); saveTimer = null; }
+}
+
+function switchTab(t) {
+  state.tab = t;
+  renderTabs();
+  renderGrid();
+}
+
+function renderTabs() {
+  document.querySelectorAll('.subject-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === state.tab);
+  });
+  for (const sub of ['math','physics','chemistry']) {
+    const n = Object.values(state.answers[sub]).filter(v => v != null && (Array.isArray(v) ? v.length : true)).length;
+    document.getElementById('count' + sub[0].toUpperCase() + sub.slice(1)).textContent = `${n} / ${COUNTS[sub]}`;
+  }
+}
+
+function renderGrid() {
+  const sub = state.tab;
+  const grid = document.getElementById('answerGrid');
+  grid.innerHTML = '';
+  let lastCat = 0;
+  for (let q = 1; q <= COUNTS[sub]; q++) {
+    const cat = categoryFor(sub, q);
+    if (cat !== lastCat) {
+      const banner = document.createElement('div');
+      banner.className = 'cat-banner';
+      banner.innerHTML = `<span>Category ${cat}</span><span class="marking">${MARKING[cat]}</span>`;
+      grid.appendChild(banner);
+      lastCat = cat;
+    }
+    const row = document.createElement('div');
+    row.className = 'qrow';
+    const current = state.answers[sub][q];
+    const isCat3 = cat === 3;
+
+    const optsHtml = ['A','B','C','D'].map(letter => {
+      const selected = isCat3
+        ? (Array.isArray(current) && current.includes(letter))
+        : (current === letter);
+      return `<div class="opt ${isCat3 ? 'cat3' : ''} ${selected ? 'selected' : ''}"
+                   data-q="${q}" data-opt="${letter}" onclick="toggleOpt(${q}, '${letter}', ${cat})">${letter}</div>`;
+    }).join('');
+
+    const skipActive = (current == null || (Array.isArray(current) && current.length === 0));
+    row.innerHTML = `
+      <div class="qno">${sub[0].toUpperCase()}${q}</div>
+      ${optsHtml}
+      <button class="skip-btn ${skipActive ? 'active' : ''}" onclick="skipQ(${q})">Skip</button>
+    `;
+    grid.appendChild(row);
+  }
+}
+
+function toggleOpt(q, letter, cat) {
+  const sub = state.tab;
+  if (cat === 3) {
+    const cur = Array.isArray(state.answers[sub][q]) ? state.answers[sub][q] : [];
+    const idx = cur.indexOf(letter);
+    if (idx >= 0) cur.splice(idx, 1); else cur.push(letter);
+    state.answers[sub][q] = cur.length ? cur.sort() : null;
+  } else {
+    if (state.answers[sub][q] === letter) state.answers[sub][q] = null;
+    else state.answers[sub][q] = letter;
+  }
+  renderGrid();
+  renderTabs();
+  saveDraft();
+}
+
+function skipQ(q) {
+  const sub = state.tab;
+  state.answers[sub][q] = null;
+  renderGrid();
+  renderTabs();
+  saveDraft();
+}
+
+// ===== Step 4: Review =====
+function summarize(sub) {
+  let attempted = 0, skipped = 0;
+  for (let q = 1; q <= COUNTS[sub]; q++) {
+    const a = state.answers[sub][q];
+    if (a == null || (Array.isArray(a) && a.length === 0)) skipped++; else attempted++;
+  }
+  return { attempted, skipped, total: COUNTS[sub] };
+}
+
+function goReview() {
+  saveDraft();
+  const subs = ['math','physics','chemistry'];
+  const labels = { math: 'Mathematics', physics: 'Physics', chemistry: 'Chemistry' };
+  const html = subs.map((s, i) => {
+    const r = summarize(s);
+    const right = i < subs.length - 1 ? 'border-right:1px solid var(--ink);' : '';
+    return `<div style="padding:24px; ${right}">
+      <div class="eyebrow">${labels[s]}</div>
+      <div style="display:flex; gap:16px; margin-top:12px; align-items:baseline;">
+        <div><div style="font-family:var(--font-display); font-size:2.2rem; font-weight:800;">${r.attempted}</div><div style="font-size:11px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.08em;">Attempted</div></div>
+        <div><div style="font-family:var(--font-display); font-size:2.2rem; font-weight:800; color:var(--ink-mute);">${r.skipped}</div><div style="font-size:11px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.08em;">Skipped</div></div>
+      </div>
+      <div style="margin-top:12px; font-size:12px; color:var(--ink-mute); font-family:var(--font-mono);">of ${r.total} total</div>
+    </div>`;
+  }).join('');
+  document.getElementById('reviewSummary').innerHTML = html;
+  show('reviewView');
+}
+
+function confirmSubmit() { document.getElementById('confirmOverlay').style.display = 'flex'; }
+function hideConfirm() { document.getElementById('confirmOverlay').style.display = 'none'; }
+
+async function doSubmit() {
+  hideConfirm();
+  show('submittingView');
+  stopAutoSave();
+  try {
+    const token = await state.user.getIdToken();
+    const res = await fetch(`${EVALUATOR_API}/api/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ examId: state.examId, set: state.set, answers: state.answers })
+    });
+    if (res.status === 409) {
+      toast('You have already submitted this exam');
+      document.getElementById('viewResultLink').href = `result.html?examId=${encodeURIComponent(state.examId)}`;
+      show('alreadyView');
+      return;
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || err.error || `HTTP ${res.status}`);
+    }
+    clearDraft();
+    window.location.href = `result.html?examId=${encodeURIComponent(state.examId)}`;
+  } catch (e) {
+    showError('Submission failed', e.message);
+  }
+}
+
+function showError(title, msg) {
+  document.getElementById('errorTitle').textContent = title;
+  document.getElementById('errorMsg').textContent = msg || 'Please try again.';
+  show('errorView');
+}
+
+// ===== Auth gate =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  state.user = user;
+  await loadExams();
+});
+
+window.addEventListener('beforeunload', saveDraft);
+</script>
+</body>
+</html>

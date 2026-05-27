@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Courses — Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px">
+    <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:32px">
+      <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:16px;line-height:1;font-family:'Poppins',sans-serif">Sankalp</div><div style="color:#818CF8;font-size:11px">Learning</div></div>
+    </a>
+    <nav>
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="courses.html" class="sidebar-link active"><i class="fas fa-book-open w-5"></i> My Courses</a>
+      <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list w-5"></i> Mock Tests</a>
+      <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note w-5"></i> Notes</a>
+      <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check w-5"></i> Counseling</a>
+      <a href="#" class="sidebar-link" onclick="logout()" style="margin-top:20px"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+</aside>
+
+<main class="main-content" style="padding:32px">
+  <div style="margin-bottom:28px">
+    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">My Courses 📚</h1>
+    <p style="color:#475569;font-size:14px;margin-top:4px">Pick up where you left off or start something new</p>
+  </div>
+
+  <!-- Filter tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+    <button onclick="filterSubject('all',this)" class="filter-btn active" style="padding:8px 18px;border-radius:100px;border:1px solid rgba(79,70,229,0.4);background:rgba(79,70,229,0.15);color:#818CF8;font-size:13px;font-weight:600;cursor:pointer">All Subjects</button>
+    <button onclick="filterSubject('physics',this)" class="filter-btn" style="padding:8px 18px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748B;font-size:13px;font-weight:600;cursor:pointer">⚡ Physics</button>
+    <button onclick="filterSubject('chemistry',this)" class="filter-btn" style="padding:8px 18px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748B;font-size:13px;font-weight:600;cursor:pointer">🧪 Chemistry</button>
+    <button onclick="filterSubject('mathematics',this)" class="filter-btn" style="padding:8px 18px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748B;font-size:13px;font-weight:600;cursor:pointer">📐 Mathematics</button>
+  </div>
+
+  <!-- Courses Grid -->
+  <div id="coursesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px"></div>
+</main>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+  function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+  const courses = [
+    { id:'phy-mechanics', subject:'physics', title:'Mechanics', icon:'⚙️', chapters:12, completed:5, color:'rgba(79,70,229,0.15)', border:'rgba(79,70,229,0.3)', accent:'#818CF8', desc:'Laws of motion, Work-energy, Rotational dynamics' },
+    { id:'phy-electro', subject:'physics', title:'Electrostatics', icon:'⚡', chapters:8, completed:3, color:'rgba(79,70,229,0.15)', border:'rgba(79,70,229,0.3)', accent:'#818CF8', desc:'Coulombs law, Gauss law, Capacitors' },
+    { id:'phy-optics', subject:'physics', title:'Optics', icon:'🔭', chapters:6, completed:0, color:'rgba(79,70,229,0.15)', border:'rgba(79,70,229,0.3)', accent:'#818CF8', desc:'Reflection, Refraction, Wave optics' },
+    { id:'phy-modern', subject:'physics', title:'Modern Physics', icon:'⚛️', chapters:7, completed:2, color:'rgba(79,70,229,0.15)', border:'rgba(79,70,229,0.3)', accent:'#818CF8', desc:'Photoelectric effect, Atomic models, Nuclear physics' },
+    { id:'chem-physical', subject:'chemistry', title:'Physical Chemistry', icon:'🔬', chapters:10, completed:4, color:'rgba(16,185,129,0.1)', border:'rgba(16,185,129,0.3)', accent:'#34D399', desc:'Thermodynamics, Equilibrium, Electrochemistry' },
+    { id:'chem-organic', subject:'chemistry', title:'Organic Chemistry', icon:'🧪', chapters:14, completed:7, color:'rgba(16,185,129,0.1)', border:'rgba(16,185,129,0.3)', accent:'#34D399', desc:'Reaction mechanisms, Named reactions, Biomolecules' },
+    { id:'chem-inorganic', subject:'chemistry', title:'Inorganic Chemistry', icon:'🏺', chapters:9, completed:1, color:'rgba(16,185,129,0.1)', border:'rgba(16,185,129,0.3)', accent:'#34D399', desc:'Periodic trends, Coordination, s,p,d block elements' },
+    { id:'math-calculus', subject:'mathematics', title:'Calculus', icon:'∫', chapters:11, completed:6, color:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', accent:'#FCD34D', desc:'Limits, Differentiation, Integration, Applications' },
+    { id:'math-algebra', subject:'mathematics', title:'Algebra', icon:'📊', chapters:10, completed:8, color:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', accent:'#FCD34D', desc:'Quadratic, Complex numbers, Matrices, Permutations' },
+    { id:'math-geometry', subject:'mathematics', title:'Coordinate Geometry', icon:'📐', chapters:8, completed:3, color:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', accent:'#FCD34D', desc:'Straight lines, Circles, Parabola, Ellipse, Hyperbola' },
+    { id:'math-probability', subject:'mathematics', title:'Probability & Stats', icon:'🎲', chapters:5, completed:0, color:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', accent:'#FCD34D', desc:'Bayes theorem, Distributions, Expected value' },
+    { id:'math-vector', subject:'mathematics', title:'Vectors & 3D', icon:'📏', chapters:6, completed:2, color:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', accent:'#FCD34D', desc:'Vector algebra, 3D geometry, Planes and lines in space' },
+  ];
+
+  let currentFilter = 'all';
+
+  function renderCourses(filter) {
+    const filtered = filter === 'all' ? courses : courses.filter(c => c.subject === filter);
+    const grid = document.getElementById('coursesGrid');
+    grid.innerHTML = filtered.map(c => {
+      const pct = Math.round((c.completed / c.chapters) * 100);
+      return `
+        <div class="course-card" data-subject="${c.subject}" style="background:rgba(15,23,42,0.8);cursor:pointer" onclick="window.location.href='module.html?course=${c.id}'">
+          <div style="height:120px;background:${c.color};display:flex;align-items:center;justify-content:center;font-size:3.5rem;border-radius:20px 20px 0 0;position:relative">
+            ${c.icon}
+            <div style="position:absolute;top:12px;right:12px;background:${c.color};border:1px solid ${c.border};border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:${c.accent}">${c.chapters} chapters</div>
+          </div>
+          <div style="padding:20px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <h3 style="font-size:16px;font-weight:700;flex:1">${c.title}</h3>
+              ${pct === 100 ? '<span style="background:rgba(16,185,129,0.2);color:#34D399;font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px">✓ Done</span>' : ''}
+            </div>
+            <p style="font-size:12px;color:#64748B;margin-bottom:14px;line-height:1.5">${c.desc}</p>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#475569;margin-bottom:6px">
+              <span>${c.completed}/${c.chapters} completed</span><span>${pct}%</span>
+            </div>
+            <div class="progress-bar" style="margin-bottom:14px"><div style="height:100%;background:linear-gradient(90deg,${c.accent},${c.accent}80);border-radius:3px;width:${pct}%;transition:width 1s"></div></div>
+            <button onclick="event.stopPropagation();window.location.href='module.html?course=${c.id}'" style="width:100%;padding:10px;border-radius:10px;border:1px solid ${c.border};background:${c.color};color:${c.accent};font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">
+              ${pct === 0 ? '🚀 Start Course' : pct === 100 ? '🔄 Revisit' : '▶ Continue'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterSubject(subject, btn) {
+    currentFilter = subject;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.style.background = 'transparent'; b.style.color = '#64748B'; b.style.borderColor = 'rgba(255,255,255,0.08)';
+    });
+    btn.style.background = 'rgba(79,70,229,0.15)'; btn.style.color = '#818CF8'; btn.style.borderColor = 'rgba(79,70,229,0.4)';
+    renderCourses(subject);
+  }
+
+  renderCourses('all');
+
+  auth.onAuthStateChanged(user => { if (!user) window.location.href = '../login.html'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: sankalp-evaluator-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: ALLOWED_ORIGIN
+        value: https://sankalp-learning-5442f.web.app
+      - key: FIREBASE_PROJECT_ID
+        value: sankalp-learning-5442f
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false

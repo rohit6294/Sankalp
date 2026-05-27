@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — Sankalp WBJEE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-inner">
+    <span>Volume 1 · Edition 1</span>
+    <span>· Pricing & Plans ·</span>
+    <span>· Sankalp WBJEE ·</span>
+    <span>· Start free, upgrade when ready ·</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="index.html#features" class="nav-link">Method</a>
+      <a href="index.html#subjects" class="nav-link">Subjects</a>
+      <a href="pricing.html" class="nav-link active">Pricing</a>
+      <a href="login.html" class="nav-link">Sign In</a>
+    </div>
+    <a href="register.html" class="btn-ink btn-sm">Join Sankalp</a>
+    <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu" style="position:static; display:none;">
+      <i class="fas fa-bars" id="menuIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="section" style="padding-top:64px; padding-bottom:32px;">
+  <div class="container" style="text-align:center;">
+    <div class="section-label" style="margin-bottom:20px;">— The Investment</div>
+    <h1 class="display-hero" style="margin-bottom:20px;">
+      Start <span class="italic-accent">Free.</span><br>
+      Upgrade <span class="rust-accent">anytime.</span>
+    </h1>
+    <p class="lede" style="margin:0 auto 36px; max-width:56ch; text-align:center;">
+      Every student deserves quality WBJEE prep. Start with our generous free plan — upgrade when you're ready for the full arsenal.
+    </p>
+
+    <!-- Billing toggle -->
+    <div style="display:inline-flex; align-items:center; border:1px solid var(--ink); margin-bottom:16px;">
+      <button onclick="setBilling('monthly',this)" id="monthlyBtn" style="padding:12px 24px; background:var(--ink); color:var(--paper); border:none; font-family:var(--font-sans); font-size:12px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.15s;">Monthly</button>
+      <button onclick="setBilling('yearly',this)" id="yearlyBtn" style="padding:12px 24px; background:var(--paper); color:var(--ink); border:none; font-family:var(--font-sans); font-size:12px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.15s;">Yearly <span style="background:var(--forest); color:var(--paper); font-size:9px; padding:2px 8px; margin-left:6px; font-weight:700; letter-spacing:0.1em;">SAVE 30%</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING CARDS -->
+<section style="padding:0 0 96px;">
+  <div class="container">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:0; border:1px solid var(--ink);">
+
+      <!-- Free Plan -->
+      <div style="padding:40px 32px; border-right:1px solid var(--ink); background:var(--paper);">
+        <span class="chapter-num">01</span>
+        <div class="section-label muted" style="margin-bottom:10px;">Free Forever</div>
+        <div style="font-family:var(--font-display); font-weight:900; font-size:3rem; line-height:1; margin-bottom:6px;">₹0</div>
+        <div class="eyebrow" style="margin-bottom:28px;">No credit card needed</div>
+        <a href="register.html" class="btn-ghost" style="width:100%; justify-content:center; padding:14px; margin-bottom:32px;">
+          Start Free
+        </a>
+        <div class="eyebrow" style="margin-bottom:14px; color:var(--ink);">What's included</div>
+        <div style="display:flex; flex-direction:column; gap:0;">
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> 10 Interactive Modules</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> 5 Free Formula Sheets</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> 2 Mock Tests per month</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> Basic Progress Tracking</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> Community Access</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink-mute);"><i class="fas fa-times" style="color:var(--rule); font-size:13px; width:16px;"></i> All 123 Modules</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink-mute);"><i class="fas fa-times" style="color:var(--rule); font-size:13px; width:16px;"></i> Unlimited Mock Tests</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink-mute);"><i class="fas fa-times" style="color:var(--rule); font-size:13px; width:16px;"></i> PYQ Solutions (2017–2024)</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; font-size:14px; color:var(--ink-mute);"><i class="fas fa-times" style="color:var(--rule); font-size:13px; width:16px;"></i> 1-on-1 Counseling</div>
+        </div>
+      </div>
+
+      <!-- Premium Plan -->
+      <div style="padding:40px 32px; border-right:1px solid var(--ink); background:var(--ink); color:var(--paper); position:relative;">
+        <div style="position:absolute; top:0; left:0; right:0; background:var(--rust); color:var(--paper); text-align:center; padding:8px; font-family:var(--font-sans); font-size:10px; font-weight:700; letter-spacing:0.22em; text-transform:uppercase;">Most Popular</div>
+        <div style="margin-top:32px;">
+          <span class="chapter-num" style="color:var(--rust);">02</span>
+          <div class="section-label" style="margin-bottom:10px;">WBJEE Premium</div>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:6px;">
+            <div style="font-family:var(--font-display); font-weight:900; font-size:3rem; line-height:1; color:var(--paper);" id="premPrice">₹499</div>
+            <div class="eyebrow" style="color:rgba(234,219,192,0.6);" id="premPer">/month</div>
+          </div>
+          <div style="font-size:13px; color:rgba(234,219,192,0.6); margin-bottom:28px; font-family:var(--font-sans);" id="premSave">Billed monthly. Cancel anytime.</div>
+          <button onclick="showComingSoon()" class="btn-rust" style="width:100%; justify-content:center; padding:14px; margin-bottom:32px;">
+            <i class="fas fa-crown"></i> Get Premium Access
+          </button>
+          <div class="eyebrow" style="margin-bottom:14px; color:var(--rust);">Everything in Free, plus:</div>
+          <div style="display:flex; flex-direction:column; gap:0;">
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(234,219,192,0.15); font-size:14px;"><i class="fas fa-check" style="color:var(--rust); font-size:13px; width:16px;"></i> All 123 Interactive Modules</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(234,219,192,0.15); font-size:14px;"><i class="fas fa-check" style="color:var(--rust); font-size:13px; width:16px;"></i> 200+ Notes & Formula Books</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(234,219,192,0.15); font-size:14px;"><i class="fas fa-check" style="color:var(--rust); font-size:13px; width:16px;"></i> Unlimited Mock Tests</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(234,219,192,0.15); font-size:14px;"><i class="fas fa-check" style="color:var(--rust); font-size:13px; width:16px;"></i> WBJEE PYQ 2017–2024 Solutions</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(234,219,192,0.15); font-size:14px;"><i class="fas fa-check" style="color:var(--rust); font-size:13px; width:16px;"></i> Advanced Analytics & Weak Areas</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(234,219,192,0.15); font-size:14px;"><i class="fas fa-check" style="color:var(--rust); font-size:13px; width:16px;"></i> Priority Community Support</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:11px 0; font-size:14px; color:rgba(234,219,192,0.5);"><i class="fas fa-times" style="color:rgba(234,219,192,0.25); font-size:13px; width:16px;"></i> 1-on-1 Counseling Sessions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mentorship Plan -->
+      <div style="padding:40px 32px; background:var(--paper-soft);">
+        <span class="chapter-num">03</span>
+        <div class="section-label" style="margin-bottom:10px; color:var(--forest);">Mentorship Plus</div>
+        <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:6px;">
+          <div style="font-family:var(--font-display); font-weight:900; font-size:3rem; line-height:1;" id="mentorPrice">₹999</div>
+          <div class="eyebrow" id="mentorPer">/month</div>
+        </div>
+        <div class="eyebrow" style="margin-bottom:28px;">Best for serious WBJEE aspirants</div>
+        <button onclick="showComingSoon()" class="btn-ink" style="width:100%; justify-content:center; padding:14px; margin-bottom:32px;">
+          <i class="fas fa-bolt"></i> Start Mentorship
+        </button>
+        <div class="eyebrow" style="margin-bottom:14px; color:var(--forest);">Everything in Premium, plus:</div>
+        <div style="display:flex; flex-direction:column; gap:0;">
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> 2 Monthly Counseling Sessions</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> Personalized Study Plan</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> WhatsApp Doubt Support</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> Mock Test Review Sessions</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> 60-day WBJEE Strategy</div>
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 0; font-size:14px; color:var(--ink);"><i class="fas fa-check" style="color:var(--forest); font-size:13px; width:16px;"></i> Dedicated Mentor Access</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" style="background:var(--paper-soft); border-top:1px solid var(--ink); border-bottom:1px solid var(--ink);">
+  <div class="container-narrow">
+    <div style="text-align:center; margin-bottom:48px;">
+      <div class="section-label" style="margin-bottom:16px;">— Questions</div>
+      <h2 class="display-xl">Frequently <span class="italic-accent">Asked.</span></h2>
+    </div>
+    <div id="faqList"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+  <div class="container">
+    <div style="border:1px solid var(--ink); padding:64px 48px; background:var(--paper-soft); text-align:center;">
+      <div class="section-label" style="margin-bottom:20px;">— Final Word</div>
+      <h2 class="display-xl" style="margin-bottom:16px;">
+        Start <span class="italic-accent">free</span> today.
+      </h2>
+      <p class="lede" style="margin:0 auto 32px;">
+        No credit card. No commitment. Just start preparing for WBJEE.
+      </p>
+      <a href="register.html" class="btn-rust btn-lg">
+        <i class="fas fa-user-plus"></i> Create Free Account
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer-ink">
+  <div class="footer-bottom" style="margin-top:0;">
+    <span>© 2026 Sankalp WBJEE · All rights reserved</span>
+    <span class="footer-stamp">Pricing</span>
+    <span><a href="index.html" style="color:var(--paper); opacity:0.7;">Home</a> · <a href="login.html" style="color:var(--paper); opacity:0.7;">Login</a> · <a href="register.html" style="color:var(--paper); opacity:0.7;">Register</a></span>
+  </div>
+</footer>
+
+<!-- Coming Soon Modal -->
+<div id="csModal" style="display:none; position:fixed; inset:0; background:rgba(26,20,16,0.6); z-index:100; align-items:center; justify-content:center; padding:24px;">
+  <div style="max-width:420px; width:100%; text-align:center; background:var(--paper); border:1px solid var(--ink); padding:48px 36px; box-shadow:8px 8px 0 var(--ink);">
+    <div style="font-size:56px; margin-bottom:16px;">🔧</div>
+    <h2 class="display-md" style="margin-bottom:10px;">Payment Coming Soon.</h2>
+    <p class="lede" style="margin:0 auto 28px; max-width:none;">We're integrating payments. Be the first to know when it's live.</p>
+    <a href="register.html" class="btn-rust" style="width:100%; justify-content:center; padding:14px; margin-bottom:14px;"><i class="fas fa-rocket"></i> Start Free in the Meantime</a>
+    <button onclick="document.getElementById('csModal').style.display='none'" class="btn-ghost" style="width:100%; justify-content:center; padding:12px;">Close</button>
+  </div>
+</div>
+
+<script>
+  // Navbar scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Mobile nav toggle
+  function toggleNav() {
+    const links = document.getElementById('navLinks');
+    const icon = document.getElementById('menuIcon');
+    const open = links.classList.toggle('open');
+    icon.className = open ? 'fas fa-times' : 'fas fa-bars';
+  }
+
+  let billing = 'monthly';
+  function setBilling(type, btn) {
+    billing = type;
+    document.getElementById('monthlyBtn').style.background = type === 'monthly' ? 'var(--ink)' : 'var(--paper)';
+    document.getElementById('monthlyBtn').style.color = type === 'monthly' ? 'var(--paper)' : 'var(--ink)';
+    document.getElementById('yearlyBtn').style.background = type === 'yearly' ? 'var(--ink)' : 'var(--paper)';
+    document.getElementById('yearlyBtn').style.color = type === 'yearly' ? 'var(--paper)' : 'var(--ink)';
+    if (type === 'yearly') {
+      document.getElementById('premPrice').textContent = '₹349';
+      document.getElementById('premPer').textContent = '/month';
+      document.getElementById('premSave').textContent = 'Billed ₹4,188/year — Save ₹1,800!';
+      document.getElementById('mentorPrice').textContent = '₹699';
+      document.getElementById('mentorPer').textContent = '/month';
+    } else {
+      document.getElementById('premPrice').textContent = '₹499';
+      document.getElementById('premPer').textContent = '/month';
+      document.getElementById('premSave').textContent = 'Billed monthly. Cancel anytime.';
+      document.getElementById('mentorPrice').textContent = '₹999';
+      document.getElementById('mentorPer').textContent = '/month';
+    }
+  }
+
+  function showComingSoon() { document.getElementById('csModal').style.display = 'flex'; }
+  document.getElementById('csModal').addEventListener('click', e => { if(e.target === document.getElementById('csModal')) document.getElementById('csModal').style.display = 'none'; });
+
+  const faqs = [
+    { q:"Is the free plan really free?", a:"Yes! No credit card required. Our free plan is genuinely free with no hidden charges. You get access to 10 modules, basic mock tests, and formula sheets." },
+    { q:"Can I cancel my subscription anytime?", a:"Absolutely. You can cancel at any time with no questions asked. Your access continues until the end of your billing period." },
+    { q:"What payment methods are supported?", a:"We're integrating UPI (PhonePe, GPay, Paytm), debit/credit cards, and net banking. Payment integration is coming very soon!" },
+    { q:"Is this platform specifically for WBJEE?", a:"Yes! Every module, mock test, and note is designed specifically for WBJEE aspirants. Our content follows the WBJEE syllabus precisely." },
+    { q:"How does 1-on-1 counseling work?", a:"You book a time slot, fill in what you want to discuss, and get a Google Meet link. It's a live video session with Sankalp Sir." },
+    { q:"Can I switch plans later?", a:"Yes, you can upgrade or downgrade at any time. Upgrades take effect immediately, downgrades at the next billing cycle." },
+  ];
+
+  document.getElementById('faqList').innerHTML = faqs.map((f,i) => `
+    <div class="accordion-item" style="margin-bottom:0;">
+      <div class="accordion-header" onclick="toggleFaq(${i})">
+        <span style="font-size:14px; font-weight:700;">${f.q}</span>
+        <i class="fas fa-chevron-down" id="faqIcon_${i}" style="color:var(--ink-mute); transition:transform 0.3s; font-size:13px;"></i>
+      </div>
+      <div class="accordion-content" id="faqContent_${i}">
+        <p style="font-size:14px; line-height:1.7;">${f.a}</p>
+      </div>
+    </div>`).join('');
+
+  function toggleFaq(i) {
+    const content = document.getElementById(`faqContent_${i}`);
+    const icon = document.getElementById(`faqIcon_${i}`);
+    const isOpen = content.classList.contains('open');
+    content.classList.toggle('open', !isOpen);
+    icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+</script>
+</body>
+</html>

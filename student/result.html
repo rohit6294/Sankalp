@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result — Sankalp WBJEE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .result-hero { background: var(--ink); color: var(--paper); padding: 48px 32px; border: 1px solid var(--ink); }
+    .score-cell { padding: 28px 20px; text-align: center; border-right: 1px solid var(--rule); }
+    .score-cell:last-child { border-right: none; }
+    .score-cell.ink-bg { border-right-color: rgba(234,219,192,0.15); }
+    .score-num { font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; line-height: 1; }
+    .score-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 8px; }
+    .analytics-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; border: 4px solid var(--rule); margin: 0 auto; }
+    .analytics-ring .pct { font-family: var(--font-display); font-size: 2rem; font-weight: 900; line-height: 1; }
+    .breakdown-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+    .breakdown-row:last-child { border-bottom: none; }
+    .rank-card { padding: 32px; text-align: center; }
+    .rank-big { font-family: var(--font-display); font-size: 3.5rem; font-weight: 900; line-height: 1; }
+    @media (max-width: 768px) {
+      .score-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .analytics-grid { grid-template-columns: 1fr !important; }
+      .score-num { font-size: 2rem; }
+      .rank-big { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home" style="width:18px"></i> Dashboard</a>
+    <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> My Courses</a>
+    <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Mock Tests</a>
+    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Counseling</a>
+    <a href="leaderboard.html" class="sidebar-link"><i class="fas fa-trophy" style="width:18px"></i> Leaderboard</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<main class="main-content" style="padding:32px; max-width:1024px;">
+
+  <!-- LOADING -->
+  <div id="loadingView" style="text-align:center; padding:80px 0;">
+    <i class="fas fa-spinner fa-spin" style="font-size:32px; color:var(--rust);"></i>
+    <div style="margin-top:12px; color:var(--ink-mute); font-size:13px;">Loading your result...</div>
+  </div>
+
+  <!-- RESULT VIEW -->
+  <div id="resultView" style="display:none;">
+
+    <!-- Hero banner -->
+    <div class="result-hero">
+      <div class="eyebrow" style="color:var(--rust); margin-bottom:8px;">Your Result</div>
+      <h1 style="font-family:var(--font-display); font-size:2rem; font-weight:900; margin-bottom:6px;" id="examTitle">WBJEE 2026</h1>
+      <p style="color:rgba(234,219,192,0.6); font-size:13px;">Set <span id="setLabel">—</span> · Submitted <span id="submittedAt">—</span></p>
+    </div>
+
+    <!-- Subject Scores -->
+    <div class="score-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); border:1px solid var(--ink); border-top:none;">
+      <div class="score-cell" style="background:var(--paper-soft);">
+        <div class="score-num" style="color:var(--rust);" id="mathScore">—</div>
+        <div class="score-label" style="color:var(--ink-mute);">Mathematics</div>
+      </div>
+      <div class="score-cell" style="background:var(--paper);">
+        <div class="score-num" style="color:var(--forest);" id="physicsScore">—</div>
+        <div class="score-label" style="color:var(--ink-mute);">Physics</div>
+      </div>
+      <div class="score-cell" style="background:var(--paper-soft);">
+        <div class="score-num" style="color:var(--rust);" id="chemistryScore">—</div>
+        <div class="score-label" style="color:var(--ink-mute);">Chemistry</div>
+      </div>
+      <div class="score-cell ink-bg" style="background:var(--ink); color:var(--paper);">
+        <div class="score-num" id="totalScore">—</div>
+        <div class="score-label" style="color:rgba(234,219,192,0.6);">Total</div>
+      </div>
+    </div>
+
+    <!-- Rank Cards -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--ink); border-top:none; margin-bottom:24px;">
+      <div class="rank-card" style="border-right:1px solid var(--ink); background:var(--paper-soft);">
+        <div class="eyebrow" style="margin-bottom:12px;">Expected WBJEE Rank</div>
+        <div class="rank-big" style="color:var(--rust);" id="expectedRank">—</div>
+        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="expectedRankNote">Based on previous year data</div>
+      </div>
+      <div class="rank-card" style="background:var(--paper);">
+        <div class="eyebrow" style="margin-bottom:12px;">Community Rank</div>
+        <div class="rank-big" style="color:var(--forest);" id="communityRank">—</div>
+        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="communityRankNote">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Analytics + Per-subject Breakdown -->
+    <div class="analytics-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+
+      <!-- Accuracy Ring + Counts -->
+      <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
+        <div class="eyebrow" style="margin-bottom:20px;">Performance Analytics</div>
+        <div class="analytics-ring" id="accuracyRing" style="margin-bottom:20px;">
+          <div class="pct" id="accuracyPct">—</div>
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-mute);">Accuracy</div>
+        </div>
+        <div>
+          <div class="breakdown-row">
+            <span><span style="display:inline-block; width:10px; height:10px; background:var(--forest); margin-right:8px;"></span>Correct</span>
+            <span style="font-family:var(--font-mono); font-weight:700;" id="totalCorrect">0</span>
+          </div>
+          <div class="breakdown-row">
+            <span><span style="display:inline-block; width:10px; height:10px; background:var(--rust); margin-right:8px;"></span>Wrong</span>
+            <span style="font-family:var(--font-mono); font-weight:700;" id="totalWrong">0</span>
+          </div>
+          <div class="breakdown-row">
+            <span><span style="display:inline-block; width:10px; height:10px; background:var(--rule); margin-right:8px;"></span>Skipped</span>
+            <span style="font-family:var(--font-mono); font-weight:700;" id="totalSkipped">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Per-Subject Breakdown -->
+      <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
+        <div class="eyebrow" style="margin-bottom:20px;">Subject-wise Breakdown</div>
+        <div id="subjectBreakdown">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <a href="evaluate.html" class="btn-ghost btn-sm"><i class="fas fa-redo"></i> Evaluate Another Exam</a>
+      <a href="dashboard.html" class="btn-rust btn-sm"><i class="fas fa-home"></i> Back to Dashboard</a>
+      <button class="btn-ink btn-sm" onclick="shareResult()"><i class="fas fa-share-alt"></i> Share Result</button>
+    </div>
+  </div>
+
+  <!-- NO RESULT -->
+  <div id="noResultView" style="display:none;">
+    <div style="border:1px solid var(--ink); padding:48px; text-align:center; background:var(--paper-soft);">
+      <div class="eyebrow" style="margin-bottom:12px;">No Result Found</div>
+      <h1 class="display-md">You haven't submitted this exam yet.</h1>
+      <p style="color:var(--ink-mute); margin-top:8px;">Complete the evaluator to see your result.</p>
+      <a href="evaluate.html" class="btn-rust btn-sm" style="margin-top:20px; display:inline-block;"><i class="fas fa-clipboard-check"></i> Start Evaluator</a>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorView" style="display:none;">
+    <div style="border:1px solid var(--rust); padding:32px; background:var(--paper-soft);">
+      <div class="eyebrow" style="color:var(--rust);">Error</div>
+      <h1 class="display-md" style="margin-top:8px;" id="errorTitle">Something went wrong</h1>
+      <p style="color:var(--ink-mute); margin-top:8px;" id="errorMsg"></p>
+      <button class="btn-rust btn-sm" style="margin-top:16px;" onclick="window.location.reload()">Reload</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ===== Config =====
+const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+function show(id) {
+  ['loadingView','resultView','noResultView','errorView']
+    .forEach(v => document.getElementById(v).style.display = (v === id ? 'block' : 'none'));
+}
+
+function showError(title, msg) {
+  document.getElementById('errorTitle').textContent = title;
+  document.getElementById('errorMsg').textContent = msg || '';
+  show('errorView');
+}
+
+function getExamId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('examId');
+}
+
+function formatDate(ms) {
+  if (!ms) return '—';
+  const d = new Date(ms);
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderSubjectBreakdown(perSubject) {
+  const container = document.getElementById('subjectBreakdown');
+  const subjects = [
+    { key: 'math', label: 'Mathematics', color: 'var(--rust)' },
+    { key: 'physics', label: 'Physics', color: 'var(--forest)' },
+    { key: 'chemistry', label: 'Chemistry', color: 'var(--rust)' },
+  ];
+
+  container.innerHTML = subjects.map(s => {
+    const data = perSubject[s.key] || { marks: 0, correct: 0, wrong: 0, skipped: 0 };
+    const total = data.correct + data.wrong + data.skipped;
+    const accuracy = (data.correct + data.wrong) > 0 ? Math.round((data.correct / (data.correct + data.wrong)) * 100) : 0;
+    return `
+      <div style="padding:16px 0; border-bottom:1px solid var(--rule);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+          <span style="font-weight:700; font-size:14px;">${s.label}</span>
+          <span style="font-family:var(--font-mono); font-weight:700; color:${s.color};">${data.marks}</span>
+        </div>
+        <div style="display:flex; gap:16px; font-size:12px; color:var(--ink-mute);">
+          <span>✓ ${data.correct}</span>
+          <span>✗ ${data.wrong}</span>
+          <span>— ${data.skipped}</span>
+          <span style="margin-left:auto; font-weight:700;">${accuracy}% acc</span>
+        </div>
+        <div class="progress-bar" style="margin-top:8px; height:4px;">
+          <div class="progress-fill" style="width:${total > 0 ? (data.correct/total)*100 : 0}%; background:${s.color};"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setAccuracyRing(accuracy) {
+  const ring = document.getElementById('accuracyRing');
+  const deg = (accuracy / 100) * 360;
+  const color = accuracy >= 70 ? 'var(--forest)' : accuracy >= 40 ? 'var(--rust)' : 'var(--rust)';
+  ring.style.border = `4px solid var(--rule)`;
+  ring.style.background = `conic-gradient(${color} ${deg}deg, var(--paper-soft) ${deg}deg)`;
+  document.getElementById('accuracyPct').textContent = accuracy + '%';
+}
+
+async function loadResult(user) {
+  const examId = getExamId();
+  if (!examId) {
+    showError('No exam specified', 'Please navigate here from the evaluator page.');
+    return;
+  }
+
+  try {
+    const token = await user.getIdToken();
+
+    // Fetch result
+    const resultRes = await fetch(`${EVALUATOR_API}/api/result/${examId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (resultRes.status === 404) {
+      show('noResultView');
+      return;
+    }
+    if (!resultRes.ok) throw new Error(`HTTP ${resultRes.status}`);
+
+    const result = await resultRes.json();
+
+    // Populate UI
+    document.getElementById('examTitle').textContent = examId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    document.getElementById('setLabel').textContent = result.set || '—';
+    document.getElementById('submittedAt').textContent = formatDate(result.submittedAt);
+
+    // Scores
+    document.getElementById('mathScore').textContent = result.scores.math;
+    document.getElementById('physicsScore').textContent = result.scores.physics;
+    document.getElementById('chemistryScore').textContent = result.scores.chemistry;
+    document.getElementById('totalScore').textContent = result.scores.total;
+
+    // Expected rank
+    if (result.expectedRank) {
+      document.getElementById('expectedRank').textContent = `${result.expectedRank.min} — ${result.expectedRank.max}`;
+      document.getElementById('expectedRankNote').textContent = 'Based on previous year cutoff data';
+    } else {
+      document.getElementById('expectedRank').textContent = 'N/A';
+      document.getElementById('expectedRankNote').textContent = 'Rank prediction data not yet available';
+    }
+
+    // Analytics
+    document.getElementById('totalCorrect').textContent = result.analytics.correct;
+    document.getElementById('totalWrong').textContent = result.analytics.wrong;
+    document.getElementById('totalSkipped').textContent = result.analytics.skipped;
+    setAccuracyRing(result.analytics.accuracy);
+
+    // Per-subject
+    if (result.perSubject) {
+      renderSubjectBreakdown(result.perSubject);
+    }
+
+    show('resultView');
+
+    // Fetch community rank (non-blocking)
+    fetchCommunityRank(token, examId);
+
+  } catch (e) {
+    showError('Failed to load result', e.message);
+  }
+}
+
+async function fetchCommunityRank(token, examId) {
+  try {
+    const res = await fetch(`${EVALUATOR_API}/api/rank/${examId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('rank fetch failed');
+    const data = await res.json();
+    document.getElementById('communityRank').textContent = `#${data.yourRank}`;
+    document.getElementById('communityRankNote').textContent = `out of ${data.totalParticipants} participant${data.totalParticipants !== 1 ? 's' : ''}`;
+  } catch {
+    document.getElementById('communityRank').textContent = '—';
+    document.getElementById('communityRankNote').textContent = 'Could not load rank';
+  }
+}
+
+function shareResult() {
+  const total = document.getElementById('totalScore').textContent;
+  const math = document.getElementById('mathScore').textContent;
+  const physics = document.getElementById('physicsScore').textContent;
+  const chemistry = document.getElementById('chemistryScore').textContent;
+  const text = `My WBJEE Score (via Sankalp WBJEE):\n\n📐 Mathematics: ${math}\n⚡ Physics: ${physics}\n🧪 Chemistry: ${chemistry}\n\n🏆 Total: ${total}\n\nEvaluate yours at: ${window.location.origin}/student/evaluate.html`;
+
+  if (navigator.share) {
+    navigator.share({ title: 'My WBJEE Score', text: text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Result copied to clipboard!');
+    }).catch(() => {
+      prompt('Copy your result:', text);
+    });
+  }
+}
+
+// ===== Auth gate =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  await loadResult(user);
+});
+</script>
+</body>
+</html>

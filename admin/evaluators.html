@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Evaluators — Admin · Sankalp WBJEE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .tab-btn { padding: 12px 24px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--font-sans); }
+    .tab-btn.active { background: var(--ink); color: var(--paper); }
+    .key-grid { display: grid; grid-template-columns: 56px repeat(4, 1fr); gap: 6px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--rule); font-size: 13px; }
+    .key-grid .qno { font-family: var(--font-mono); font-size: 12px; color: var(--ink-mute); font-weight: 700; }
+    .key-opt { padding: 8px 4px; border: 1px solid var(--rule); cursor: pointer; text-align: center; font-weight: 700; font-family: var(--font-mono); font-size: 12px; user-select: none; background: var(--paper); transition: all 0.1s; }
+    .key-opt:hover { border-color: var(--ink); }
+    .key-opt.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .key-opt.multi.selected { background: var(--forest); color: var(--paper); border-color: var(--forest); }
+    .cat-header { background: var(--paper-soft); border: 1px solid var(--ink); padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
+    .set-tab { padding: 10px 18px; border: 1px solid var(--ink); cursor: pointer; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--paper); }
+    .set-tab.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+    .rank-row-input { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 48px; gap: 8px; align-items: center; padding: 6px 0; }
+    .rank-row-input input { padding: 8px; border: 1px solid var(--rule); font-family: var(--font-mono); font-size: 13px; background: var(--paper); }
+    .exam-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--rule); }
+    .exam-row:hover { background: var(--paper-soft); }
+    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
+    .toast.show { opacity: 1; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+  </style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Admin Sidebar -->
+<aside class="sidebar sidebar-ink" id="adminSidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">Admin Panel</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Overview</div>
+    <a href="index.html" class="sidebar-link"><i class="fas fa-chart-pie" style="width:18px"></i> Dashboard</a>
+    <a href="students.html" class="sidebar-link"><i class="fas fa-users" style="width:18px"></i> Students</a>
+    <a href="content.html" class="sidebar-link"><i class="fas fa-book" style="width:18px"></i> Content</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Tests</a>
+    <a href="evaluators.html" class="sidebar-link active"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="bookings.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Bookings</a>
+    <a href="announcements.html" class="sidebar-link"><i class="fas fa-bullhorn" style="width:18px"></i> Announcements</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Revenue</div>
+    <a href="payments.html" class="sidebar-link"><i class="fas fa-rupee-sign" style="width:18px"></i> Payments</a>
+    <a href="analytics.html" class="sidebar-link"><i class="fas fa-chart-line" style="width:18px"></i> Analytics</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">System</div>
+    <a href="settings.html" class="sidebar-link"><i class="fas fa-cog" style="width:18px"></i> Settings</a>
+    <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:28px 32px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 class="display-lg">Exam Evaluators</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage WBJEE exams, answer keys, and rank prediction tables</p>
+    </div>
+    <button class="btn-rust btn-sm" onclick="showCreateExam()"><i class="fas fa-plus"></i> Create Exam</button>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex; gap:0;">
+    <button class="tab-btn active" data-tab="exams" onclick="switchMainTab('exams', this)">Exams & Answer Keys</button>
+    <button class="tab-btn" data-tab="rank" onclick="switchMainTab('rank', this)">Rank Prediction</button>
+  </div>
+
+  <!-- TAB 1: Exams & Answer Keys -->
+  <div id="tabExams" style="border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
+
+    <!-- Exam List -->
+    <div id="examList" style="border:1px solid var(--ink); background:var(--paper);">
+      <div style="padding:16px; border-bottom:1px solid var(--ink); display:flex; align-items:center; justify-content:space-between;">
+        <span class="eyebrow">Active Exams</span>
+        <span style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono);" id="examCount">0 exams</span>
+      </div>
+      <div id="examRows">
+        <div style="padding:32px; text-align:center; color:var(--ink-mute); font-size:13px;">Loading exams...</div>
+      </div>
+    </div>
+
+    <!-- Answer Key Editor (shown when exam selected) -->
+    <div id="keyEditor" style="display:none; margin-top:24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div>
+          <div class="eyebrow">Answer Key Editor</div>
+          <h2 style="font-family:var(--font-display); font-weight:700; font-size:1.2rem; margin-top:4px;" id="keyExamName">—</h2>
+        </div>
+        <button class="btn-ghost btn-sm" onclick="hideKeyEditor()"><i class="fas fa-times"></i> Close</button>
+      </div>
+
+      <!-- Set tabs -->
+      <div style="display:flex; gap:0; margin-bottom:0;">
+        <div class="set-tab active" onclick="switchSet('A', this)">Set A</div>
+        <div class="set-tab" onclick="switchSet('B', this)">Set B</div>
+        <div class="set-tab" onclick="switchSet('C', this)">Set C</div>
+        <div class="set-tab" onclick="switchSet('D', this)">Set D</div>
+        <div style="flex:1;"></div>
+        <button class="btn-ghost btn-sm" onclick="importJson()" style="margin-left:8px;"><i class="fas fa-file-import"></i> Import JSON</button>
+      </div>
+
+      <!-- Subject tabs inside key editor -->
+      <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none; margin-top:0;">
+        <div class="tab-btn active" data-keytab="math" onclick="switchKeySubject('math', this)" style="font-size:11px; padding:10px 16px;">Math <span style="font-family:var(--font-mono); opacity:0.6;">(75)</span></div>
+        <div class="tab-btn" data-keytab="physics" onclick="switchKeySubject('physics', this)" style="font-size:11px; padding:10px 16px;">Physics <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></div>
+        <div class="tab-btn" data-keytab="chemistry" onclick="switchKeySubject('chemistry', this)" style="font-size:11px; padding:10px 16px;">Chemistry <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></div>
+      </div>
+
+      <div style="border:1px solid var(--ink); background:var(--paper); max-height:500px; overflow-y:auto;" id="keyGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn-rust" onclick="saveAnswerKey()" id="saveKeyBtn"><i class="fas fa-save"></i> Save Answer Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Rank Prediction -->
+  <div id="tabRank" style="display:none; border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
+    <div style="margin-bottom:16px;">
+      <label class="input-label">Select Exam</label>
+      <select id="rankExamSelect" class="input-field" onchange="loadRankTable()">
+        <option value="">— Choose exam —</option>
+      </select>
+    </div>
+
+    <div id="rankTableEditor" style="display:none;">
+      <div class="eyebrow" style="margin-bottom:12px;">Marks → Rank Mapping</div>
+      <div style="border:1px solid var(--ink); background:var(--paper); padding:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 48px; gap:8px; padding:0 0 8px; border-bottom:1px solid var(--ink); margin-bottom:8px;">
+          <span class="eyebrow" style="font-size:10px;">Marks Min</span>
+          <span class="eyebrow" style="font-size:10px;">Marks Max</span>
+          <span class="eyebrow" style="font-size:10px;">Rank Min</span>
+          <span class="eyebrow" style="font-size:10px;">Rank Max</span>
+          <span></span>
+        </div>
+        <div id="rankRows">
+          <!-- Filled by JS -->
+        </div>
+        <button class="btn-ghost btn-sm" onclick="addRankRow()" style="margin-top:10px;"><i class="fas fa-plus"></i> Add Row</button>
+      </div>
+      <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+        <button class="btn-rust" onclick="saveRankTable()" id="saveRankBtn"><i class="fas fa-save"></i> Save Rank Table</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Create Exam Modal -->
+<div id="createExamModal" class="modal-overlay">
+  <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:480px; width:100%;">
+    <div class="eyebrow" style="margin-bottom:4px;">New Exam</div>
+    <h2 class="display-md" style="margin-bottom:20px;">Create Exam Evaluator</h2>
+    <div style="margin-bottom:16px;">
+      <label class="input-label">Exam ID (slug)</label>
+      <input type="text" id="newExamId" class="input-field" placeholder="wbjee-2026" pattern="[a-z0-9-]+" required>
+      <div style="font-size:11px; color:var(--ink-mute); margin-top:4px;">Lowercase, hyphens only. e.g. wbjee-2026</div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label class="input-label">Display Name</label>
+      <input type="text" id="newExamName" class="input-field" placeholder="WBJEE 2026" required>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn-ghost btn-sm" onclick="hideCreateExam()">Cancel</button>
+      <button class="btn-rust btn-sm" onclick="createExam()"><i class="fas fa-plus"></i> Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- JSON Import Modal -->
+<div id="importModal" class="modal-overlay">
+  <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:560px; width:100%;">
+    <div class="eyebrow" style="margin-bottom:4px;">Import Answer Key</div>
+    <h2 class="display-md" style="margin-bottom:8px;">Paste JSON for <span id="importSetLabel">—</span></h2>
+    <p style="font-size:12px; color:var(--ink-mute); margin-bottom:16px;">Format: <code>{"math":{"1":"A","2":"B",...,"66":"A,B,C"},"physics":{...},"chemistry":{...}}</code></p>
+    <textarea id="importJsonText" class="input-field" rows="8" style="font-family:var(--font-mono); font-size:12px;" placeholder='{"math":{"1":"A","2":"B"},"physics":{"1":"C"},"chemistry":{"1":"A"}}'></textarea>
+    <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn-ghost btn-sm" onclick="hideImportModal()">Cancel</button>
+      <button class="btn-rust btn-sm" onclick="doImportJson()"><i class="fas fa-check"></i> Import</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ===== Config =====
+const COUNTS = { math: 75, physics: 40, chemistry: 40 };
+const CAT_RANGES = {
+  math:      { 1:[1,50], 2:[51,65], 3:[66,75] },
+  physics:   { 1:[1,30], 2:[31,35], 3:[36,40] },
+  chemistry: { 1:[1,30], 2:[31,35], 3:[36,40] },
+};
+
+// ===== State =====
+let selectedExamId = null;
+let currentSet = 'A';
+let currentKeySubject = 'math';
+let keyData = {}; // { A: { math: {...}, physics: {...}, chemistry: {...} }, B: ... }
+
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function logout() { auth.signOut(); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function categoryFor(subject, qNo) {
+  const r = CAT_RANGES[subject];
+  if (qNo >= r[1][0] && qNo <= r[1][1]) return 1;
+  if (qNo >= r[2][0] && qNo <= r[2][1]) return 2;
+  return 3;
+}
+
+// ===== Tab switching =====
+function switchMainTab(tab, btn) {
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tabExams').style.display = tab === 'exams' ? 'block' : 'none';
+  document.getElementById('tabRank').style.display = tab === 'rank' ? 'block' : 'none';
+}
+
+// ===== Exam CRUD =====
+function showCreateExam() { document.getElementById('createExamModal').style.display = 'flex'; }
+function hideCreateExam() { document.getElementById('createExamModal').style.display = 'none'; }
+
+async function createExam() {
+  const id = document.getElementById('newExamId').value.trim();
+  const name = document.getElementById('newExamName').value.trim();
+  if (!id || !name) { toast('Please fill all fields'); return; }
+  if (!/^[a-z0-9-]+$/.test(id)) { toast('ID must be lowercase with hyphens only'); return; }
+
+  try {
+    await db.collection('exams').doc(id).set({
+      name: name,
+      active: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    toast(`Exam "${name}" created!`);
+    hideCreateExam();
+    document.getElementById('newExamId').value = '';
+    document.getElementById('newExamName').value = '';
+    loadExams();
+  } catch (e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+async function loadExams() {
+  try {
+    const snap = await db.collection('exams').orderBy('createdAt', 'desc').get();
+    const rows = document.getElementById('examRows');
+    const rankSelect = document.getElementById('rankExamSelect');
+
+    if (snap.empty) {
+      rows.innerHTML = '<div style="padding:32px; text-align:center; color:var(--ink-mute); font-size:13px;">No exams yet. Create one above.</div>';
+      document.getElementById('examCount').textContent = '0 exams';
+      return;
+    }
+
+    document.getElementById('examCount').textContent = `${snap.size} exam${snap.size > 1 ? 's' : ''}`;
+
+    rows.innerHTML = snap.docs.map(d => {
+      const data = d.data();
+      return `
+        <div class="exam-row">
+          <div>
+            <div style="font-weight:700; font-size:14px;">${data.name}</div>
+            <div style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono); margin-top:2px;">${d.id}</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="badge ${data.active ? 'badge-success' : 'badge-warning'}">${data.active ? 'Active' : 'Inactive'}</span>
+            <button class="btn-ghost btn-sm" onclick="openKeyEditor('${d.id}', '${data.name.replace(/'/g, "\\'")}')"><i class="fas fa-key"></i> Keys</button>
+            <button class="btn-ghost btn-sm" onclick="toggleExamActive('${d.id}', ${!data.active})"><i class="fas fa-${data.active ? 'eye-slash' : 'eye'}"></i></button>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Populate rank select
+    rankSelect.innerHTML = '<option value="">— Choose exam —</option>' +
+      snap.docs.map(d => `<option value="${d.id}">${d.data().name}</option>`).join('');
+
+  } catch (e) {
+    toast('Error loading exams: ' + e.message);
+  }
+}
+
+async function toggleExamActive(examId, active) {
+  try {
+    await db.collection('exams').doc(examId).update({ active: active });
+    toast(`Exam ${active ? 'activated' : 'deactivated'}`);
+    loadExams();
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+// ===== Answer Key Editor =====
+function openKeyEditor(examId, examName) {
+  selectedExamId = examId;
+  document.getElementById('keyExamName').textContent = examName + ' — Set ' + currentSet;
+  document.getElementById('keyEditor').style.display = 'block';
+  keyData = {};
+  loadAnswerKey();
+}
+
+function hideKeyEditor() {
+  document.getElementById('keyEditor').style.display = 'none';
+  selectedExamId = null;
+}
+
+function switchSet(set, btn) {
+  currentSet = set;
+  document.querySelectorAll('.set-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('keyExamName').textContent = document.getElementById('keyExamName').textContent.replace(/Set [A-D]/, 'Set ' + set);
+  loadAnswerKey();
+}
+
+function switchKeySubject(sub, btn) {
+  currentKeySubject = sub;
+  document.querySelectorAll('[data-keytab]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderKeyGrid();
+}
+
+async function loadAnswerKey() {
+  try {
+    const doc = await db.collection('exams').doc(selectedExamId)
+      .collection('answerKeys').doc(currentSet).get();
+
+    if (doc.exists) {
+      keyData[currentSet] = doc.data();
+    } else {
+      keyData[currentSet] = { math: {}, physics: {}, chemistry: {} };
+    }
+    renderKeyGrid();
+  } catch (e) {
+    toast('Error loading key: ' + e.message);
+    keyData[currentSet] = { math: {}, physics: {}, chemistry: {} };
+    renderKeyGrid();
+  }
+}
+
+function renderKeyGrid() {
+  const sub = currentKeySubject;
+  const grid = document.getElementById('keyGrid');
+  const answers = (keyData[currentSet] && keyData[currentSet][sub]) || {};
+  grid.innerHTML = '';
+
+  let lastCat = 0;
+  for (let q = 1; q <= COUNTS[sub]; q++) {
+    const cat = categoryFor(sub, q);
+    if (cat !== lastCat) {
+      const header = document.createElement('div');
+      header.className = 'cat-header';
+      const markingText = cat === 1 ? '+1 / -0.25' : cat === 2 ? '+2 / -0.5' : 'Partial / 0 neg';
+      header.innerHTML = `<span>Category ${cat}</span><span style="font-family:var(--font-mono); font-size:10px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-mute);">${markingText}</span>`;
+      grid.appendChild(header);
+      lastCat = cat;
+    }
+
+    const isCat3 = cat === 3;
+    const current = answers[String(q)] || '';
+    const currentOpts = isCat3 ? current.split(',').filter(Boolean).map(s => s.trim().toUpperCase()) : [current.trim().toUpperCase()];
+
+    const row = document.createElement('div');
+    row.className = 'key-grid';
+
+    const prefix = sub === 'math' ? 'M' : sub === 'physics' ? 'P' : 'C';
+
+    const optsHtml = ['A','B','C','D'].map(letter => {
+      const selected = currentOpts.includes(letter);
+      return `<div class="key-opt ${isCat3 ? 'multi' : ''} ${selected ? 'selected' : ''}"
+                   onclick="toggleKeyOpt('${sub}', ${q}, '${letter}', ${cat})">${letter}</div>`;
+    }).join('');
+
+    row.innerHTML = `<div class="qno">${prefix}${q}</div>${optsHtml}`;
+    grid.appendChild(row);
+  }
+}
+
+function toggleKeyOpt(sub, q, letter, cat) {
+  if (!keyData[currentSet]) keyData[currentSet] = { math: {}, physics: {}, chemistry: {} };
+  const answers = keyData[currentSet][sub];
+
+  if (cat === 3) {
+    // Multi-select
+    const current = (answers[String(q)] || '').split(',').filter(Boolean).map(s => s.trim().toUpperCase());
+    const idx = current.indexOf(letter);
+    if (idx >= 0) current.splice(idx, 1); else current.push(letter);
+    answers[String(q)] = current.sort().join(',');
+    if (!answers[String(q)]) delete answers[String(q)];
+  } else {
+    // Single-select toggle
+    if (answers[String(q)] === letter) {
+      delete answers[String(q)];
+    } else {
+      answers[String(q)] = letter;
+    }
+  }
+  renderKeyGrid();
+}
+
+async function saveAnswerKey() {
+  if (!selectedExamId || !keyData[currentSet]) { toast('No data to save'); return; }
+  const btn = document.getElementById('saveKeyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    await db.collection('exams').doc(selectedExamId)
+      .collection('answerKeys').doc(currentSet)
+      .set(keyData[currentSet], { merge: true });
+
+    // Count filled answers
+    const data = keyData[currentSet];
+    const filled = Object.keys(data.math || {}).length + Object.keys(data.physics || {}).length + Object.keys(data.chemistry || {}).length;
+    toast(`Set ${currentSet} saved! (${filled} answers)`);
+  } catch (e) {
+    toast('Error saving: ' + e.message);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-save"></i> Save Answer Key';
+}
+
+// ===== JSON Import =====
+function importJson() {
+  document.getElementById('importSetLabel').textContent = `Set ${currentSet} — ${selectedExamId}`;
+  document.getElementById('importJsonText').value = '';
+  document.getElementById('importModal').style.display = 'flex';
+}
+function hideImportModal() { document.getElementById('importModal').style.display = 'none'; }
+
+function doImportJson() {
+  const raw = document.getElementById('importJsonText').value.trim();
+  if (!raw) { toast('Paste JSON first'); return; }
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.math && !parsed.physics && !parsed.chemistry) {
+      toast('JSON must have math, physics, and/or chemistry keys');
+      return;
+    }
+    // Validate counts
+    if (parsed.math && Object.keys(parsed.math).length > 75) { toast('Math has more than 75 entries!'); return; }
+    if (parsed.physics && Object.keys(parsed.physics).length > 40) { toast('Physics has more than 40 entries!'); return; }
+    if (parsed.chemistry && Object.keys(parsed.chemistry).length > 40) { toast('Chemistry has more than 40 entries!'); return; }
+
+    keyData[currentSet] = {
+      math: parsed.math || {},
+      physics: parsed.physics || {},
+      chemistry: parsed.chemistry || {},
+    };
+    hideImportModal();
+    renderKeyGrid();
+    toast(`Imported! Math: ${Object.keys(parsed.math||{}).length}, Phy: ${Object.keys(parsed.physics||{}).length}, Chem: ${Object.keys(parsed.chemistry||{}).length}`);
+  } catch (e) {
+    toast('Invalid JSON: ' + e.message);
+  }
+}
+
+// ===== Rank Prediction Table =====
+let rankRows = [];
+
+async function loadRankTable() {
+  const examId = document.getElementById('rankExamSelect').value;
+  if (!examId) {
+    document.getElementById('rankTableEditor').style.display = 'none';
+    return;
+  }
+  document.getElementById('rankTableEditor').style.display = 'block';
+
+  try {
+    const doc = await db.collection('exams').doc(examId)
+      .collection('rankTable').doc('data').get();
+    rankRows = doc.exists ? (doc.data().rows || []) : [];
+    if (rankRows.length === 0) {
+      // Add default rows
+      rankRows = [
+        { marksMin: 0, marksMax: 49, rankMin: 15000, rankMax: 50000 },
+        { marksMin: 50, marksMax: 99, rankMin: 5000, rankMax: 14999 },
+        { marksMin: 100, marksMax: 139, rankMin: 2000, rankMax: 4999 },
+        { marksMin: 140, marksMax: 159, rankMin: 400, rankMax: 1999 },
+        { marksMin: 160, marksMax: 200, rankMin: 1, rankMax: 399 },
+      ];
+    }
+    renderRankRows();
+  } catch (e) {
+    toast('Error loading rank table: ' + e.message);
+  }
+}
+
+function renderRankRows() {
+  const container = document.getElementById('rankRows');
+  container.innerHTML = rankRows.map((r, i) => `
+    <div class="rank-row-input">
+      <input type="number" value="${r.marksMin}" onchange="rankRows[${i}].marksMin=+this.value" placeholder="0">
+      <input type="number" value="${r.marksMax}" onchange="rankRows[${i}].marksMax=+this.value" placeholder="99">
+      <input type="number" value="${r.rankMin}" onchange="rankRows[${i}].rankMin=+this.value" placeholder="1">
+      <input type="number" value="${r.rankMax}" onchange="rankRows[${i}].rankMax=+this.value" placeholder="999">
+      <button class="btn-ghost" onclick="removeRankRow(${i})" style="padding:8px; font-size:12px; color:var(--rust);"><i class="fas fa-trash"></i></button>
+    </div>`).join('');
+}
+
+function addRankRow() {
+  rankRows.push({ marksMin: 0, marksMax: 0, rankMin: 0, rankMax: 0 });
+  renderRankRows();
+}
+
+function removeRankRow(i) {
+  rankRows.splice(i, 1);
+  renderRankRows();
+}
+
+async function saveRankTable() {
+  const examId = document.getElementById('rankExamSelect').value;
+  if (!examId) { toast('Select an exam first'); return; }
+  const btn = document.getElementById('saveRankBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    // Validate: all values should be numbers
+    for (const r of rankRows) {
+      if (isNaN(r.marksMin) || isNaN(r.marksMax) || isNaN(r.rankMin) || isNaN(r.rankMax)) {
+        toast('All fields must be valid numbers'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table'; return;
+      }
+    }
+
+    await db.collection('exams').doc(examId)
+      .collection('rankTable').doc('data')
+      .set({ rows: rankRows });
+    toast(`Rank table saved (${rankRows.length} bands)`);
+  } catch (e) {
+    toast('Error: ' + e.message);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table';
+}
+
+// ===== Auth gate =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  try {
+    const doc = await db.collection('users').doc(user.uid).get();
+    if (doc.exists && doc.data().role !== 'admin') {
+      window.location.href = '../student/dashboard.html';
+      return;
+    }
+  } catch {}
+  loadExams();
+});
+</script>
+</body>
+</html>

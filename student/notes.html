@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes — Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .note-card { background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.07); border-radius:16px; overflow:hidden; transition:all 0.3s; position:relative; }
+    .note-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,0.3); border-color:rgba(79,70,229,0.3); }
+    .note-thumb { height:110px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .premium-blur { filter:blur(2px); pointer-events:none; }
+    .lock-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(2,6,23,0.75); gap:6px; }
+    .search-box { background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px 16px 12px 44px; color:#E2E8F0; font-size:14px; width:100%; outline:none; transition:all 0.3s; }
+    .search-box:focus { border-color:#4F46E5; background:rgba(79,70,229,0.08); }
+    .filter-pill { padding:7px 16px; border-radius:100px; font-size:13px; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.08); background:transparent; color:#64748B; transition:all 0.2s; }
+    .filter-pill.active { background:rgba(79,70,229,0.15); color:#818CF8; border-color:rgba(79,70,229,0.4); }
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px">
+    <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:32px">
+      <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:16px;font-family:'Poppins',sans-serif">Sankalp</div><div style="color:#818CF8;font-size:11px">Learning</div></div>
+    </a>
+    <nav>
+      <div style="font-size:11px;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;padding-left:4px">Main</div>
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open w-5"></i> My Courses</a>
+      <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list w-5"></i> Mock Tests</a>
+      <a href="notes.html" class="sidebar-link active"><i class="fas fa-sticky-note w-5"></i> Notes</a>
+      <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check w-5"></i> Counseling</a>
+      <div style="font-size:11px;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin:20px 0 8px;padding-left:4px">Account</div>
+      <a href="profile.html" class="sidebar-link"><i class="fas fa-user w-5"></i> Profile</a>
+      <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.05)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="avatarSidebar" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px">?</div>
+      <div><div id="sidebarName" style="font-size:13px;font-weight:600">Loading...</div><div id="sidebarPlan" style="font-size:11px;color:#475569">Free Plan</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main-content" style="padding:32px">
+  <!-- Header -->
+  <div style="margin-bottom:28px">
+    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">Notes & Study Material 📚</h1>
+    <p style="color:#475569;font-size:14px;margin-top:4px">Formula sheets, short notes, and PYQ summaries</p>
+  </div>
+
+  <!-- Premium Banner -->
+  <div style="background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.3);border-radius:20px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px" id="premiumBanner">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:36px">🔓</div>
+      <div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:2px">Unlock All Premium Notes</div>
+        <p style="font-size:13px;color:#94A3B8">Get full access to 200+ premium notes, formula books, and PYQ analysis.</p>
+      </div>
+    </div>
+    <button onclick="showUpgradeModal()" style="background:linear-gradient(135deg,#F59E0B,#EF4444);color:white;border:none;padding:12px 24px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;transition:all 0.3s" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+      <i class="fas fa-crown"></i> Upgrade to Premium
+    </button>
+  </div>
+
+  <!-- Search + Filters -->
+  <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:28px">
+    <div style="position:relative;max-width:480px">
+      <i class="fas fa-search" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#475569;font-size:13px"></i>
+      <input type="text" class="search-box" id="searchInput" placeholder="Search notes, formulas, topics..." oninput="filterNotes()">
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px" id="filterPills">
+      <button class="filter-pill active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-pill" onclick="setFilter('physics',this)">⚡ Physics</button>
+      <button class="filter-pill" onclick="setFilter('chemistry',this)">🧪 Chemistry</button>
+      <button class="filter-pill" onclick="setFilter('mathematics',this)">📐 Mathematics</button>
+      <button class="filter-pill" onclick="setFilter('free',this)"><i class="fas fa-unlock" style="font-size:11px"></i> Free Only</button>
+      <button class="filter-pill" onclick="setFilter('premium',this)"><i class="fas fa-crown" style="font-size:11px"></i> Premium</button>
+    </div>
+  </div>
+
+  <!-- Notes Count -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
+    <span style="font-size:13px;color:#64748B"><span id="notesCount">0</span> notes found</span>
+    <div style="display:flex;gap:8px">
+      <button onclick="setView('grid')" id="gridView" style="width:34px;height:34px;border-radius:8px;border:1px solid rgba(79,70,229,0.4);background:rgba(79,70,229,0.15);color:#818CF8;cursor:pointer"><i class="fas fa-th-large" style="font-size:13px"></i></button>
+      <button onclick="setView('list')" id="listView" style="width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#475569;cursor:pointer"><i class="fas fa-list" style="font-size:13px"></i></button>
+    </div>
+  </div>
+
+  <!-- Notes Grid -->
+  <div id="notesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px"></div>
+</main>
+
+<!-- Upgrade Modal -->
+<div id="upgradeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;padding:24px">
+  <div class="glass-card p-8" style="max-width:480px;width:100%;background:rgba(15,23,42,0.98);position:relative">
+    <button onclick="closeModal()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.05);border:none;border-radius:8px;width:32px;height:32px;color:#64748B;cursor:pointer;font-size:16px">&times;</button>
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:48px;margin-bottom:12px">👑</div>
+      <h2 style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:6px">Upgrade to Premium</h2>
+      <p style="color:#64748B;font-size:14px">Unlock everything you need to crack WBJEE</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94A3B8"><i class="fas fa-check-circle text-green-400" style="color:#34D399;flex-shrink:0"></i> 200+ Premium Notes & Formula Sheets</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94A3B8"><i class="fas fa-check-circle" style="color:#34D399;flex-shrink:0"></i> Full WBJEE PYQ Solutions (2017–2024)</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94A3B8"><i class="fas fa-check-circle" style="color:#34D399;flex-shrink:0"></i> Unlimited Mock Tests</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94A3B8"><i class="fas fa-check-circle" style="color:#34D399;flex-shrink:0"></i> All Interactive Modules</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94A3B8"><i class="fas fa-check-circle" style="color:#34D399;flex-shrink:0"></i> 1-on-1 Counseling Sessions</div>
+    </div>
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:14px;padding:20px;text-align:center;margin-bottom:20px">
+      <div style="font-size:12px;color:#64748B;margin-bottom:4px">WBJEE Premium Plan</div>
+      <div style="font-size:36px;font-weight:900;color:#FCD34D">Coming Soon</div>
+      <div style="font-size:13px;color:#94A3B8;margin-top:4px">Payment integration in progress</div>
+    </div>
+    <button onclick="closeModal()" class="btn-gold" style="width:100%;justify-content:center;padding:14px;font-size:15px">
+      <i class="fas fa-bell"></i> Notify Me When Available
+    </button>
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+  const notesData = [
+    { id:1, title:'Electrostatics Formula Sheet', subject:'physics', type:'formulas', pages:4, rating:4.9, reviews:234, free:true, icon:'⚡', color:'rgba(79,70,229,0.15)', accent:'#818CF8', desc:'Complete Coulombs law, Gauss law, Capacitor formulas' },
+    { id:2, title:'Mechanics Quick Notes', subject:'physics', type:'notes', pages:12, rating:4.8, reviews:189, free:true, icon:'⚙️', color:'rgba(79,70,229,0.15)', accent:'#818CF8', desc:'Newton\'s laws, Work-energy, Rotational motion summary' },
+    { id:3, title:'Modern Physics Summary', subject:'physics', type:'summary', pages:8, rating:4.7, reviews:145, free:false, icon:'⚛️', color:'rgba(79,70,229,0.15)', accent:'#818CF8', desc:'Photoelectric, Atomic models, Nuclear physics concepts' },
+    { id:4, title:'Organic Chemistry Reactions', subject:'chemistry', type:'notes', pages:20, rating:4.9, reviews:312, free:false, icon:'🧪', color:'rgba(16,185,129,0.1)', accent:'#34D399', desc:'Named reactions, mechanisms, and reagent shortcuts' },
+    { id:5, title:'Physical Chemistry Formulas', subject:'chemistry', type:'formulas', pages:6, rating:4.8, reviews:278, free:true, icon:'🔬', color:'rgba(16,185,129,0.1)', accent:'#34D399', desc:'Thermodynamics, Equilibrium, Electrochemistry formulas' },
+    { id:6, title:'Inorganic Chemistry Notes', subject:'chemistry', type:'notes', pages:15, rating:4.6, reviews:156, free:false, icon:'🏺', color:'rgba(16,185,129,0.1)', accent:'#34D399', desc:'s, p, d block elements, coordination chemistry' },
+    { id:7, title:'Calculus Quick Reference', subject:'mathematics', type:'formulas', pages:5, rating:4.9, reviews:421, free:true, icon:'∫', color:'rgba(245,158,11,0.1)', accent:'#FCD34D', desc:'Differentiation & integration formulas, standard results' },
+    { id:8, title:'Algebra Complete Notes', subject:'mathematics', type:'notes', pages:18, rating:4.7, reviews:198, free:false, icon:'📊', color:'rgba(245,158,11,0.1)', accent:'#FCD34D', desc:'Quadratic, complex numbers, matrices, progressions' },
+    { id:9, title:'Coordinate Geometry Notes', subject:'mathematics', type:'notes', pages:14, rating:4.8, reviews:167, free:false, icon:'📐', color:'rgba(245,158,11,0.1)', accent:'#FCD34D', desc:'Circles, parabola, ellipse, hyperbola with solved examples' },
+    { id:10, title:'Optics Formula Sheet', subject:'physics', type:'formulas', pages:4, rating:4.7, reviews:189, free:true, icon:'🔭', color:'rgba(79,70,229,0.15)', accent:'#818CF8', desc:'Reflection, refraction, lens formula, wave optics' },
+    { id:11, title:'WBJEE 2023 Analysis', subject:'physics', type:'summary', pages:8, rating:4.9, reviews:345, free:false, icon:'🏆', color:'rgba(239,68,68,0.1)', accent:'#F87171', desc:'Chapter-wise marks distribution, important topics' },
+    { id:12, title:'Probability & Statistics Notes', subject:'mathematics', type:'notes', pages:10, rating:4.6, reviews:134, free:true, icon:'🎲', color:'rgba(245,158,11,0.1)', accent:'#FCD34D', desc:'Bayes theorem, distributions, expected value' },
+  ];
+
+  let activeFilter = 'all';
+  let searchQuery = '';
+  let viewMode = 'grid';
+
+  function setFilter(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderNotes();
+  }
+
+  function filterNotes() {
+    searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    renderNotes();
+  }
+
+  function setView(mode) {
+    viewMode = mode;
+    const grid = document.getElementById('notesGrid');
+    if (mode === 'grid') {
+      grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(280px,1fr))';
+      document.getElementById('gridView').style.background = 'rgba(79,70,229,0.15)';
+      document.getElementById('gridView').style.borderColor = 'rgba(79,70,229,0.4)';
+      document.getElementById('gridView').style.color = '#818CF8';
+      document.getElementById('listView').style.background = 'transparent';
+      document.getElementById('listView').style.borderColor = 'rgba(255,255,255,0.08)';
+      document.getElementById('listView').style.color = '#475569';
+    } else {
+      grid.style.gridTemplateColumns = '1fr';
+      document.getElementById('listView').style.background = 'rgba(79,70,229,0.15)';
+      document.getElementById('listView').style.borderColor = 'rgba(79,70,229,0.4)';
+      document.getElementById('listView').style.color = '#818CF8';
+      document.getElementById('gridView').style.background = 'transparent';
+      document.getElementById('gridView').style.borderColor = 'rgba(255,255,255,0.08)';
+      document.getElementById('gridView').style.color = '#475569';
+    }
+    renderNotes();
+  }
+
+  function renderNotes() {
+    let filtered = notesData;
+    if (activeFilter === 'free') filtered = filtered.filter(n => n.free);
+    else if (activeFilter === 'premium') filtered = filtered.filter(n => !n.free);
+    else if (activeFilter !== 'all') filtered = filtered.filter(n => n.subject === activeFilter);
+    if (searchQuery) filtered = filtered.filter(n => n.title.toLowerCase().includes(searchQuery) || n.desc.toLowerCase().includes(searchQuery));
+
+    document.getElementById('notesCount').textContent = filtered.length;
+
+    const typeLabels = { formulas:'Formula Sheet', notes:'Study Notes', summary:'Summary', pyq:'PYQ Analysis' };
+
+    if (viewMode === 'list') {
+      document.getElementById('notesGrid').innerHTML = filtered.map(n => `
+        <div class="note-card" style="display:flex;align-items:center;gap:16px;padding:18px 20px">
+          <div style="width:56px;height:56px;background:${n.color};border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${n.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              <h3 style="font-size:15px;font-weight:700">${n.title}</h3>
+              ${!n.free ? '<span style="background:rgba(245,158,11,0.15);color:#FCD34D;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px"><i class="fas fa-crown"></i> PRO</span>' : '<span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px">FREE</span>'}
+            </div>
+            <p style="font-size:12px;color:#475569;margin-bottom:6px">${n.desc}</p>
+            <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#475569">
+              <span><i class="fas fa-file-alt" style="color:${n.accent}"></i> ${n.pages} pages</span>
+              <span><i class="fas fa-star" style="color:#FCD34D"></i> ${n.rating}</span>
+            </div>
+          </div>
+          ${n.free
+            ? `<button onclick="downloadNote(${n.id})" style="background:${n.color};border:1px solid rgba(79,70,229,0.3);border-radius:10px;padding:10px 18px;color:${n.accent};font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-download"></i> Download</button>`
+            : `<button onclick="showUpgradeModal()" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 18px;color:#FCD34D;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"><i class="fas fa-lock"></i> Unlock</button>`
+          }
+        </div>`).join('');
+    } else {
+      document.getElementById('notesGrid').innerHTML = filtered.map(n => `
+        <div class="note-card">
+          <div class="note-thumb" style="background:${n.color}">
+            <span style="font-size:3.5rem ${!n.free ? ';filter:blur(0px)' : ''}">${n.icon}</span>
+            <div style="position:absolute;top:10px;right:10px">
+              ${!n.free
+                ? '<span style="background:rgba(245,158,11,0.9);color:#000;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px"><i class="fas fa-crown"></i> PRO</span>'
+                : '<span style="background:rgba(16,185,129,0.9);color:#000;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">FREE</span>'
+              }
+            </div>
+            <div style="position:absolute;bottom:10px;left:10px">
+              <span style="background:rgba(0,0,0,0.5);border-radius:100px;padding:3px 10px;font-size:11px;color:#94A3B8">${typeLabels[n.type] || n.type}</span>
+            </div>
+          </div>
+          <div style="padding:18px">
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.4">${n.title}</h3>
+            <p style="font-size:12px;color:#475569;margin-bottom:14px;line-height:1.5">${n.desc}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#475569">
+                <span><i class="fas fa-file-alt" style="color:${n.accent}"></i> ${n.pages} pages</span>
+                <span><i class="fas fa-star" style="color:#FCD34D"></i> ${n.rating} (${n.reviews})</span>
+              </div>
+            </div>
+            ${n.free
+              ? `<button onclick="downloadNote(${n.id})" style="width:100%;padding:11px;border-radius:10px;background:${n.color};border:1px solid rgba(79,70,229,0.3);color:${n.accent};font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <i class="fas fa-download"></i> Download Free
+                </button>`
+              : `<button onclick="showUpgradeModal()" style="width:100%;padding:11px;border-radius:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);color:#FCD34D;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(245,158,11,0.15)'" onmouseout="this.style.background='rgba(245,158,11,0.08)'">
+                  <i class="fas fa-lock"></i> Unlock with Premium
+                </button>`
+            }
+          </div>
+        </div>`).join('');
+    }
+
+    if (filtered.length === 0) {
+      document.getElementById('notesGrid').innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:48px;color:#334155">
+          <i class="fas fa-search" style="font-size:40px;margin-bottom:16px;display:block;opacity:0.3"></i>
+          <p>No notes found for your search.</p>
+        </div>`;
+    }
+  }
+
+  function downloadNote(id) {
+    const note = notesData.find(n => n.id === id);
+    const el = document.createElement('div');
+    el.className = 'notification success';
+    el.innerHTML = `<i class="fas fa-download"></i> Downloading "${note.title}"...`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  function showUpgradeModal() {
+    document.getElementById('upgradeModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('upgradeModal').style.display = 'none';
+  }
+
+  document.getElementById('upgradeModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  renderNotes();
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = '../login.html'; return; }
+    const firstName = (user.displayName || 'Student').split(' ')[0];
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+  });
+</script>
+</body>
+</html>

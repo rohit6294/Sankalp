@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counseling — Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .slot-btn { padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(30,41,59,0.6); color:#94A3B8; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.2s; text-align:center; }
+    .slot-btn:hover { border-color:#4F46E5; color:#818CF8; background:rgba(79,70,229,0.1); }
+    .slot-btn.selected { border-color:#4F46E5; background:rgba(79,70,229,0.2); color:white; font-weight:600; }
+    .slot-btn.booked { border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.05); color:#475569; cursor:not-allowed; text-decoration:line-through; }
+    .day-btn { padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); background:transparent; color:#64748B; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .day-btn:hover { border-color:#4F46E5; color:#818CF8; }
+    .day-btn.active { background:rgba(79,70,229,0.15); border-color:rgba(79,70,229,0.4); color:#818CF8; }
+    .session-type { border:2px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px; cursor:pointer; transition:all 0.2s; }
+    .session-type:hover { border-color:rgba(79,70,229,0.4); }
+    .session-type.selected { border-color:#4F46E5; background:rgba(79,70,229,0.1); }
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px">
+    <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:32px">
+      <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:16px;font-family:'Poppins',sans-serif">Sankalp</div><div style="color:#818CF8;font-size:11px">Learning</div></div>
+    </a>
+    <nav>
+      <div style="font-size:11px;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;padding-left:4px">Main</div>
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open w-5"></i> My Courses</a>
+      <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list w-5"></i> Mock Tests</a>
+      <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note w-5"></i> Notes</a>
+      <a href="counseling.html" class="sidebar-link active"><i class="fas fa-calendar-check w-5"></i> Counseling</a>
+      <div style="font-size:11px;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin:20px 0 8px;padding-left:4px">Account</div>
+      <a href="profile.html" class="sidebar-link"><i class="fas fa-user w-5"></i> Profile</a>
+      <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+</aside>
+
+<main class="main-content" style="padding:32px">
+  <!-- Header -->
+  <div style="margin-bottom:32px">
+    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">1-on-1 Counseling 🎯</h1>
+    <p style="color:#475569;font-size:14px;margin-top:4px">Book a personalized session with your mentor</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start" id="mainGrid">
+
+    <!-- Left: Booking Form -->
+    <div>
+      <!-- Mentor Card -->
+      <div class="glass-card p-6 mb-6" style="background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(124,58,237,0.08))">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+          <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">👨‍🏫</div>
+          <div>
+            <div style="font-size:18px;font-weight:700;margin-bottom:2px">Sankalp Sir</div>
+            <div style="font-size:13px;color:#64748B;margin-bottom:8px">WBJEE Expert Mentor • 5+ years teaching</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span class="badge badge-primary">Physics</span>
+              <span class="badge badge-success">Chemistry</span>
+              <span class="badge badge-warning">Mathematics</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px">
+            <div style="font-size:20px;font-weight:800;color:#818CF8">500+</div>
+            <div style="font-size:11px;color:#475569">Students</div>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px">
+            <div style="font-size:20px;font-weight:800;color:#34D399">4.9★</div>
+            <div style="font-size:11px;color:#475569">Rating</div>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px">
+            <div style="font-size:20px;font-weight:800;color:#FCD34D">2000+</div>
+            <div style="font-size:11px;color:#475569">Sessions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Type -->
+      <div class="glass-card p-6 mb-6">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:16px">Choose Session Type</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="sessionTypes">
+          <div class="session-type selected" onclick="selectSessionType(this,'doubt','30 min','Free')" data-type="doubt" data-dur="30 min" data-price="Free">
+            <div style="font-size:28px;margin-bottom:8px">💬</div>
+            <div style="font-weight:700;margin-bottom:4px">Doubt Clearing</div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:10px">Solve specific problems and concepts</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;color:#64748B"><i class="fas fa-clock"></i> 30 min</span>
+              <span class="badge badge-success">Free</span>
+            </div>
+          </div>
+          <div class="session-type" onclick="selectSessionType(this,'strategy','60 min','₹499')" data-type="strategy" data-dur="60 min" data-price="₹499">
+            <div style="font-size:28px;margin-bottom:8px">🎯</div>
+            <div style="font-weight:700;margin-bottom:4px">Strategy Session</div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:10px">Full preparation plan and roadmap</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;color:#64748B"><i class="fas fa-clock"></i> 60 min</span>
+              <span style="background:rgba(245,158,11,0.15);color:#FCD34D;font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px">₹499</span>
+            </div>
+          </div>
+          <div class="session-type" onclick="selectSessionType(this,'mock-analysis','45 min','₹299')" data-type="mock-analysis" data-dur="45 min" data-price="₹299">
+            <div style="font-size:28px;margin-bottom:8px">📊</div>
+            <div style="font-weight:700;margin-bottom:4px">Mock Analysis</div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:10px">Review your mock test performance</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;color:#64748B"><i class="fas fa-clock"></i> 45 min</span>
+              <span style="background:rgba(245,158,11,0.15);color:#FCD34D;font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px">₹299</span>
+            </div>
+          </div>
+          <div class="session-type" onclick="selectSessionType(this,'complete','90 min','₹799')" data-type="complete" data-dur="90 min" data-price="₹799">
+            <div style="font-size:28px;margin-bottom:8px">⚡</div>
+            <div style="font-weight:700;margin-bottom:4px">Complete Mentoring</div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:10px">Doubt + Strategy + Mock Review</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;color:#64748B"><i class="fas fa-clock"></i> 90 min</span>
+              <span style="background:rgba(245,158,11,0.15);color:#FCD34D;font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px">₹799</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date Selection -->
+      <div class="glass-card p-6 mb-6">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:16px">Select Date</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="dayBtns"></div>
+      </div>
+
+      <!-- Time Slots -->
+      <div class="glass-card p-6 mb-6" id="slotsSection">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:6px">Available Time Slots</h2>
+        <p id="selectedDayLabel" style="font-size:13px;color:#64748B;margin-bottom:16px">Select a date to see available slots</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px" id="slotsGrid">
+          <div style="text-align:center;padding:24px;color:#334155;grid-column:1/-1">
+            <i class="fas fa-calendar" style="font-size:28px;margin-bottom:8px;display:block;opacity:0.3"></i>
+            Pick a date above
+          </div>
+        </div>
+      </div>
+
+      <!-- Details Form -->
+      <div class="glass-card p-6 mb-6" id="detailsForm">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:16px">Your Details</h2>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">What would you like to discuss?</label>
+            <textarea id="topicInput" class="input-field" rows="3" placeholder="e.g., I'm struggling with Organic Chemistry reactions and need help with WBJEE Maths strategy..." style="resize:none;line-height:1.6"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">WBJEE Year</label>
+              <select class="input-field" id="yearSelect" style="appearance:none">
+                <option value="2025">WBJEE 2025</option>
+                <option value="2026">WBJEE 2026</option>
+                <option value="2027">WBJEE 2027</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Preferred Language</label>
+              <select class="input-field" id="langSelect" style="appearance:none">
+                <option value="bengali">Bengali</option>
+                <option value="english">English</option>
+                <option value="hindi">Hindi</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Phone Number</label>
+            <div style="position:relative">
+              <i class="fas fa-phone" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;font-size:13px"></i>
+              <input type="tel" id="phoneInput" class="input-field" placeholder="+91 98765 43210" style="padding-left:40px">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Button -->
+      <button onclick="bookSession()" class="btn-primary" style="width:100%;justify-content:center;padding:16px;font-size:16px" id="bookBtn">
+        <i class="fas fa-calendar-check"></i> Book Session
+      </button>
+    </div>
+
+    <!-- Right: Summary -->
+    <div style="position:sticky;top:24px">
+      <!-- Booking Summary -->
+      <div class="glass-card p-6 mb-6" style="background:linear-gradient(135deg,rgba(79,70,229,0.12),rgba(124,58,237,0.06))">
+        <h2 style="font-size:15px;font-weight:700;margin-bottom:16px">Booking Summary</h2>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;font-size:14px">
+            <span style="color:#64748B">Session Type</span>
+            <span id="summaryType" style="font-weight:600">Doubt Clearing</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px">
+            <span style="color:#64748B">Duration</span>
+            <span id="summaryDur" style="font-weight:600">30 minutes</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px">
+            <span style="color:#64748B">Date</span>
+            <span id="summaryDate" style="font-weight:600;color:#64748B">Not selected</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px">
+            <span style="color:#64748B">Time</span>
+            <span id="summaryTime" style="font-weight:600;color:#64748B">Not selected</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06)"></div>
+          <div style="display:flex;justify-content:space-between;font-size:16px">
+            <span style="font-weight:700">Total</span>
+            <span id="summaryPrice" style="font-weight:800;color:#34D399">Free</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="glass-card p-6 mb-6">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">How it works</h3>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:8px;background:rgba(79,70,229,0.2);color:#818CF8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">1</div>
+            <div style="font-size:13px;color:#94A3B8">Choose session type and pick a time slot</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:8px;background:rgba(16,185,129,0.2);color:#34D399;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">2</div>
+            <div style="font-size:13px;color:#94A3B8">Fill in your details and topic to discuss</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:8px;background:rgba(245,158,11,0.2);color:#FCD34D;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">3</div>
+            <div style="font-size:13px;color:#94A3B8">You'll receive a Google Meet link 1 hour before</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:8px;background:rgba(239,68,68,0.2);color:#F87171;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">4</div>
+            <div style="font-size:13px;color:#94A3B8">Join your 1-on-1 session and get personalized guidance!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonials -->
+      <div class="glass-card p-6">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">What students say</h3>
+        <div style="display:flex;flex-direction:column;gap:12px" id="testimonialCarousel">
+          <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:14px">
+            <div style="display:flex;gap-1;margin-bottom:6px">
+              <i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i>
+            </div>
+            <p style="font-size:12px;color:#94A3B8;line-height:1.6;margin-bottom:8px">"The strategy session helped me plan my last 60 days perfectly. Got into IIEST Shibpur!"</p>
+            <div style="font-size:12px;font-weight:600">Rohan Ghosh <span style="color:#64748B;font-weight:400">• IIEST CSE</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:14px">
+            <div style="display:flex;gap-1;margin-bottom:6px">
+              <i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i><i class="fas fa-star" style="color:#FCD34D;font-size:11px"></i>
+            </div>
+            <p style="font-size:12px;color:#94A3B8;line-height:1.6;margin-bottom:8px">"Mock analysis sessions showed exactly where I was losing marks. Score improved 20% in one month!"</p>
+            <div style="font-size:12px;font-weight:600">Priya Mondal <span style="color:#64748B;font-weight:400">• Rank 342</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Success Modal -->
+<div id="successModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;padding:24px">
+  <div class="glass-card p-10" style="max-width:420px;width:100%;text-align:center;background:rgba(15,23,42,0.98)">
+    <div style="width:72px;height:72px;border-radius:20px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px">✅</div>
+    <h2 style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:8px">Session Booked!</h2>
+    <p style="color:#64748B;font-size:14px;margin-bottom:20px">Your counseling session has been confirmed. We'll send you a Google Meet link to your registered email.</p>
+    <div id="successDetails" style="background:rgba(79,70,229,0.1);border:1px solid rgba(79,70,229,0.2);border-radius:12px;padding:16px;text-align:left;margin-bottom:20px;font-size:13px;display:flex;flex-direction:column;gap:8px"></div>
+    <a href="dashboard.html" class="btn-primary" style="width:100%;justify-content:center;padding:14px"><i class="fas fa-home"></i> Back to Dashboard</a>
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+  let selectedSession = { type: 'doubt', dur: '30 min', price: 'Free' };
+  let selectedDay = null;
+  let selectedSlot = null;
+
+  const days = [];
+  const today = new Date();
+  for (let i = 1; i <= 10; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    days.push({ date: d, label: `${dayNames[d.getDay()]}`, sub: `${d.getDate()} ${monthNames[d.getMonth()]}`, isWeekend: d.getDay() === 0 || d.getDay() === 6 });
+  }
+
+  function renderDays() {
+    document.getElementById('dayBtns').innerHTML = days.map((d, i) => `
+      <button class="day-btn ${d.isWeekend ? '' : ''}" onclick="selectDay(${i}, this)" style="${d.isWeekend ? 'border-color:rgba(16,185,129,0.3);' : ''}">
+        <div style="font-size:11px;color:#475569;margin-bottom:2px">${d.label}</div>
+        <div style="font-weight:700">${d.sub}</div>
+        ${d.isWeekend ? '<div style="font-size:9px;color:#34D399;margin-top:2px">MORE SLOTS</div>' : ''}
+      </button>`).join('');
+  }
+
+  const slots = {
+    weekday: ['4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM'],
+    weekend: ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM']
+  };
+  const bookedSlots = ['5:00 PM','7:00 PM','10:00 AM','3:00 PM'];
+
+  function selectDay(idx, btn) {
+    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDay = days[idx];
+    selectedSlot = null;
+    document.getElementById('summaryDate').textContent = `${selectedDay.label}, ${selectedDay.sub}`;
+    document.getElementById('summaryTime').textContent = 'Not selected';
+    document.getElementById('selectedDayLabel').textContent = `Available slots for ${selectedDay.label}, ${selectedDay.sub}`;
+
+    const slotList = selectedDay.isWeekend ? slots.weekend : slots.weekday;
+    document.getElementById('slotsGrid').innerHTML = slotList.map(s => `
+      <button class="slot-btn ${bookedSlots.includes(s) ? 'booked' : ''}" onclick="${bookedSlots.includes(s) ? '' : `selectSlot('${s}',this)`}" ${bookedSlots.includes(s) ? 'disabled' : ''}>
+        ${bookedSlots.includes(s) ? `<i class="fas fa-times" style="color:#475569;font-size:10px"></i><br>` : ''}${s}
+      </button>`).join('');
+  }
+
+  function selectSlot(slot, btn) {
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedSlot = slot;
+    document.getElementById('summaryTime').textContent = slot;
+    document.getElementById('summaryTime').style.color = '#818CF8';
+  }
+
+  function selectSessionType(el, type, dur, price) {
+    document.querySelectorAll('.session-type').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSession = { type, dur, price };
+    document.getElementById('summaryType').textContent = el.querySelector('[style*="font-weight:700"]').textContent;
+    document.getElementById('summaryDur').textContent = dur;
+    document.getElementById('summaryPrice').textContent = price;
+    document.getElementById('summaryPrice').style.color = price === 'Free' ? '#34D399' : '#FCD34D';
+  }
+
+  function bookSession() {
+    if (!selectedDay) { showToast('Please select a date', 'error'); return; }
+    if (!selectedSlot) { showToast('Please select a time slot', 'error'); return; }
+    const topic = document.getElementById('topicInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+    if (!topic) { showToast('Please describe what you\'d like to discuss', 'error'); return; }
+
+    const btn = document.getElementById('bookBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner" style="width:18px;height:18px;border-width:2px"></span> Booking...';
+
+    setTimeout(() => {
+      const details = document.getElementById('successDetails');
+      details.innerHTML = `
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Session</span><span style="font-weight:600">${document.getElementById('summaryType').textContent}</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Date</span><span style="font-weight:600">${selectedDay.label}, ${selectedDay.sub}</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Time</span><span style="font-weight:600">${selectedSlot}</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Duration</span><span style="font-weight:600">${selectedSession.dur}</span></div>`;
+      document.getElementById('successModal').style.display = 'flex';
+    }, 1500);
+  }
+
+  function showToast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${msg}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  renderDays();
+
+  // Mobile grid
+  if (window.innerWidth <= 768) {
+    document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (!user) window.location.href = '../login.html';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Sankalp Learning</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    .badge-card { display:flex; align-items:center; gap:12px; background:rgba(30,41,59,0.5); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:14px 16px; }
+    .badge-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+  </style>
+</head>
+<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px">
+    <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:32px">
+      <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:16px;font-family:'Poppins',sans-serif">Sankalp</div><div style="color:#818CF8;font-size:11px">Learning</div></div>
+    </a>
+    <nav>
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home w-5"></i> Dashboard</a>
+      <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open w-5"></i> My Courses</a>
+      <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list w-5"></i> Mock Tests</a>
+      <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note w-5"></i> Notes</a>
+      <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check w-5"></i> Counseling</a>
+      <a href="profile.html" class="sidebar-link active"><i class="fas fa-user w-5"></i> Profile</a>
+      <a href="#" class="sidebar-link" onclick="logout()" style="margin-top:8px"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+    </nav>
+  </div>
+</aside>
+
+<main class="main-content" style="padding:32px">
+  <div style="margin-bottom:28px">
+    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">My Profile</h1>
+    <p style="color:#475569;font-size:14px;margin-top:4px">Manage your account and track your journey</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start" id="profileGrid">
+    <!-- Left: Profile Card -->
+    <div>
+      <div class="glass-card p-8 text-center mb-6" style="background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(124,58,237,0.08))">
+        <div id="profileAvatar" style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-size:36px;font-weight:700;margin:0 auto 16px">?</div>
+        <div id="profileName" style="font-size:20px;font-weight:700;font-family:'Poppins',sans-serif;margin-bottom:4px">Loading...</div>
+        <div id="profileEmail" style="font-size:13px;color:#64748B;margin-bottom:12px"></div>
+        <span id="profileLevel" class="badge badge-primary">Beginner 🌱</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="glass-card p-6 mb-6">
+        <h3 style="font-size:14px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Stats</h3>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-bolt" style="color:#818CF8"></i> Total XP</span>
+            <span id="statXP" style="font-weight:700;color:#818CF8">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-fire" style="color:#F59E0B"></i> Current Streak</span>
+            <span id="statStreak" style="font-weight:700;color:#FCD34D">0 days</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-check-circle" style="color:#34D399"></i> Modules Done</span>
+            <span id="statModules" style="font-weight:700;color:#34D399">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-clipboard-check" style="color:#F87171"></i> Tests Taken</span>
+            <span id="statTests" style="font-weight:700;color:#F87171">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="glass-card p-6">
+        <h3 style="font-size:14px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Badges Earned</h3>
+        <div style="display:flex;flex-direction:column;gap:8px" id="badgeList">
+          <div class="badge-card">
+            <div class="badge-icon" style="background:rgba(245,158,11,0.15)">🌱</div>
+            <div><div style="font-size:13px;font-weight:600">First Step</div><div style="font-size:11px;color:#475569">Completed registration</div></div>
+          </div>
+          <div class="badge-card" style="opacity:0.4">
+            <div class="badge-icon" style="background:rgba(79,70,229,0.1)">🔥</div>
+            <div><div style="font-size:13px;font-weight:600;color:#475569">7-Day Streak</div><div style="font-size:11px;color:#334155">Keep a 7-day streak</div></div>
+          </div>
+          <div class="badge-card" style="opacity:0.4">
+            <div class="badge-icon" style="background:rgba(16,185,129,0.1)">📚</div>
+            <div><div style="font-size:13px;font-weight:600;color:#475569">Scholar</div><div style="font-size:11px;color:#334155">Complete 10 modules</div></div>
+          </div>
+          <div class="badge-card" style="opacity:0.4">
+            <div class="badge-icon" style="background:rgba(239,68,68,0.1)">🏆</div>
+            <div><div style="font-size:13px;font-weight:600;color:#475569">Mock Master</div><div style="font-size:11px;color:#334155">Score 90%+ on a test</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Edit Profile + Settings -->
+    <div>
+      <!-- Edit Profile -->
+      <div class="glass-card p-8 mb-6">
+        <h2 style="font-size:17px;font-weight:700;margin-bottom:20px">Edit Profile</h2>
+        <form onsubmit="saveProfile(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">First Name</label>
+              <input type="text" id="editFirstName" class="input-field" placeholder="Arjun">
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Last Name</label>
+              <input type="text" id="editLastName" class="input-field" placeholder="Das">
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Email Address</label>
+            <input type="email" id="editEmail" class="input-field" disabled style="opacity:0.5;cursor:not-allowed">
+            <p style="font-size:11px;color:#334155;margin-top:4px">Email cannot be changed</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Phone Number</label>
+              <input type="tel" id="editPhone" class="input-field" placeholder="+91 98765 43210">
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">WBJEE Year</label>
+              <select id="editYear" class="input-field" style="appearance:none">
+                <option value="2025">WBJEE 2025</option>
+                <option value="2026">WBJEE 2026</option>
+                <option value="2027">WBJEE 2027</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:20px">
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">About yourself (optional)</label>
+            <textarea id="editBio" class="input-field" rows="3" placeholder="Share a little about your preparation journey..." style="resize:none;line-height:1.6"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="padding:12px 28px"><i class="fas fa-save"></i> Save Changes</button>
+        </form>
+      </div>
+
+      <!-- XP Progress -->
+      <div class="glass-card p-6 mb-6">
+        <h2 style="font-size:17px;font-weight:700;margin-bottom:16px">Level Progress</h2>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+          <div id="lvl0" style="text-align:center;padding:12px;border-radius:12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">
+            <div style="font-size:22px;margin-bottom:4px">🌱</div>
+            <div style="font-size:11px;font-weight:600;color:#34D399">Beginner</div>
+            <div style="font-size:10px;color:#475569">0 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">🔥</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Explorer</div>
+            <div style="font-size:10px;color:#334155">100 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">📚</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Scholar</div>
+            <div style="font-size:10px;color:#334155">300 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">⚡</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Expert</div>
+            <div style="font-size:10px;color:#334155">600 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">🏆</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Master</div>
+            <div style="font-size:10px;color:#334155">1000 XP</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="glass-card p-6">
+        <h2 style="font-size:17px;font-weight:700;margin-bottom:16px">Account Security</h2>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(30,41,59,0.5);border-radius:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fas fa-lock" style="color:#818CF8"></i>
+              <div>
+                <div style="font-size:14px;font-weight:600">Change Password</div>
+                <div style="font-size:12px;color:#475569">Update your login password</div>
+              </div>
+            </div>
+            <button onclick="changePassword()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(79,70,229,0.3);background:rgba(79,70,229,0.1);color:#818CF8;font-size:13px;font-weight:600;cursor:pointer">Change</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(30,41,59,0.5);border-radius:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fas fa-sign-out-alt" style="color:#F87171"></i>
+              <div>
+                <div style="font-size:14px;font-weight:600">Sign Out</div>
+                <div style="font-size:12px;color:#475569">Sign out from all devices</div>
+              </div>
+            </div>
+            <button onclick="logout()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.1);color:#F87171;font-size:13px;font-weight:600;cursor:pointer">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+  async function saveProfile(e) {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+    const firstName = document.getElementById('editFirstName').value.trim();
+    const lastName = document.getElementById('editLastName').value.trim();
+    const phone = document.getElementById('editPhone').value.trim();
+    const year = document.getElementById('editYear').value;
+    const bio = document.getElementById('editBio').value.trim();
+    try {
+      await user.updateProfile({ displayName: `${firstName} ${lastName}` });
+      await db.collection('users').doc(user.uid).update({ firstName, lastName, name: `${firstName} ${lastName}`, phone, wbjeeYear: year, bio });
+      const el = document.createElement('div');
+      el.className = 'notification success';
+      el.innerHTML = '<i class="fas fa-check"></i> Profile saved successfully!';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  async function changePassword() {
+    const user = auth.currentUser;
+    if (!user || !user.email) return;
+    try {
+      await auth.sendPasswordResetEmail(user.email);
+      const el = document.createElement('div');
+      el.className = 'notification info';
+      el.innerHTML = '<i class="fas fa-envelope"></i> Password reset email sent!';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    } catch(err) {}
+  }
+
+  if (window.innerWidth <= 768) {
+    document.getElementById('profileGrid').style.gridTemplateColumns = '1fr';
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = '../login.html'; return; }
+    const name = user.displayName || 'Student';
+    const firstName = name.split(' ')[0];
+    document.getElementById('profileAvatar').textContent = firstName[0].toUpperCase();
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileEmail').textContent = user.email;
+    document.getElementById('editEmail').value = user.email;
+    const nameParts = name.split(' ');
+    document.getElementById('editFirstName').value = nameParts[0] || '';
+    document.getElementById('editLastName').value = nameParts.slice(1).join(' ') || '';
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.phone) document.getElementById('editPhone').value = data.phone;
+        if (data.wbjeeYear) document.getElementById('editYear').value = data.wbjeeYear;
+        if (data.bio) document.getElementById('editBio').value = data.bio;
+        document.getElementById('statXP').textContent = data.xp || 0;
+        document.getElementById('statStreak').textContent = `${data.streak || 0} days`;
+        document.getElementById('statModules').textContent = (data.completedModules || []).length;
+        document.getElementById('statTests').textContent = (data.testsTaken || 0);
+        const xp = data.xp || 0;
+        const levels = [{n:'Beginner 🌱',max:100},{n:'Explorer 🔥',max:300},{n:'Scholar 📚',max:600},{n:'Expert ⚡',max:1000},{n:'Master 🏆',max:Infinity}];
+        let level = levels[0];
+        for (const l of levels) { if (xp < l.max) { level = l; break; } }
+        document.getElementById('profileLevel').textContent = level.n;
+      }
+    } catch(e) {}
+  });
+</script>
+</body>
+</html>

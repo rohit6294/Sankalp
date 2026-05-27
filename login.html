@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Sankalp WBJEE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+</head>
+<body style="min-height:100vh; display:flex; align-items:center; justify-content:center;">
+
+  <div style="width:100%; max-width:460px; padding:24px;">
+
+    <!-- Logo -->
+    <div style="text-align:center; margin-bottom:40px;">
+      <a href="index.html" class="brand" style="display:inline-flex; gap:12px; justify-content:center;">
+        <span class="brand-mark" style="width:52px; height:52px; font-size:24px;">S</span>
+        <span style="text-align:left;">
+          <div class="brand-name" style="font-size:18px;">SANKALP WBJEE</div>
+          <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+        </span>
+      </a>
+    </div>
+
+    <!-- Card -->
+    <div style="border:1px solid var(--ink); background:var(--paper-soft); padding:40px 36px;">
+      <h2 class="display-md" style="text-align:center; margin-bottom:6px;">Welcome back.</h2>
+      <p class="lede" style="text-align:center; margin-bottom:32px; max-width:none;">Login to continue your WBJEE prep</p>
+
+      <!-- Google Login -->
+      <button onclick="loginWithGoogle()" id="googleBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; border:1px solid var(--ink); background:var(--paper); color:var(--ink); font-family:var(--font-sans); font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s; margin-bottom:24px;" onmouseover="this.style.background='var(--ink)';this.style.color='var(--paper)'" onmouseout="this.style.background='var(--paper)';this.style.color='var(--ink)'">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px" alt="Google">
+        Continue with Google
+      </button>
+
+      <!-- Divider -->
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <div style="flex:1; height:1px; background:var(--rule);"></div>
+        <span class="eyebrow">or login with email</span>
+        <div style="flex:1; height:1px; background:var(--rule);"></div>
+      </div>
+
+      <!-- Form -->
+      <form onsubmit="loginWithEmail(event)">
+        <div style="margin-bottom:18px;">
+          <label class="input-label">Email Address</label>
+          <div style="position:relative;">
+            <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px;"></i>
+            <input type="email" id="email" class="input-field" placeholder="you@example.com" required style="padding-left:40px;">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label class="input-label">Password</label>
+          <div style="position:relative;">
+            <i class="fas fa-lock" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px;"></i>
+            <input type="password" id="password" class="input-field" placeholder="Enter your password" required style="padding-left:40px; padding-right:44px;">
+            <button type="button" onclick="togglePassword('password','eyeIcon')" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--ink-mute); cursor:pointer;">
+              <i class="fas fa-eye" id="eyeIcon" style="font-size:14px;"></i>
+            </button>
+          </div>
+        </div>
+        <div style="text-align:right; margin-bottom:24px;">
+          <a href="#" onclick="forgotPassword()" style="color:var(--rust); font-size:13px; font-weight:600;">Forgot password?</a>
+        </div>
+
+        <!-- Error message -->
+        <div id="errorMsg" style="display:none; background:var(--paper); border:1px solid var(--rust); padding:14px; margin-bottom:18px; font-size:13px; color:var(--rust); font-family:var(--font-sans);"></div>
+
+        <button type="submit" id="loginBtn" class="btn-rust" style="width:100%; justify-content:center; padding:16px;">
+          <i class="fas fa-sign-in-alt"></i> Login to Account
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--ink-mute);">
+        Don't have an account? <a href="register.html" style="color:var(--rust); font-weight:700;">Register free</a>
+      </p>
+    </div>
+
+    <!-- Admin link -->
+    <div style="text-align:center; margin-top:18px;">
+      <a href="admin/index.html" style="color:var(--ink-mute); font-size:12px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
+        <i class="fas fa-shield-alt"></i> Admin Login
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword(id, iconId) {
+      const inp = document.getElementById(id);
+      const icon = document.getElementById(iconId);
+      if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fas fa-eye-slash'; }
+      else { inp.type = 'password'; icon.className = 'fas fa-eye'; }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function setLoading(btn, loading) {
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? '<span class="loading-spinner" style="width:18px;height:18px;border-width:2px"></span> Logging in...'
+        : '<i class="fas fa-sign-in-alt"></i> Login to Account';
+    }
+
+    async function loginWithEmail(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      document.getElementById('errorMsg').style.display = 'none';
+      setLoading(btn, true);
+      try {
+        const cred = await auth.signInWithEmailAndPassword(email, password);
+        const userDoc = await db.collection('users').doc(cred.user.uid).get();
+        const role = userDoc.exists ? userDoc.data().role : 'student';
+        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+      } catch (err) {
+        setLoading(btn, false);
+        const msgs = {
+          'auth/user-not-found': 'No account found with this email.',
+          'auth/wrong-password': 'Incorrect password. Please try again.',
+          'auth/invalid-email': 'Please enter a valid email address.',
+          'auth/too-many-requests': 'Too many attempts. Please try again later.',
+        };
+        showError(msgs[err.code] || err.message);
+      }
+    }
+
+    async function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        const userRef = db.collection('users').doc(user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+          await userRef.set({ name: user.displayName, email: user.email, role: 'student', createdAt: firebase.firestore.FieldValue.serverTimestamp(), xp: 0, streak: 0 });
+        }
+        const role = doc.exists ? doc.data().role : 'student';
+        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+      } catch (err) {
+        showError('Google login failed. Please try again.');
+      }
+    }
+
+    async function forgotPassword() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) { showError('Please enter your email first.'); return; }
+      try {
+        await auth.sendPasswordResetEmail(email);
+        const el = document.getElementById('errorMsg');
+        el.style.display = 'block';
+        el.style.borderColor = 'var(--forest)';
+        el.style.color = 'var(--forest)';
+        el.textContent = 'Password reset email sent! Check your inbox.';
+      } catch (err) {
+        showError('Could not send reset email. Check your email address.');
+      }
+    }
+
+    // Auto redirect if already logged in
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const doc = await db.collection('users').doc(user.uid).get();
+        const role = doc.exists ? doc.data().role : 'student';
+        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

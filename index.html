@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sankalp WBJEE — Interactive WBJEE 2026 Preparation</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-inner">
+    <span>Volume 1 · Edition 1</span>
+    <span>· Filed under: WBJEE Preparation ·</span>
+    <span>· Est. 2026 · Bengal, India ·</span>
+    <span>· Now accepting aspirants ·</span>
+    <span class="hide-mobile">All three subjects · One curriculum</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#vision" class="nav-link">Vision</a>
+      <a href="#subjects" class="nav-link">Subjects</a>
+      <a href="#features" class="nav-link">Method</a>
+      <a href="#how" class="nav-link">How It Works</a>
+      <a href="pricing.html" class="nav-link">Pricing</a>
+      <a href="login.html" class="nav-link">Sign In</a>
+    </div>
+    <a href="register.html" class="btn-ink btn-sm">Join Sankalp</a>
+    <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu">
+      <i class="fas fa-bars" id="menuIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="section" style="padding-top: 64px; padding-bottom: 48px;">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 24px;">— Chapter One · The Vision</div>
+
+    <h1 class="display-hero" style="margin-bottom: 32px;">
+      Crack <span class="italic-accent">WBJEE.</span><br>
+      <span class="rust-accent">No shortcuts.</span><br>
+      Just <span class="italic-accent">practice,</span><br>
+      patience &amp; a <span class="rust-accent">plan.</span>
+    </h1>
+
+    <p class="lede" style="margin-bottom: 40px; max-width: 56ch;">
+      Sankalp is a WBJEE 2026 preparation platform built for serious aspirants in West Bengal.
+      Interactive modules. Honest mock tests. Mentoring that answers your actual doubts —
+      taught the way a stubborn senior would teach a stubborn junior.
+    </p>
+
+    <!-- Countdown -->
+    <div style="display: inline-flex; align-items: center; gap: 20px; padding: 18px 24px; border: 1px solid var(--ink); background: var(--paper-soft); margin-bottom: 36px; flex-wrap: wrap;">
+      <span class="section-label" style="color: var(--ink);">WBJEE 2026 begins in</span>
+      <div style="display: flex; align-items: baseline; gap: 16px; font-family: var(--font-display); font-weight: 900;">
+        <div><span id="cdDays" style="font-size: 2rem; line-height: 1;">--</span> <span class="eyebrow">days</span></div>
+        <div><span id="cdHours" style="font-size: 2rem; line-height: 1;">--</span> <span class="eyebrow">hrs</span></div>
+        <div><span id="cdMins" style="font-size: 2rem; line-height: 1;">--</span> <span class="eyebrow">min</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 48px;">
+      <a href="register.html" class="btn-rust btn-lg">Join Sankalp →</a>
+      <a href="#features" class="btn-ghost btn-lg">Read the Method</a>
+    </div>
+
+    <!-- Trust strip -->
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: center; font-family: var(--font-sans); font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute);">
+      <span>— Free to start</span>
+      <span>· No credit card</span>
+      <span>· Mock tests included</span>
+      <span>· Mentoring on request</span>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section style="padding: 0;">
+  <div class="container" style="padding: 0;">
+    <div class="stat-row" id="statsGrid">
+      <div class="stat-card">
+        <span class="stat-number" id="s1">0</span>
+        <span class="stat-label">Students enrolled</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="s2">0</span>
+        <span class="stat-label">Interactive modules</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="s3">0</span>
+        <span class="stat-label">Mock tests</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="s4">0</span>
+        <span class="stat-label">YouTube videos</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span>Physics</span><span>Chemistry</span><span>Mathematics</span><span>Practice</span><span>Patience</span><span>A Plan</span><span>Mock Tests</span><span>PYQs</span><span>Mentoring</span>
+    <span>Physics</span><span>Chemistry</span><span>Mathematics</span><span>Practice</span><span>Patience</span><span>A Plan</span><span>Mock Tests</span><span>PYQs</span><span>Mentoring</span>
+  </div>
+</div>
+
+<!-- VISION / MISSION -->
+<section class="section" id="vision">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 16px;">— Chapter Two</div>
+    <h2 class="display-xl" style="margin-bottom: 24px;">
+      Our <span class="italic-accent">Mission.</span>
+    </h2>
+    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 64px; align-items: start;" class="grid-2-collapse">
+      <div>
+        <p class="lede" style="margin-bottom: 20px;">
+          We are not here to sell another "guaranteed rank" promise, repackage NCERTs in plastic wrap, or
+          push you into yet another coaching factory. We are here to teach — patiently, repeatedly, in a way that respects how learning actually works.
+        </p>
+        <p class="lede">
+          Sankalp is a platform for the Bengali student who needs WBJEE explained without theatre. Three subjects. Honest practice.
+          A mentor who picks up the phone. That's the mission. The rest is noise.
+        </p>
+      </div>
+      <div style="border: 1px solid var(--ink); padding: 28px; background: var(--paper-soft);">
+        <div class="req-tag" style="margin-bottom: 16px;">Our promise</div>
+        <p style="font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; line-height: 1.3; color: var(--ink);">
+          Build a study habit for the student who keeps getting called <span class="italic-accent">distracted,</span> <span class="italic-accent">average,</span> or <span class="rust-accent">behind schedule.</span> That's it. That's the whole platform.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE METHOD (Features as Manifesto) -->
+<section class="section" id="features" style="background: var(--paper-soft); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 16px;">— Chapter Three</div>
+    <h2 class="display-xl" style="margin-bottom: 16px;">The <span class="italic-accent">Method.</span></h2>
+    <p class="lede" style="margin-bottom: 56px;">Six commitments. Read once. Then send this page to a friend who needs it.</p>
+
+    <div class="grid grid-3" style="gap: 0; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink);">
+
+      <article style="padding: 36px 28px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num">01</span>
+        <h3 class="display-md" style="margin-bottom: 10px;">Interactive Modules.</h3>
+        <p style="color: var(--ink-soft); line-height: 1.6; font-size: 14px;">Concepts taught through animations, simulations and instant quizzes — not paragraphs of dense theory you'll skip.</p>
+      </article>
+
+      <article style="padding: 36px 28px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num">02</span>
+        <h3 class="display-md" style="margin-bottom: 10px;">Mock Tests &amp; PYQs.</h3>
+        <p style="color: var(--ink-soft); line-height: 1.6; font-size: 14px;">Full-length WBJEE-pattern mocks and previous year questions with worked solutions, not just answer keys.</p>
+      </article>
+
+      <article style="padding: 36px 28px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num">03</span>
+        <h3 class="display-md" style="margin-bottom: 10px;">Honest Analytics.</h3>
+        <p style="color: var(--ink-soft); line-height: 1.6; font-size: 14px;">Subject-wise progress, weak-chapter heatmaps, score history. We will not flatter you with vanity metrics.</p>
+      </article>
+
+      <article style="padding: 36px 28px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num">04</span>
+        <h3 class="display-md" style="margin-bottom: 10px;">Notes Library.</h3>
+        <p style="color: var(--ink-soft); line-height: 1.6; font-size: 14px;">Short notes, formula sheets and revision packs — curated chapter by chapter, free to download.</p>
+      </article>
+
+      <article style="padding: 36px 28px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num">05</span>
+        <h3 class="display-md" style="margin-bottom: 10px;">Gamified Habit.</h3>
+        <p style="color: var(--ink-soft); line-height: 1.6; font-size: 14px;">Streaks, XP, leaderboard — gentle pressure, not a slot machine. Built so daily practice becomes muscle memory.</p>
+      </article>
+
+      <article style="padding: 36px 28px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num">06</span>
+        <h3 class="display-md" style="margin-bottom: 10px;">1-on-1 Mentoring.</h3>
+        <p style="color: var(--ink-soft); line-height: 1.6; font-size: 14px;">Book a real doubt-clearing or strategy session with the mentor. No call centres. No "support bot".</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- YOUTUBE BAND -->
+<section class="section-tight" style="background: var(--ink); color: var(--paper); padding: 56px 0;">
+  <div class="container" style="display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;" >
+    <div>
+      <div class="section-label" style="color: var(--rust); margin-bottom: 12px;">— Companion Channel</div>
+      <h2 class="display-lg" style="color: var(--paper); margin-bottom: 14px;">
+        Watch the <span class="italic-accent" style="color: var(--rust);">SANKALP WBJEE</span> channel.
+      </h2>
+      <p style="opacity: 0.8; font-size: 15px; line-height: 1.6; max-width: 56ch;">
+        @Sankalp_Wbjee12 · 632+ subscribers · WBJEE 2026 strategy, PYQs, mock walkthroughs and motivation. Free. Always.
+      </p>
+      <div style="display: flex; gap: 32px; margin-top: 24px;">
+        <div><div style="font-family: var(--font-display); font-weight: 900; font-size: 2rem; color: var(--rust);">632+</div><div class="eyebrow" style="color: rgba(234,219,192,0.7);">Subscribers</div></div>
+        <div><div style="font-family: var(--font-display); font-weight: 900; font-size: 2rem; color: var(--paper);">45+</div><div class="eyebrow" style="color: rgba(234,219,192,0.7);">Videos</div></div>
+        <div><div style="font-family: var(--font-display); font-weight: 900; font-size: 2rem; color: var(--paper);">Free</div><div class="eyebrow" style="color: rgba(234,219,192,0.7);">Content</div></div>
+      </div>
+    </div>
+    <div>
+      <a href="https://youtube.com/@sankalp_wbjee12" target="_blank" rel="noopener" class="btn-rust btn-lg">
+        <i class="fab fa-youtube"></i> Subscribe on YouTube
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- SUBJECTS -->
+<section class="section" id="subjects">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 16px;">— Chapter Four · The Syllabus</div>
+    <h2 class="display-xl" style="margin-bottom: 16px;">Three subjects. <span class="italic-accent">One curriculum.</span></h2>
+    <p class="lede" style="margin-bottom: 56px;">Physics, Chemistry, Mathematics — the entire WBJEE syllabus, chapter by chapter, in plain language.</p>
+
+    <div class="grid grid-3" style="gap: 24px;">
+
+      <article class="chapter-card">
+        <div class="course-thumb"><span class="italic-accent" style="color: var(--rust); font-size: 4rem;">P</span></div>
+        <div style="padding: 24px 0 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span class="req-tag">Subject / 01</span>
+            <span class="eyebrow">40 modules</span>
+          </div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Physics.</h3>
+          <p style="color: var(--ink-soft); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            Mechanics, electrostatics, optics, modern physics — every WBJEE topic, taught through visual simulations.
+          </p>
+          <a href="register.html" class="btn-ink btn-sm" style="width: 100%; justify-content: center;">Start Physics →</a>
+        </div>
+      </article>
+
+      <article class="chapter-card">
+        <div class="course-thumb"><span class="italic-accent" style="color: var(--forest); font-size: 4rem;">C</span></div>
+        <div style="padding: 24px 0 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span class="req-tag">Subject / 02</span>
+            <span class="eyebrow">38 modules</span>
+          </div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Chemistry.</h3>
+          <p style="color: var(--ink-soft); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            Physical, organic, inorganic — reactions explained without memorisation, with proper mechanisms.
+          </p>
+          <a href="register.html" class="btn-ink btn-sm" style="width: 100%; justify-content: center;">Start Chemistry →</a>
+        </div>
+      </article>
+
+      <article class="chapter-card">
+        <div class="course-thumb"><span class="italic-accent" style="color: var(--rust); font-size: 4rem;">M</span></div>
+        <div style="padding: 24px 0 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span class="req-tag">Subject / 03</span>
+            <span class="eyebrow">45 modules</span>
+          </div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Mathematics.</h3>
+          <p style="color: var(--ink-soft); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            Algebra, calculus, coordinate geometry, trigonometry — with hundreds of WBJEE-style worked problems.
+          </p>
+          <a href="register.html" class="btn-ink btn-sm" style="width: 100%; justify-content: center;">Start Mathematics →</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how" style="background: var(--paper-soft); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 16px;">— Chapter Five</div>
+    <h2 class="display-xl" style="margin-bottom: 56px;">How <span class="italic-accent">it works.</span></h2>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 0;">
+
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 32px; align-items: start; padding: 28px 0; border-top: 1px solid var(--ink);">
+        <span class="chapter-num" style="font-size: 3.5rem; margin: 0;">01</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Sign up. <span class="italic-accent">Free.</span></h3>
+          <p style="color: var(--ink-soft); font-size: 15px; line-height: 1.6; max-width: 60ch;">
+            Create your account in 30 seconds. No credit card, no "premium trial" trap. You see the full platform.
+          </p>
+        </div>
+        <a href="register.html" class="btn-ghost btn-sm">Create Account</a>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 32px; align-items: start; padding: 28px 0; border-top: 1px solid var(--ink);">
+        <span class="chapter-num" style="font-size: 3.5rem; margin: 0;">02</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Pick a subject &amp; start a module.</h3>
+          <p style="color: var(--ink-soft); font-size: 15px; line-height: 1.6; max-width: 60ch;">
+            Physics, Chemistry or Mathematics — open the first module, watch the simulation, attempt the quiz.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 32px; align-items: start; padding: 28px 0; border-top: 1px solid var(--ink);">
+        <span class="chapter-num" style="font-size: 3.5rem; margin: 0;">03</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Build a streak. <span class="italic-accent">Daily.</span></h3>
+          <p style="color: var(--ink-soft); font-size: 15px; line-height: 1.6; max-width: 60ch;">
+            One module a day. Earn XP. Maintain your streak. Boring on day one, unstoppable by day thirty.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 32px; align-items: start; padding: 28px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);">
+        <span class="chapter-num" style="font-size: 3.5rem; margin: 0;">04</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 8px;">Take a full mock. <span class="rust-accent">Repeat.</span></h3>
+          <p style="color: var(--ink-soft); font-size: 15px; line-height: 1.6; max-width: 60ch;">
+            Every Sunday: a full-length WBJEE-pattern mock test. See your weak chapters. Go fix them. Come back next Sunday.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ELIGIBILITY -->
+<section class="section">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 16px;">— Chapter Six</div>
+    <h2 class="display-xl" style="margin-bottom: 16px;">Are you <span class="italic-accent">eligible</span> to join?</h2>
+    <p class="lede" style="margin-bottom: 48px;">We do not check your school, your board, or your last report card. We do, however, have four standards.</p>
+
+    <div style="border-top: 1px solid var(--ink);">
+      <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: 32px; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--ink);">
+        <span class="req-tag">Req / 01</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 4px;">A WBJEE 2026 aspirant.</h3>
+          <p style="color: var(--ink-soft); font-style: italic; font-family: var(--font-display); font-size: 1rem;">Class 11, Class 12, or dropper. Doesn't matter.</p>
+        </div>
+        <i class="fas fa-check" style="color: var(--forest); font-size: 20px;"></i>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: 32px; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--ink);">
+        <span class="req-tag">Req / 02</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 4px;">Willing to show up daily.</h3>
+          <p style="color: var(--ink-soft); font-style: italic; font-family: var(--font-display); font-size: 1rem;">Twenty minutes a day. Compounded. The maths is on your side.</p>
+        </div>
+        <i class="fas fa-check" style="color: var(--forest); font-size: 20px;"></i>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: 32px; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--ink);">
+        <span class="req-tag">Req / 03</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 4px;">Comfortable being wrong.</h3>
+          <p style="color: var(--ink-soft); font-style: italic; font-family: var(--font-display); font-size: 1rem;">You will fail mock tests. That's the curriculum, not a side effect.</p>
+        </div>
+        <i class="fas fa-check" style="color: var(--forest); font-size: 20px;"></i>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: 32px; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--ink);">
+        <span class="req-tag">Req / 04</span>
+        <div>
+          <h3 class="display-md" style="margin-bottom: 4px;">A working phone or laptop.</h3>
+          <p style="color: var(--ink-soft); font-style: italic; font-family: var(--font-display); font-size: 1rem;">That is the entire hardware requirement. We optimise for both.</p>
+        </div>
+        <i class="fas fa-check" style="color: var(--forest); font-size: 20px;"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section" style="background: var(--ink); color: var(--paper);">
+  <div class="container">
+    <div class="section-label" style="color: var(--rust); margin-bottom: 16px;">— From the field</div>
+    <h2 class="display-xl" style="color: var(--paper); margin-bottom: 56px;">What <span class="italic-accent" style="color: var(--rust);">students</span> say.</h2>
+
+    <div class="grid grid-3" style="gap: 24px;">
+      <blockquote style="border: 1px solid rgba(234,219,192,0.25); padding: 32px; background: transparent;">
+        <p style="font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.2rem; line-height: 1.4; margin-bottom: 24px;">
+          "Sankalp's mock tests felt closer to real WBJEE than the ones at my coaching. The detailed solutions are what changed it for me."
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(234,219,192,0.25); padding-top: 16px;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Ananya Das</div>
+            <div class="eyebrow" style="color: rgba(234,219,192,0.6); margin-top: 4px;">Class 12 · Kolkata</div>
+          </div>
+        </div>
+      </blockquote>
+
+      <blockquote style="border: 1px solid rgba(234,219,192,0.25); padding: 32px; background: transparent;">
+        <p style="font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.2rem; line-height: 1.4; margin-bottom: 24px;">
+          "The interactive modules made electrostatics finally click. I had been failing this chapter for two years."
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(234,219,192,0.25); padding-top: 16px;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Rohan Sengupta</div>
+            <div class="eyebrow" style="color: rgba(234,219,192,0.6); margin-top: 4px;">Dropper · Howrah</div>
+          </div>
+        </div>
+      </blockquote>
+
+      <blockquote style="border: 1px solid rgba(234,219,192,0.25); padding: 32px; background: transparent;">
+        <p style="font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.2rem; line-height: 1.4; margin-bottom: 24px;">
+          "Booking a doubt session with the mentor is the most useful thing I have done all year. He picks up the phone."
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(234,219,192,0.25); padding-top: 16px;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Priya Mondal</div>
+            <div class="eyebrow" style="color: rgba(234,219,192,0.6); margin-top: 4px;">Class 11 · Durgapur</div>
+          </div>
+        </div>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+  <div class="container">
+    <div style="border: 1px solid var(--ink); padding: 64px 48px; background: var(--paper-soft); text-align: center;">
+      <div class="section-label" style="margin-bottom: 20px;">— Final Word</div>
+      <h2 class="display-xl" style="margin-bottom: 16px;">
+        Start today. <span class="italic-accent">Or don't.</span><br>
+        The exam <span class="rust-accent">isn't moving.</span>
+      </h2>
+      <p class="lede" style="margin: 0 auto 32px;">
+        Free to join. Three subjects. Mock tests included. Mentor on request. That is the entire pitch.
+      </p>
+      <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+        <a href="register.html" class="btn-rust btn-lg">Join Sankalp →</a>
+        <a href="login.html" class="btn-ghost btn-lg">Already a member? Sign in</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer-ink">
+  <div class="footer-inner">
+    <div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+        <span class="brand-mark" style="background: var(--paper); color: var(--ink);">S</span>
+        <span>
+          <div class="brand-name" style="color: var(--paper);">SANKALP WBJEE</div>
+          <div class="brand-sub" style="color: rgba(234,219,192,0.6);">WBJEE Prep · Est. 2026</div>
+        </span>
+      </div>
+      <p>An interactive WBJEE preparation platform for students in West Bengal. Built — and maintained — by people who actually wrote the exam.</p>
+    </div>
+    <div>
+      <h4>The Program</h4>
+      <a href="#vision">Vision</a>
+      <a href="#features">Method</a>
+      <a href="#subjects">Subjects</a>
+      <a href="pricing.html">Pricing</a>
+    </div>
+    <div>
+      <h4>Get Involved</h4>
+      <a href="register.html">Join Sankalp</a>
+      <a href="login.html">Sign In</a>
+      <a href="student/counseling.html">Book Mentoring</a>
+      <a href="student/notes.html">Notes Library</a>
+    </div>
+    <div>
+      <h4>Follow</h4>
+      <a href="https://youtube.com/@sankalp_wbjee12" target="_blank" rel="noopener">YouTube</a>
+      <a href="#">Instagram</a>
+      <a href="#">Telegram</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Sankalp WBJEE · All rights reserved</span>
+    <span class="footer-stamp">A 5 minute read</span>
+    <span>Privacy · Press · Contact</span>
+  </div>
+</footer>
+
+<script>
+  // Navbar scroll shadow
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 30);
+  });
+
+  // Mobile nav toggle
+  function toggleNav() {
+    const links = document.getElementById('navLinks');
+    const icon = document.getElementById('menuIcon');
+    const open = links.classList.toggle('open');
+    icon.className = open ? 'fas fa-times' : 'fas fa-bars';
+  }
+
+  // Countdown to WBJEE 2026 (approx 26 May 2026)
+  function updateCountdown() {
+    const target = new Date('2026-05-26T08:00:00');
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.getElementById('cdDays').textContent = '0';
+      document.getElementById('cdHours').textContent = '0';
+      document.getElementById('cdMins').textContent = '0';
+      return;
+    }
+    document.getElementById('cdDays').textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
+    document.getElementById('cdHours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+    document.getElementById('cdMins').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 60000);
+
+  // Animated counters
+  function animateCount(id, target, suffix = '+') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let cur = 0;
+    const step = target / 60;
+    const t = setInterval(() => {
+      cur = Math.min(cur + step, target);
+      el.textContent = Math.floor(cur) + suffix;
+      if (cur >= target) clearInterval(t);
+    }, 25);
+  }
+
+  const statsEl = document.getElementById('s1');
+  const obs = new IntersectionObserver(e => {
+    if (e[0].isIntersecting) {
+      animateCount('s1', 1200);
+      animateCount('s2', 123);
+      animateCount('s3', 50);
+      animateCount('s4', 200);
+      obs.disconnect();
+    }
+  }, { threshold: 0.3 });
+  if (statsEl) obs.observe(statsEl);
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      if (href.length <= 1) return;
+      const t = document.querySelector(href);
+      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+
+</body>
+</html>

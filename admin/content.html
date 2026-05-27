@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Manager — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif;min-height:100vh}
+    .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s;overflow-y:auto}
+    .admin-main{margin-left:240px;min-height:100vh}
+    .anl{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;color:#64748B;text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;margin:2px 0}
+    .anl:hover{background:rgba(79,70,229,0.1);color:#94A3B8}
+    .anl.active{background:rgba(79,70,229,0.2);color:white;border-left:3px solid #4F46E5}
+    @media(max-width:768px){.admin-sidebar{transform:translateX(-100%)}.admin-sidebar.open{transform:translateX(0)}.admin-main{margin-left:0}}
+    .glass{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px}
+    .tab-btn{padding:8px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;border:none;background:transparent;color:#64748B}
+    .tab-btn.active{background:rgba(79,70,229,0.2);color:#818CF8;border:1px solid rgba(79,70,229,0.3)}
+    .tab-btn:hover:not(.active){color:#94A3B8;background:rgba(255,255,255,0.04)}
+    .inp{width:100%;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:14px;outline:none;transition:border 0.2s}
+    .inp:focus{border-color:rgba(79,70,229,0.5)}
+    .inp option{background:#0F172A}
+    textarea.inp{resize:vertical}
+    .btn-primary{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+    .btn-primary:hover{opacity:0.9}
+    .btn-danger{background:rgba(239,68,68,0.15);color:#F87171;border:1px solid rgba(239,68,68,0.2);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-danger:hover{background:rgba(239,68,68,0.25)}
+    .btn-edit{background:rgba(79,70,229,0.15);color:#818CF8;border:1px solid rgba(79,70,229,0.2);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-edit:hover{background:rgba(79,70,229,0.25)}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
+    .badge-phy{background:rgba(59,130,246,0.15);color:#60A5FA}
+    .badge-chem{background:rgba(168,85,247,0.15);color:#C084FC}
+    .badge-math{background:rgba(16,185,129,0.15);color:#34D399}
+    .badge-free{background:rgba(16,185,129,0.15);color:#34D399}
+    .badge-paid{background:rgba(245,158,11,0.15);color:#FBBF24}
+    .badge-active{background:rgba(16,185,129,0.15);color:#34D399}
+    .badge-draft{background:rgba(100,116,139,0.15);color:#94A3B8}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+    .modal-box{background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+    .modal-box::-webkit-scrollbar{width:4px}
+    .modal-box::-webkit-scrollbar-track{background:transparent}
+    .modal-box::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.3);border-radius:4px}
+    .tbl{width:100%;border-collapse:collapse}
+    .tbl th{padding:10px 14px;font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid rgba(255,255,255,0.05);text-align:left;white-space:nowrap}
+    .tbl td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+    .tbl tr:hover td{background:rgba(255,255,255,0.02)}
+    .progress-bar{height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;margin-top:8px}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#4F46E5,#7C3AED);border-radius:3px;transition:width 0.3s}
+    .toast{position:fixed;bottom:24px;right:24px;background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 20px;font-size:13px;font-weight:500;z-index:200;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s}
+    .toast.show{transform:translateY(0);opacity:1}
+    .empty-state{text-align:center;padding:60px 20px;color:#334155}
+    .empty-state i{font-size:40px;margin-bottom:12px;display:block}
+    label{display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px}
+    .radio-group{display:flex;gap:12px;flex-wrap:wrap}
+    .radio-opt{display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);transition:all 0.2s;font-size:13px;color:#CBD5E1}
+    .radio-opt:hover{border-color:rgba(79,70,229,0.4);background:rgba(79,70,229,0.05)}
+    .radio-opt input{accent-color:#4F46E5}
+    .form-grid{display:grid;gap:16px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .modal-footer{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+    .btn-cancel{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94A3B8;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="admin-sidebar" id="adminSidebar">
+  <div style="padding:20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
+      <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
+    </div>
+    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
+    <a href="students.html" class="anl"><i class="fas fa-users" style="width:16px"></i> Students</a>
+    <a href="content.html" class="anl active"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
+    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
+    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
+    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
+    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
+    <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
+    <a href="../login.html" class="anl" onclick="auth.signOut()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="admin-main" style="padding:28px 32px">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;color:white">Content Manager</h1>
+      <p style="font-size:13px;color:#64748B;margin-top:2px">Manage courses, modules, notes and PYQ papers</p>
+    </div>
+    <button class="btn-primary" onclick="openAddModal()">
+      <i class="fas fa-plus" style="margin-right:6px"></i><span id="addBtnLabel">Add Course</span>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="glass" style="padding:8px;display:inline-flex;gap:4px;margin-bottom:24px;flex-wrap:wrap">
+    <button class="tab-btn active" onclick="switchTab('courses')" id="tab-courses"><i class="fas fa-graduation-cap" style="margin-right:6px"></i>Courses</button>
+    <button class="tab-btn" onclick="switchTab('modules')" id="tab-modules"><i class="fas fa-cubes" style="margin-right:6px"></i>Modules</button>
+    <button class="tab-btn" onclick="switchTab('notes')" id="tab-notes"><i class="fas fa-file-pdf" style="margin-right:6px"></i>Notes / PDFs</button>
+    <button class="tab-btn" onclick="switchTab('pyq')" id="tab-pyq"><i class="fas fa-scroll" style="margin-right:6px"></i>PYQ Papers</button>
+  </div>
+
+  <!-- Courses Tab -->
+  <div id="section-courses">
+    <div class="glass" style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>Course</th><th>Subject</th><th>Modules</th><th>Access</th>
+          <th>Price</th><th>Status</th><th>Created</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="courses-body">
+          <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modules Tab -->
+  <div id="section-modules" style="display:none">
+    <div class="glass" style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>Title</th><th>Subject</th><th>Chapter</th><th>Duration</th>
+          <th>Course</th><th>Access</th><th>Price</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="modules-body">
+          <tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notes Tab -->
+  <div id="section-notes" style="display:none">
+    <div class="glass" style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>Title</th><th>Subject</th><th>Chapter</th><th>File Size</th>
+          <th>Access</th><th>Price</th><th>Downloads</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="notes-body">
+          <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PYQ Tab -->
+  <div id="section-pyq" style="display:none">
+    <div class="glass" style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>Title</th><th>Year</th><th>Paper Type</th><th>Subject</th>
+          <th>File Size</th><th>Access</th><th>Downloads</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="pyq-body">
+          <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- ===== COURSE MODAL ===== -->
+<div class="modal-overlay" id="courseModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white" id="courseModalTitle">Add Course</h2>
+      <button onclick="closeModal('courseModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="courseForm" onsubmit="saveCourse(event)">
+      <input type="hidden" id="courseId">
+      <div class="form-grid">
+        <div>
+          <label>Course Title *</label>
+          <input class="inp" type="text" id="cTitle" placeholder="e.g. Complete Physics for WBJEE" required>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Subject *</label>
+            <select class="inp" id="cSubject" onchange="updateCourseIcon()">
+              <option value="Physics">Physics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Mathematics">Mathematics</option>
+            </select>
+          </div>
+          <div>
+            <label>Icon / Emoji</label>
+            <input class="inp" type="text" id="cIcon" placeholder="⚡" maxlength="4">
+          </div>
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea class="inp" id="cDesc" rows="3" placeholder="Brief description of the course…"></textarea>
+        </div>
+        <div>
+          <label>Access Type</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cAccess" value="Free" checked onchange="togglePrice('c')"> Free</label>
+            <label class="radio-opt"><input type="radio" name="cAccess" value="Paid" onchange="togglePrice('c')"> Paid</label>
+          </div>
+        </div>
+        <div id="cPriceField" style="display:none">
+          <label>Price (₹)</label>
+          <input class="inp" type="number" id="cPrice" placeholder="499" min="0">
+        </div>
+        <div>
+          <label>Status</label>
+          <select class="inp" id="cStatus">
+            <option value="Active">Active</option>
+            <option value="Draft">Draft</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('courseModal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="courseSaveBtn">Save Course</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MODULE MODAL ===== -->
+<div class="modal-overlay" id="moduleModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white" id="moduleModalTitle">Add Module</h2>
+      <button onclick="closeModal('moduleModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="moduleForm" onsubmit="saveModule(event)">
+      <input type="hidden" id="moduleId">
+      <div class="form-grid">
+        <div>
+          <label>Module Title *</label>
+          <input class="inp" type="text" id="mTitle" placeholder="e.g. Newton's Laws of Motion" required>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Course</label>
+            <select class="inp" id="mCourse"><option value="">-- Select Course --</option></select>
+          </div>
+          <div>
+            <label>Subject *</label>
+            <select class="inp" id="mSubject">
+              <option value="Physics">Physics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Mathematics">Mathematics</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Chapter</label>
+            <input class="inp" type="text" id="mChapter" placeholder="e.g. Chapter 3">
+          </div>
+          <div>
+            <label>Duration</label>
+            <input class="inp" type="text" id="mDuration" placeholder="e.g. 45 min">
+          </div>
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea class="inp" id="mDesc" rows="2" placeholder="What will students learn…"></textarea>
+        </div>
+        <div>
+          <label>Access Type</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="mAccess" value="Free" checked onchange="togglePrice('m')"> Free</label>
+            <label class="radio-opt"><input type="radio" name="mAccess" value="Paid" onchange="togglePrice('m')"> Paid</label>
+          </div>
+        </div>
+        <div id="mPriceField" style="display:none">
+          <label>Price (₹)</label>
+          <input class="inp" type="number" id="mPrice" placeholder="199" min="0">
+        </div>
+        <div>
+          <label>Status</label>
+          <select class="inp" id="mStatus">
+            <option value="Active">Active</option>
+            <option value="Draft">Draft</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('moduleModal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save Module</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== NOTES MODAL ===== -->
+<div class="modal-overlay" id="notesModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white" id="notesModalTitle">Upload Note</h2>
+      <button onclick="closeModal('notesModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="notesForm" onsubmit="saveNote(event)">
+      <input type="hidden" id="noteId">
+      <div class="form-grid">
+        <div>
+          <label>Title *</label>
+          <input class="inp" type="text" id="nTitle" placeholder="e.g. Electrostatics Formula Sheet" required>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Subject *</label>
+            <select class="inp" id="nSubject">
+              <option value="Physics">Physics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Mathematics">Mathematics</option>
+            </select>
+          </div>
+          <div>
+            <label>Chapter</label>
+            <input class="inp" type="text" id="nChapter" placeholder="e.g. Chapter 1">
+          </div>
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea class="inp" id="nDesc" rows="2" placeholder="Brief description…"></textarea>
+        </div>
+        <div>
+          <label>Upload File (PDF / DOCX / PPTX)</label>
+          <input class="inp" type="file" id="nFile" accept=".pdf,.docx,.pptx" style="padding:8px 14px">
+          <div class="progress-bar" id="nProgressBar" style="display:none"><div class="progress-fill" id="nProgressFill" style="width:0%"></div></div>
+          <div id="nProgressText" style="font-size:11px;color:#64748B;margin-top:4px"></div>
+        </div>
+        <div>
+          <label>Access Type</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="nAccess" value="Free" checked onchange="togglePrice('n')"> Free</label>
+            <label class="radio-opt"><input type="radio" name="nAccess" value="Paid" onchange="togglePrice('n')"> Paid</label>
+          </div>
+        </div>
+        <div id="nPriceField" style="display:none">
+          <label>Price (₹)</label>
+          <input class="inp" type="number" id="nPrice" placeholder="99" min="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('notesModal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="noteSaveBtn">Upload Note</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== PYQ MODAL ===== -->
+<div class="modal-overlay" id="pyqModal" style="display:none">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:white" id="pyqModalTitle">Upload PYQ Paper</h2>
+      <button onclick="closeModal('pyqModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="pyqForm" onsubmit="savePYQ(event)">
+      <input type="hidden" id="pyqId">
+      <div class="form-grid">
+        <div>
+          <label>Title *</label>
+          <input class="inp" type="text" id="pTitle" placeholder="e.g. WBJEE 2023 Full Paper" required>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Year *</label>
+            <select class="inp" id="pYear">
+              <option>2025</option><option>2024</option><option>2023</option>
+              <option>2022</option><option>2021</option><option>2020</option>
+            </select>
+          </div>
+          <div>
+            <label>Paper Type *</label>
+            <select class="inp" id="pPaperType">
+              <option value="Full Paper">Full Paper</option>
+              <option value="Physics Only">Physics Only</option>
+              <option value="Chemistry Only">Chemistry Only</option>
+              <option value="Maths Only">Maths Only</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Subject</label>
+          <select class="inp" id="pSubject">
+            <option value="Physics">Physics</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Mixed">Mixed (Full Paper)</option>
+          </select>
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea class="inp" id="pDesc" rows="2" placeholder="Any additional notes…"></textarea>
+        </div>
+        <div>
+          <label>Upload File (PDF / DOCX)</label>
+          <input class="inp" type="file" id="pFile" accept=".pdf,.docx" style="padding:8px 14px">
+          <div class="progress-bar" id="pProgressBar" style="display:none"><div class="progress-fill" id="pProgressFill" style="width:0%"></div></div>
+          <div id="pProgressText" style="font-size:11px;color:#64748B;margin-top:4px"></div>
+        </div>
+        <div>
+          <label>Access Type</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="pAccess" value="Free" checked onchange="togglePrice('p')"> Free</label>
+            <label class="radio-opt"><input type="radio" name="pAccess" value="Paid" onchange="togglePrice('p')"> Paid</label>
+          </div>
+        </div>
+        <div id="pPriceField" style="display:none">
+          <label>Price (₹)</label>
+          <input class="inp" type="number" id="pPrice" placeholder="49" min="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('pyqModal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="pyqSaveBtn">Upload Paper</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon" style="color:#34D399"></i><span id="toastMsg">Saved!</span></div>
+
+<script>
+let currentTab = 'courses';
+let coursesCache = [], modulesCache = [], notesCache = [], pyqCache = [];
+
+// ---- Tab ----
+function switchTab(tab) {
+  currentTab = tab;
+  ['courses','modules','notes','pyq'].forEach(t => {
+    document.getElementById('section-'+t).style.display = t===tab ? 'block' : 'none';
+    document.getElementById('tab-'+t).className = 'tab-btn' + (t===tab ? ' active' : '');
+  });
+  const labels = {courses:'Add Course',modules:'Add Module',notes:'Upload Note',pyq:'Upload PYQ'};
+  document.getElementById('addBtnLabel').textContent = labels[tab];
+}
+
+function openAddModal() {
+  const modals = {courses:'courseModal',modules:'moduleModal',notes:'notesModal',pyq:'pyqModal'};
+  const m = modals[currentTab];
+  if(currentTab==='courses'){
+    document.getElementById('courseId').value='';
+    document.getElementById('courseForm').reset();
+    document.getElementById('cPriceField').style.display='none';
+    document.getElementById('courseModalTitle').textContent='Add Course';
+  }
+  if(currentTab==='modules'){
+    document.getElementById('moduleId').value='';
+    document.getElementById('moduleForm').reset();
+    document.getElementById('mPriceField').style.display='none';
+    document.getElementById('moduleModalTitle').textContent='Add Module';
+    loadCoursesForSelect();
+  }
+  if(currentTab==='notes'){
+    document.getElementById('noteId').value='';
+    document.getElementById('notesForm').reset();
+    document.getElementById('nPriceField').style.display='none';
+    document.getElementById('nProgressBar').style.display='none';
+    document.getElementById('nProgressText').textContent='';
+    document.getElementById('notesModalTitle').textContent='Upload Note';
+  }
+  if(currentTab==='pyq'){
+    document.getElementById('pyqId').value='';
+    document.getElementById('pyqForm').reset();
+    document.getElementById('pPriceField').style.display='none';
+    document.getElementById('pProgressBar').style.display='none';
+    document.getElementById('pProgressText').textContent='';
+    document.getElementById('pyqModalTitle').textContent='Upload PYQ Paper';
+  }
+  document.getElementById(m).style.display='flex';
+}
+
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+function togglePrice(p){
+  const paid = document.querySelector(`input[name="${p}Access"]:checked`).value === 'Paid';
+  document.getElementById(p+'PriceField').style.display = paid ? 'block' : 'none';
+}
+function updateCourseIcon(){
+  const icons = {Physics:'⚡',Chemistry:'🧪',Mathematics:'📐'};
+  document.getElementById('cIcon').value = icons[document.getElementById('cSubject').value]||'📚';
+}
+
+function showToast(msg, isErr=false){
+  const t=document.getElementById('toast');
+  const ic=document.getElementById('toastIcon');
+  ic.className = isErr ? 'fas fa-times-circle' : 'fas fa-check-circle';
+  ic.style.color = isErr ? '#F87171' : '#34D399';
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ---- Helpers ----
+function subBadge(s){
+  const m={Physics:'badge-phy',Chemistry:'badge-chem',Mathematics:'badge-math'};
+  return `<span class="badge ${m[s]||'badge-draft'}">${s||'—'}</span>`;
+}
+function accBadge(a){ return `<span class="badge ${a==='Paid'?'badge-paid':'badge-free'}">${a||'Free'}</span>`; }
+function stBadge(s){ return `<span class="badge ${s==='Active'?'badge-active':'badge-draft'}">${s||'Draft'}</span>`; }
+function fmtDate(ts){
+  if(!ts) return '—';
+  try{ const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'}); }catch(e){ return '—'; }
+}
+function fmtSize(b){
+  if(!b) return '—';
+  return b>1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB';
+}
+
+// ============ COURSES ============
+async function loadCourses(){
+  try{
+    const snap = await db.collection('courses').orderBy('createdAt','desc').get();
+    coursesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ coursesCache=[]; }
+  renderCourses();
+}
+function renderCourses(){
+  const tbody=document.getElementById('courses-body');
+  if(!coursesCache.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-book-open"></i><div style="font-size:15px;font-weight:600;color:#475569">No courses yet</div><div style="font-size:12px;margin-top:4px">Click "+ Add Course" to get started</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=coursesCache.map(c=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,70,229,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${c.icon||'📚'}</div>
+      <div><div style="font-weight:600;color:white;font-size:13px">${c.title||'Untitled'}</div>
+      <div style="font-size:11px;color:#64748B;margin-top:2px">${c.description?(c.description.substring(0,42)+(c.description.length>42?'…':'')):''}</div></div>
+    </div></td>
+    <td>${subBadge(c.subject)}</td>
+    <td><span style="font-weight:700;color:#818CF8">${c.modules||0}</span></td>
+    <td>${accBadge(c.access)}</td>
+    <td style="color:#E2E8F0">${c.access==='Paid'&&c.price?'₹'+c.price:'—'}</td>
+    <td>${stBadge(c.status)}</td>
+    <td style="color:#475569;font-size:12px">${fmtDate(c.createdAt)}</td>
+    <td><div style="display:flex;gap:6px">
+      <button class="btn-edit" onclick="editCourse('${c.id}')"><i class="fas fa-pen"></i> Edit</button>
+      <button class="btn-danger" onclick="deleteCourse('${c.id}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function saveCourse(e){
+  e.preventDefault();
+  const btn=document.getElementById('courseSaveBtn');
+  btn.textContent='Saving…'; btn.disabled=true;
+  const id=document.getElementById('courseId').value;
+  const access=document.querySelector('input[name="cAccess"]:checked').value;
+  const data={
+    title:document.getElementById('cTitle').value.trim(),
+    subject:document.getElementById('cSubject').value,
+    description:document.getElementById('cDesc').value.trim(),
+    icon:document.getElementById('cIcon').value.trim()||(document.getElementById('cSubject').value==='Physics'?'⚡':document.getElementById('cSubject').value==='Chemistry'?'🧪':'📐'),
+    access,
+    price:access==='Paid'?(parseFloat(document.getElementById('cPrice').value)||0):0,
+    status:document.getElementById('cStatus').value,
+  };
+  try{
+    if(id){ await db.collection('courses').doc(id).update(data); showToast('Course updated!'); }
+    else{ data.modules=0; data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); await db.collection('courses').add(data); showToast('Course created!'); }
+    closeModal('courseModal'); loadCourses();
+  }catch(err){ showToast('Error: '+err.message,true); }
+  btn.textContent='Save Course'; btn.disabled=false;
+}
+
+async function editCourse(id){
+  const c=coursesCache.find(x=>x.id===id); if(!c)return;
+  document.getElementById('courseId').value=id;
+  document.getElementById('cTitle').value=c.title||'';
+  document.getElementById('cSubject').value=c.subject||'Physics';
+  document.getElementById('cDesc').value=c.description||'';
+  document.getElementById('cIcon').value=c.icon||'';
+  document.getElementById('cStatus').value=c.status||'Active';
+  const acc=c.access||'Free';
+  document.querySelector(`input[name="cAccess"][value="${acc}"]`).checked=true;
+  document.getElementById('cPriceField').style.display=acc==='Paid'?'block':'none';
+  document.getElementById('cPrice').value=c.price||'';
+  document.getElementById('courseModalTitle').textContent='Edit Course';
+  document.getElementById('courseModal').style.display='flex';
+}
+
+async function deleteCourse(id){
+  if(!confirm('Delete this course? This action cannot be undone.'))return;
+  try{ await db.collection('courses').doc(id).delete(); showToast('Course deleted'); loadCourses(); }
+  catch(e){ showToast('Error: '+e.message,true); }
+}
+
+// ============ MODULES ============
+async function loadModules(){
+  try{
+    const snap=await db.collection('modules').orderBy('createdAt','desc').get();
+    modulesCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ modulesCache=[]; }
+  renderModules();
+}
+function renderModules(){
+  const tbody=document.getElementById('modules-body');
+  if(!modulesCache.length){
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><i class="fas fa-cubes"></i><div style="font-size:15px;font-weight:600;color:#475569">No modules yet</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=modulesCache.map(m=>`<tr>
+    <td style="font-weight:600;color:white">${m.title||'—'}</td>
+    <td>${subBadge(m.subject)}</td>
+    <td style="color:#94A3B8;font-size:12px">${m.chapter||'—'}</td>
+    <td style="color:#64748B;font-size:12px"><i class="fas fa-clock" style="margin-right:4px;color:#4F46E5"></i>${m.duration||'—'}</td>
+    <td style="color:#94A3B8;font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.courseName||'—'}</td>
+    <td>${accBadge(m.access)}</td>
+    <td style="color:#E2E8F0">${m.access==='Paid'&&m.price?'₹'+m.price:'—'}</td>
+    <td>${stBadge(m.status)}</td>
+    <td><div style="display:flex;gap:6px">
+      <button class="btn-edit" onclick="editModule('${m.id}')"><i class="fas fa-pen"></i></button>
+      <button class="btn-danger" onclick="deleteModule('${m.id}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function loadCoursesForSelect(){
+  if(!coursesCache.length) await loadCourses();
+  const sel=document.getElementById('mCourse');
+  sel.innerHTML='<option value="">-- Select Course --</option>'+coursesCache.map(c=>`<option value="${c.id}" data-name="${c.title}">${c.title}</option>`).join('');
+}
+
+async function saveModule(e){
+  e.preventDefault();
+  const id=document.getElementById('moduleId').value;
+  const access=document.querySelector('input[name="mAccess"]:checked').value;
+  const courseEl=document.getElementById('mCourse');
+  const courseName=courseEl.selectedIndex>0?courseEl.options[courseEl.selectedIndex].getAttribute('data-name'):'';
+  const data={
+    title:document.getElementById('mTitle').value.trim(),
+    courseId:courseEl.value,courseName,
+    subject:document.getElementById('mSubject').value,
+    chapter:document.getElementById('mChapter').value.trim(),
+    duration:document.getElementById('mDuration').value.trim(),
+    description:document.getElementById('mDesc').value.trim(),
+    access,
+    price:access==='Paid'?(parseFloat(document.getElementById('mPrice').value)||0):0,
+    status:document.getElementById('mStatus').value,
+  };
+  try{
+    if(id){ await db.collection('modules').doc(id).update(data); showToast('Module updated!'); }
+    else{
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('modules').add(data);
+      if(data.courseId) await db.collection('courses').doc(data.courseId).update({modules:firebase.firestore.FieldValue.increment(1)});
+      showToast('Module created!');
+    }
+    closeModal('moduleModal'); loadModules();
+  }catch(err){ showToast('Error: '+err.message,true); }
+}
+
+async function editModule(id){
+  await loadCoursesForSelect();
+  const m=modulesCache.find(x=>x.id===id); if(!m)return;
+  document.getElementById('moduleId').value=id;
+  document.getElementById('mTitle').value=m.title||'';
+  document.getElementById('mCourse').value=m.courseId||'';
+  document.getElementById('mSubject').value=m.subject||'Physics';
+  document.getElementById('mChapter').value=m.chapter||'';
+  document.getElementById('mDuration').value=m.duration||'';
+  document.getElementById('mDesc').value=m.description||'';
+  document.getElementById('mStatus').value=m.status||'Active';
+  const acc=m.access||'Free';
+  document.querySelector(`input[name="mAccess"][value="${acc}"]`).checked=true;
+  document.getElementById('mPriceField').style.display=acc==='Paid'?'block':'none';
+  document.getElementById('mPrice').value=m.price||'';
+  document.getElementById('moduleModalTitle').textContent='Edit Module';
+  document.getElementById('moduleModal').style.display='flex';
+}
+
+async function deleteModule(id){
+  if(!confirm('Delete this module?'))return;
+  try{
+    const m=modulesCache.find(x=>x.id===id);
+    await db.collection('modules').doc(id).delete();
+    if(m&&m.courseId) await db.collection('courses').doc(m.courseId).update({modules:firebase.firestore.FieldValue.increment(-1)});
+    showToast('Module deleted'); loadModules();
+  }catch(e){ showToast('Error: '+e.message,true); }
+}
+
+// ============ NOTES ============
+async function loadNotes(){
+  try{
+    const snap=await db.collection('notes').orderBy('createdAt','desc').get();
+    notesCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ notesCache=[]; }
+  renderNotes();
+}
+function renderNotes(){
+  const tbody=document.getElementById('notes-body');
+  if(!notesCache.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-file-pdf"></i><div style="font-size:15px;font-weight:600;color:#475569">No notes uploaded yet</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=notesCache.map(n=>`<tr>
+    <td><div style="font-weight:600;color:white">${n.title||'—'}</div><div style="font-size:11px;color:#64748B">${n.fileName||''}</div></td>
+    <td>${subBadge(n.subject)}</td>
+    <td style="color:#94A3B8;font-size:12px">${n.chapter||'—'}</td>
+    <td style="color:#64748B;font-size:12px">${fmtSize(n.fileSize)}</td>
+    <td>${accBadge(n.access)}</td>
+    <td style="color:#E2E8F0">${n.access==='Paid'&&n.price?'₹'+n.price:'—'}</td>
+    <td><span style="font-weight:700;color:#818CF8">${n.downloads||0}</span></td>
+    <td><div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${n.fileUrl?`<a href="${n.fileUrl}" target="_blank" style="background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.2);padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center"><i class="fas fa-download"></i></a>`:''}
+      <button class="btn-edit" onclick="editNote('${n.id}')"><i class="fas fa-pen"></i></button>
+      <button class="btn-danger" onclick="deleteNote('${n.id}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function saveNote(e){
+  e.preventDefault();
+  const btn=document.getElementById('noteSaveBtn');
+  btn.textContent='Uploading…'; btn.disabled=true;
+  const id=document.getElementById('noteId').value;
+  const access=document.querySelector('input[name="nAccess"]:checked').value;
+  const fi=document.getElementById('nFile');
+  const data={
+    title:document.getElementById('nTitle').value.trim(),
+    subject:document.getElementById('nSubject').value,
+    chapter:document.getElementById('nChapter').value.trim(),
+    description:document.getElementById('nDesc').value.trim(),
+    access,
+    price:access==='Paid'?(parseFloat(document.getElementById('nPrice').value)||0):0,
+  };
+  try{
+    if(fi.files.length>0){
+      const file=fi.files[0];
+      const fname=Date.now()+'_'+file.name.replace(/\s+/g,'_');
+      const ref=storage.ref('notes/'+fname);
+      const task=ref.put(file);
+      const bar=document.getElementById('nProgressBar');
+      const fill=document.getElementById('nProgressFill');
+      const txt=document.getElementById('nProgressText');
+      bar.style.display='block';
+      await new Promise((res,rej)=>task.on('state_changed',
+        s=>{const p=Math.round((s.bytesTransferred/s.totalBytes)*100);fill.style.width=p+'%';txt.textContent=p+'% uploaded';},rej,res));
+      data.fileUrl=await ref.getDownloadURL();
+      data.fileName=file.name; data.fileSize=file.size;
+      bar.style.display='none'; txt.textContent='';
+    }
+    if(id){ await db.collection('notes').doc(id).update(data); showToast('Note updated!'); }
+    else{ data.downloads=0; data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); await db.collection('notes').add(data); showToast('Note uploaded!'); }
+    closeModal('notesModal'); loadNotes();
+  }catch(err){ showToast('Error: '+err.message,true); }
+  btn.textContent='Upload Note'; btn.disabled=false;
+}
+
+async function editNote(id){
+  const n=notesCache.find(x=>x.id===id); if(!n)return;
+  document.getElementById('noteId').value=id;
+  document.getElementById('nTitle').value=n.title||'';
+  document.getElementById('nSubject').value=n.subject||'Physics';
+  document.getElementById('nChapter').value=n.chapter||'';
+  document.getElementById('nDesc').value=n.description||'';
+  const acc=n.access||'Free';
+  document.querySelector(`input[name="nAccess"][value="${acc}"]`).checked=true;
+  document.getElementById('nPriceField').style.display=acc==='Paid'?'block':'none';
+  document.getElementById('nPrice').value=n.price||'';
+  document.getElementById('nProgressBar').style.display='none';
+  document.getElementById('notesModalTitle').textContent='Edit Note';
+  document.getElementById('notesModal').style.display='flex';
+}
+
+async function deleteNote(id){
+  if(!confirm('Delete this note?'))return;
+  try{ await db.collection('notes').doc(id).delete(); showToast('Note deleted'); loadNotes(); }
+  catch(e){ showToast('Error: '+e.message,true); }
+}
+
+// ============ PYQ ============
+async function loadPYQ(){
+  try{
+    const snap=await db.collection('pyq').orderBy('createdAt','desc').get();
+    pyqCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ pyqCache=[]; }
+  renderPYQ();
+}
+function renderPYQ(){
+  const tbody=document.getElementById('pyq-body');
+  if(!pyqCache.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-scroll"></i><div style="font-size:15px;font-weight:600;color:#475569">No PYQ papers yet</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=pyqCache.map(p=>`<tr>
+    <td><div style="font-weight:600;color:white">${p.title||'—'}</div><div style="font-size:11px;color:#64748B">${p.fileName||''}</div></td>
+    <td><span style="font-weight:700;color:#FBBF24">${p.year||'—'}</span></td>
+    <td style="color:#94A3B8;font-size:12px">${p.paperType||'—'}</td>
+    <td>${subBadge(p.subject)}</td>
+    <td style="color:#64748B;font-size:12px">${fmtSize(p.fileSize)}</td>
+    <td>${accBadge(p.access)}</td>
+    <td><span style="font-weight:700;color:#818CF8">${p.downloads||0}</span></td>
+    <td><div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${p.fileUrl?`<a href="${p.fileUrl}" target="_blank" style="background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.2);padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center"><i class="fas fa-download"></i></a>`:''}
+      <button class="btn-edit" onclick="editPYQ('${p.id}')"><i class="fas fa-pen"></i></button>
+      <button class="btn-danger" onclick="deletePYQ('${p.id}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function savePYQ(e){
+  e.preventDefault();
+  const btn=document.getElementById('pyqSaveBtn');
+  btn.textContent='Uploading…'; btn.disabled=true;
+  const id=document.getElementById('pyqId').value;
+  const access=document.querySelector('input[name="pAccess"]:checked').value;
+  const fi=document.getElementById('pFile');
+  const data={
+    title:document.getElementById('pTitle').value.trim(),
+    year:document.getElementById('pYear').value,
+    paperType:document.getElementById('pPaperType').value,
+    subject:document.getElementById('pSubject').value,
+    description:document.getElementById('pDesc').value.trim(),
+    access,
+    price:access==='Paid'?(parseFloat(document.getElementById('pPrice').value)||0):0,
+  };
+  try{
+    if(fi.files.length>0){
+      const file=fi.files[0];
+      const fname='pyq_'+Date.now()+'_'+file.name.replace(/\s+/g,'_');
+      const ref=storage.ref('pyq/'+fname);
+      const task=ref.put(file);
+      const bar=document.getElementById('pProgressBar');
+      const fill=document.getElementById('pProgressFill');
+      const txt=document.getElementById('pProgressText');
+      bar.style.display='block';
+      await new Promise((res,rej)=>task.on('state_changed',
+        s=>{const p=Math.round((s.bytesTransferred/s.totalBytes)*100);fill.style.width=p+'%';txt.textContent=p+'% uploaded';},rej,res));
+      data.fileUrl=await ref.getDownloadURL();
+      data.fileName=file.name; data.fileSize=file.size;
+      bar.style.display='none'; txt.textContent='';
+    }
+    if(id){ await db.collection('pyq').doc(id).update(data); showToast('PYQ updated!'); }
+    else{ data.downloads=0; data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); await db.collection('pyq').add(data); showToast('PYQ uploaded!'); }
+    closeModal('pyqModal'); loadPYQ();
+  }catch(err){ showToast('Error: '+err.message,true); }
+  btn.textContent='Upload Paper'; btn.disabled=false;
+}
+
+async function editPYQ(id){
+  const p=pyqCache.find(x=>x.id===id); if(!p)return;
+  document.getElementById('pyqId').value=id;
+  document.getElementById('pTitle').value=p.title||'';
+  document.getElementById('pYear').value=p.year||'2025';
+  document.getElementById('pPaperType').value=p.paperType||'Full Paper';
+  document.getElementById('pSubject').value=p.subject||'Physics';
+  document.getElementById('pDesc').value=p.description||'';
+  const acc=p.access||'Free';
+  document.querySelector(`input[name="pAccess"][value="${acc}"]`).checked=true;
+  document.getElementById('pPriceField').style.display=acc==='Paid'?'block':'none';
+  document.getElementById('pPrice').value=p.price||'';
+  document.getElementById('pProgressBar').style.display='none';
+  document.getElementById('pyqModalTitle').textContent='Edit PYQ Paper';
+  document.getElementById('pyqModal').style.display='flex';
+}
+
+async function deletePYQ(id){
+  if(!confirm('Delete this PYQ paper?'))return;
+  try{ await db.collection('pyq').doc(id).delete(); showToast('PYQ deleted'); loadPYQ(); }
+  catch(e){ showToast('Error: '+e.message,true); }
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(ev){if(ev.target===this)this.style.display='none';});
+});
+
+// Auth + init
+auth.onAuthStateChanged(user=>{
+  if(!user){window.location.href='../login.html';return;}
+  loadCourses();
+  loadModules();
+  loadNotes();
+  loadPYQ();
+});
+</script>
+</body>
+</html>

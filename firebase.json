@@ -4,6 +4,8 @@
     "ignore": [
       "firebase.json",
       ".firebaserc",
+      ".gitignore",
+      "sankalp-evaluator-api/**",
       "**/.*",
       "**/node_modules/**"
     ],

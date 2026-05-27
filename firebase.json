@@ -3,6 +3,8 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firebase-debug.log",
+      "**/*.log",
       ".firebaserc",
       ".gitignore",
       "sankalp-evaluator-api/**",

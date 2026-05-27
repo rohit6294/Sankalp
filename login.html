@@ -12,7 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="js/firebase-config.js"></script>
 </head>
-<body style="min-height:100vh; display:flex; align-items:center; justify-content:center;">
+<body style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding: 24px 0;">
 
   <div style="width:100%; max-width:460px; padding:24px;">
 
@@ -27,12 +27,12 @@
       </a>
     </div>
 
-    <!-- Card -->
-    <div style="border:1px solid var(--ink); background:var(--paper-soft); padding:40px 36px;">
+    <!-- ==================== STUDENT LOGIN CARD ==================== -->
+    <div id="studentLoginCard" style="border:1px solid var(--ink); background:var(--paper-soft); padding:40px 36px;">
       <h2 class="display-md" style="text-align:center; margin-bottom:6px;">Welcome back.</h2>
       <p class="lede" style="text-align:center; margin-bottom:32px; max-width:none;">Login to continue your WBJEE prep</p>
 
-      <!-- Google Login -->
+      <!-- Student Google Login -->
       <button onclick="loginWithGoogle()" id="googleBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; border:1px solid var(--ink); background:var(--paper); color:var(--ink); font-family:var(--font-sans); font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s; margin-bottom:24px;" onmouseover="this.style.background='var(--ink)';this.style.color='var(--paper)'" onmouseout="this.style.background='var(--paper)';this.style.color='var(--ink)'">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px" alt="Google">
         Continue with Google
@@ -81,9 +81,63 @@
       </p>
     </div>
 
-    <!-- Admin link -->
-    <div style="text-align:center; margin-top:18px;">
-      <a href="#" onclick="goToAdmin(event)" style="color:var(--ink-mute); font-size:12px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
+    <!-- ==================== ADMIN LOGIN CARD ==================== -->
+    <div id="adminLoginCard" style="display:none; border:1px solid var(--ink); background:var(--paper-soft); padding:40px 36px; border-top: 4px solid var(--rust);">
+      <h2 class="display-md" style="text-align:center; margin-bottom:6px; color:var(--rust);"><i class="fas fa-shield-alt"></i> Admin Portal</h2>
+      <p class="lede" style="text-align:center; margin-bottom:32px; max-width:none;">Sign in with your administrator credentials</p>
+
+      <!-- Admin Google Login -->
+      <button onclick="loginAdminWithGoogle()" id="adminGoogleBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; border:1px solid var(--ink); background:var(--paper); color:var(--ink); font-family:var(--font-sans); font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s; margin-bottom:24px;" onmouseover="this.style.background='var(--ink)';this.style.color='var(--paper)'" onmouseout="this.style.background='var(--paper)';this.style.color='var(--ink)'">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px" alt="Google">
+        Admin Login with Google
+      </button>
+
+      <!-- Divider -->
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <div style="flex:1; height:1px; background:var(--rule);"></div>
+        <span class="eyebrow">or admin email</span>
+        <div style="flex:1; height:1px; background:var(--rule);"></div>
+      </div>
+
+      <!-- Form -->
+      <form onsubmit="loginAdminWithEmail(event)">
+        <div style="margin-bottom:18px;">
+          <label class="input-label">Admin Email</label>
+          <div style="position:relative;">
+            <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px;"></i>
+            <input type="email" id="adminEmail" class="input-field" placeholder="admin@sankalp.edu" required style="padding-left:40px;">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label class="input-label">Admin Password</label>
+          <div style="position:relative;">
+            <i class="fas fa-lock" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px;"></i>
+            <input type="password" id="adminPassword" class="input-field" placeholder="Enter admin password" required style="padding-left:40px; padding-right:44px;">
+            <button type="button" onclick="togglePassword('adminPassword','adminEyeIcon')" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--ink-mute); cursor:pointer;">
+              <i class="fas fa-eye" id="adminEyeIcon" style="font-size:14px;"></i>
+            </button>
+          </div>
+        </div>
+        <div style="text-align:right; margin-bottom:24px;">
+          <a href="#" onclick="forgotAdminPassword()" style="color:var(--rust); font-size:13px; font-weight:600;">Forgot admin password?</a>
+        </div>
+
+        <!-- Error message -->
+        <div id="adminErrorMsg" style="display:none; background:var(--paper); border:1px solid var(--rust); padding:14px; margin-bottom:18px; font-size:13px; color:var(--rust); font-family:var(--font-sans);"></div>
+
+        <button type="submit" id="adminLoginBtn" class="btn-rust" style="width:100%; justify-content:center; padding:16px; background:var(--rust);">
+          <i class="fas fa-shield-alt"></i> Authenticate Admin
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--ink-mute);">
+        Are you a student? <a href="#" onclick="showStudentCard(event)" style="color:var(--rust); font-weight:700;">Student Login</a>
+      </p>
+    </div>
+
+    <!-- Admin link container -->
+    <div id="adminLinkContainer" style="text-align:center; margin-top:18px;">
+      <a href="#" onclick="showAdminCard(event)" style="color:var(--ink-mute); font-size:12px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
         <i class="fas fa-shield-alt"></i> Admin Login
       </a>
     </div>
@@ -103,12 +157,45 @@
       el.style.display = 'block';
     }
 
+    function showAdminError(msg) {
+      const el = document.getElementById('adminErrorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
     function setLoading(btn, loading) {
       btn.disabled = loading;
       btn.innerHTML = loading
         ? '<span class="loading-spinner" style="width:18px;height:18px;border-width:2px"></span> Logging in...'
         : '<i class="fas fa-sign-in-alt"></i> Login to Account';
     }
+
+    function setAdminLoading(btn, loading) {
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? '<span class="loading-spinner" style="width:18px;height:18px;border-width:2px"></span> Authenticating...'
+        : '<i class="fas fa-shield-alt"></i> Authenticate Admin';
+    }
+
+    function showAdminCard(e) {
+      if (e) e.preventDefault();
+      document.getElementById('studentLoginCard').style.display = 'none';
+      document.getElementById('adminLoginCard').style.display = 'block';
+      document.getElementById('adminLinkContainer').style.display = 'none';
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('adminErrorMsg').style.display = 'none';
+    }
+
+    function showStudentCard(e) {
+      if (e) e.preventDefault();
+      document.getElementById('adminLoginCard').style.display = 'none';
+      document.getElementById('studentLoginCard').style.display = 'block';
+      document.getElementById('adminLinkContainer').style.display = 'block';
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('adminErrorMsg').style.display = 'none';
+    }
+
+    // ===== STUDENT LOGIN ACTIONS =====
 
     async function loginWithEmail(e) {
       e.preventDefault();
@@ -121,7 +208,15 @@
         const cred = await auth.signInWithEmailAndPassword(email, password);
         const userDoc = await db.collection('users').doc(cred.user.uid).get();
         const role = userDoc.exists ? userDoc.data().role : 'student';
-        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        
+        if (role === 'admin') {
+          await auth.signOut();
+          setLoading(btn, false);
+          showError('Access denied. Admin accounts must log in using the Admin Portal below.');
+          return;
+        }
+        
+        window.location.href = 'student/dashboard.html';
       } catch (err) {
         setLoading(btn, false);
         const msgs = {
@@ -135,6 +230,94 @@
     }
 
     async function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
+        
+        // Query Firestore by email
+        const emailQuery = await db.collection('users').where('email', '==', user.email).get();
+        let role = 'student';
+        if (!emailQuery.empty) {
+          role = emailQuery.docs[0].data().role || 'student';
+        }
+        
+        if (adminEmails.includes(user.email.toLowerCase()) || role === 'admin') {
+          await auth.signOut();
+          showError('Access denied. Admin accounts must log in using the Admin Portal below.');
+          return;
+        }
+        
+        // Ensure student document exists under UID
+        const userRef = db.collection('users').doc(user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+          await userRef.set({
+            name: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            role: 'student',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            xp: 0, streak: 0
+          });
+        }
+        window.location.href = 'student/dashboard.html';
+      } catch (err) {
+        showError('Google login failed. Please try again.');
+      }
+    }
+
+    async function forgotPassword() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) { showError('Please enter your email first.'); return; }
+      try {
+        await auth.sendPasswordResetEmail(email);
+        const el = document.getElementById('errorMsg');
+        el.style.display = 'block';
+        el.style.borderColor = 'var(--forest)';
+        el.style.color = 'var(--forest)';
+        el.textContent = 'Password reset email sent! Check your inbox.';
+      } catch (err) {
+        showError('Could not send reset email. Check your email address.');
+      }
+    }
+
+    // ===== ADMIN LOGIN ACTIONS =====
+
+    async function loginAdminWithEmail(e) {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn = document.getElementById('adminLoginBtn');
+      document.getElementById('adminErrorMsg').style.display = 'none';
+      setAdminLoading(btn, true);
+      try {
+        const cred = await auth.signInWithEmailAndPassword(email, password);
+        const userDoc = await db.collection('users').doc(cred.user.uid).get();
+        const role = userDoc.exists ? userDoc.data().role : 'student';
+        
+        if (role !== 'admin') {
+          await auth.signOut();
+          setAdminLoading(btn, false);
+          showAdminError('Access denied. Your account is not registered as an administrator.');
+          return;
+        }
+        
+        window.location.href = 'admin/index.html';
+      } catch (err) {
+        setAdminLoading(btn, false);
+        const msgs = {
+          'auth/user-not-found': 'No admin account found with this email.',
+          'auth/wrong-password': 'Incorrect password. Please try again.',
+          'auth/invalid-email': 'Please enter a valid email address.',
+          'auth/too-many-requests': 'Too many attempts. Please try again later.',
+        };
+        showAdminError(msgs[err.code] || err.message);
+      }
+    }
+
+    async function loginAdminWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       try {
         const result = await auth.signInWithPopup(provider);
@@ -158,9 +341,14 @@
           role = 'admin'; // Always ensure admin emails have admin role
         }
         
+        if (role !== 'admin') {
+          await auth.signOut();
+          showAdminError('Access denied. Your Google account is not registered as an administrator.');
+          return;
+        }
+        
         // 2. If UID mismatch (e.g. account was created on old UID by script or other login), migrate it
         if (oldUid && oldUid !== user.uid) {
-          // Delete old pre-created UID document to avoid duplicates
           await db.collection('users').doc(oldUid).delete();
         }
         
@@ -169,7 +357,7 @@
         await userRef.set({
           name: user.displayName || existingData.name || user.email.split('@')[0],
           email: user.email,
-          role: role,
+          role: 'admin',
           createdAt: existingData.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
           xp: existingData.xp || 0,
           streak: existingData.streak || 0,
@@ -178,55 +366,38 @@
           lastLogin: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
-        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        window.location.href = 'admin/index.html';
       } catch (err) {
         console.error(err);
-        showError('Google login failed. Please try again.');
+        showAdminError('Google login failed. Please try again.');
       }
     }
 
-    async function goToAdmin(e) {
-      e.preventDefault();
-      document.getElementById('errorMsg').style.display = 'none';
-      const user = auth.currentUser;
-      if (user) {
-        try {
-          const doc = await db.collection('users').doc(user.uid).get();
-          const role = doc.exists ? doc.data().role : 'student';
-          if (role === 'admin') {
-            window.location.href = 'admin/index.html';
-          } else {
-            showError('Access denied. Your account is registered as a student.');
-          }
-        } catch (err) {
-          showError('Error checking role. Please log in again using the form above.');
-        }
-      } else {
-        showError('Please enter your admin credentials in the form above and click "Login to Account". The system will direct you to the Admin Panel automatically.');
-      }
-    }
-
-    async function forgotPassword() {
-      const email = document.getElementById('email').value.trim();
-      if (!email) { showError('Please enter your email first.'); return; }
+    async function forgotAdminPassword() {
+      const email = document.getElementById('adminEmail').value.trim();
+      if (!email) { showAdminError('Please enter your admin email first.'); return; }
       try {
         await auth.sendPasswordResetEmail(email);
-        const el = document.getElementById('errorMsg');
+        const el = document.getElementById('adminErrorMsg');
         el.style.display = 'block';
         el.style.borderColor = 'var(--forest)';
         el.style.color = 'var(--forest)';
-        el.textContent = 'Password reset email sent! Check your inbox.';
+        el.textContent = 'Admin password reset email sent! Check your inbox.';
       } catch (err) {
-        showError('Could not send reset email. Check your email address.');
+        showAdminError('Could not send reset email. Check your email address.');
       }
     }
 
     // Auto redirect if already logged in
     auth.onAuthStateChanged(async (user) => {
       if (user) {
-        const doc = await db.collection('users').doc(user.uid).get();
-        const role = doc.exists ? doc.data().role : 'student';
-        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          const role = doc.exists ? doc.data().role : 'student';
+          window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        } catch(e) {
+          // If we fail to fetch role, let them stay and log in again
+        }
       }
     });
   </script>

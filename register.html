@@ -264,9 +264,13 @@
     // Auto redirect based on role if already logged in
     auth.onAuthStateChanged(async (user) => {
       if (user) {
-        const doc = await db.collection('users').doc(user.uid).get();
-        const role = doc.exists ? doc.data().role : 'student';
-        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          const role = doc.exists ? doc.data().role : 'student';
+          window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        } catch(e) {
+          // If we fail to fetch role, let them stay and log in again
+        }
       }
     });
   </script>

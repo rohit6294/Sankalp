@@ -216,45 +216,35 @@
         const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
         const isAdmin = adminEmails.includes(user.email.toLowerCase());
         
-        // 1. Check if there is an existing account with this email in Firestore (under any UID)
-        const emailQuery = await db.collection('users').where('email', '==', user.email).get();
-        let existingData = {};
-        let oldUid = null;
-        
-        if (!emailQuery.empty) {
-          existingData = emailQuery.docs[0].data();
-          oldUid = emailQuery.docs[0].id;
-        }
-        
-        let role = existingData.role || (isAdmin ? 'admin' : 'student');
         if (isAdmin) {
-          role = 'admin'; // Always ensure admin emails have admin role
+          // Verify admin and write direct document to avoid collection-wide queries
+          const userRef = db.collection('users').doc(user.uid);
+          await userRef.set({
+            name: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            role: 'admin',
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          window.location.href = 'admin/index.html';
+          return;
         }
         
-        // 2. If UID mismatch (e.g. account was created on old UID by script or other login), migrate it
-        if (oldUid && oldUid !== user.uid) {
-          // Delete old pre-created UID document to avoid duplicates
-          await db.collection('users').doc(oldUid).delete();
-        }
-        
-        // 3. Save/Merge data to the new Google user UID
+        // Ensure student document exists under UID (without query by email to avoid permission errors)
         const userRef = db.collection('users').doc(user.uid);
-        await userRef.set({
-          name: user.displayName || existingData.name || user.email.split('@')[0],
-          email: user.email,
-          role: role,
-          createdAt: existingData.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
-          xp: existingData.xp || 0,
-          streak: existingData.streak || 0,
-          wbjeeYear: existingData.wbjeeYear || '',
-          phone: existingData.phone || '',
-          badges: existingData.badges || [],
-          enrolledCourses: existingData.enrolledCourses || [],
-          completedModules: existingData.completedModules || [],
-          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        const doc = await userRef.get();
+        if (!doc.exists) {
+          await userRef.set({
+            name: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            role: 'student',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            xp: 0, streak: 0,
+            badges: [], enrolledCourses: [], completedModules: [],
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
         
-        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+        window.location.href = 'student/dashboard.html';
       } catch (err) {
         console.error(err);
         showError('Google signup failed. Please try again.');
@@ -264,12 +254,18 @@
     // Auto redirect based on role if already logged in
     auth.onAuthStateChanged(async (user) => {
       if (user) {
+        const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
         try {
           const doc = await db.collection('users').doc(user.uid).get();
           const role = doc.exists ? doc.data().role : 'student';
           window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
         } catch(e) {
-          // If we fail to fetch role, let them stay and log in again
+          // Robust fallback routing using email checks if Firestore read throws permission error
+          if (adminEmails.includes(user.email.toLowerCase())) {
+            window.location.href = 'admin/index.html';
+          } else {
+            window.location.href = 'student/dashboard.html';
+          }
         }
       }
     });

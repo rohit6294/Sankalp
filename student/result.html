@@ -138,6 +138,10 @@
             <span style="font-family:var(--font-mono); font-weight:700;" id="totalCorrect">0</span>
           </div>
           <div class="breakdown-row">
+            <span><span style="display:inline-block; width:10px; height:10px; background:#1D4ED8; margin-right:8px;"></span>Partial</span>
+            <span style="font-family:var(--font-mono); font-weight:700;" id="totalPartial">0</span>
+          </div>
+          <div class="breakdown-row">
             <span><span style="display:inline-block; width:10px; height:10px; background:var(--rust); margin-right:8px;"></span>Wrong</span>
             <span style="font-family:var(--font-mono); font-weight:700;" id="totalWrong">0</span>
           </div>
@@ -228,9 +232,9 @@ function renderSubjectBreakdown(perSubject) {
   ];
 
   container.innerHTML = subjects.map(s => {
-    const data = perSubject[s.key] || { marks: 0, correct: 0, wrong: 0, skipped: 0 };
-    const total = data.correct + data.wrong + data.skipped;
-    const accuracy = (data.correct + data.wrong) > 0 ? Math.round((data.correct / (data.correct + data.wrong)) * 100) : 0;
+    const data = perSubject[s.key] || { marks: 0, correct: 0, partial: 0, wrong: 0, skipped: 0, accuracy: 0 };
+    const total = data.correct + (data.partial || 0) + data.wrong + data.skipped;
+    const accuracy = data.accuracy || 0;
     return `
       <div style="padding:16px 0; border-bottom:1px solid var(--rule);">
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
@@ -241,10 +245,11 @@ function renderSubjectBreakdown(perSubject) {
           <span>✓ ${data.correct}</span>
           <span>✗ ${data.wrong}</span>
           <span>— ${data.skipped}</span>
+          <span>Partial ${data.partial || 0}</span>
           <span style="margin-left:auto; font-weight:700;">${accuracy}% acc</span>
         </div>
         <div class="progress-bar" style="margin-top:8px; height:4px;">
-          <div class="progress-fill" style="width:${total > 0 ? (data.correct/total)*100 : 0}%; background:${s.color};"></div>
+          <div class="progress-fill" style="width:${total > 0 ? ((data.correct + (data.partial || 0)) / total) * 100 : 0}%; background:${s.color};"></div>
         </div>
       </div>`;
   }).join('');
@@ -329,6 +334,7 @@ async function loadResult(user) {
 
     // Analytics
     document.getElementById('totalCorrect').textContent = result.analytics.correct;
+    document.getElementById('totalPartial').textContent = result.analytics.partial || 0;
     document.getElementById('totalWrong').textContent = result.analytics.wrong;
     document.getElementById('totalSkipped').textContent = result.analytics.skipped;
     setAccuracyRing(result.analytics.accuracy);

@@ -1,10 +1,23 @@
 const express = require('express');
 const { admin, db } = require('../firebase');
 const { verifyToken } = require('../auth');
+const { COUNTS } = require('../categories');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
 const { predictRank } = require('../scoring/ranking');
 
 const router = express.Router();
+
+function validateAnswerKeyBlock(subject, keyMap) {
+  const missing = [];
+  const count = COUNTS[subject] || 0;
+  for (let qNo = 1; qNo <= count; qNo += 1) {
+    const value = keyMap ? keyMap[String(qNo)] : undefined;
+    if (typeof value !== 'string' || !value.trim()) {
+      missing.push(qNo);
+    }
+  }
+  return missing;
+}
 
 router.post('/', verifyToken, async (req, res) => {
   const { examId, mathSet, physChemSet, answers } = req.body || {};
@@ -47,6 +60,20 @@ router.post('/', verifyToken, async (req, res) => {
       physics: physChemData.physics || {},
       chemistry: physChemData.chemistry || {},
     };
+
+    const missingMath = validateAnswerKeyBlock('math', keys.math);
+    const missingPhysics = validateAnswerKeyBlock('physics', keys.physics);
+    const missingChemistry = validateAnswerKeyBlock('chemistry', keys.chemistry);
+    if (missingMath.length || missingPhysics.length || missingChemistry.length) {
+      const problems = [];
+      if (missingMath.length) problems.push(`math missing ${missingMath.length}`);
+      if (missingPhysics.length) problems.push(`physics missing ${missingPhysics.length}`);
+      if (missingChemistry.length) problems.push(`chemistry missing ${missingChemistry.length}`);
+      return res.status(400).json({
+        error: 'incomplete_answer_key',
+        message: `Answer key is incomplete: ${problems.join(', ')}`,
+      });
+    }
 
     const { scores, analytics, perSubject } = scoreSubmission(answers, keys);
 

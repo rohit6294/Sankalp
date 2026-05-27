@@ -23,6 +23,7 @@ ui-debug.log
 .env.production.local
 *.pem
 *.key
+d
 *.json
 !package.json
 !package-lock.json

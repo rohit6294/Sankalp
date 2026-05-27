@@ -18,10 +18,14 @@ function parseCorrect(correctAns) {
 function scoreSubject(studentAns, key, subject) {
   let marks = 0;
   let correct = 0;
+  let partial = 0;
   let wrong = 0;
   let skipped = 0;
+  let effectiveCorrect = 0;
+  const entries = Object.entries(key || {});
+  const totalQuestions = entries.length;
 
-  for (const [qNoStr, correctAns] of Object.entries(key)) {
+  for (const [qNoStr, correctAns] of entries) {
     const qNo = Number(qNoStr);
     const cat = categoryFor(subject, qNo);
     const ans = normalizeStudentAnswer(studentAns ? studentAns[qNoStr] : null);
@@ -35,6 +39,7 @@ function scoreSubject(studentAns, key, subject) {
       if (ans === String(correctAns).trim().toUpperCase()) {
         marks += 1;
         correct++;
+        effectiveCorrect += 1;
       } else {
         marks -= 0.25;
         wrong++;
@@ -43,6 +48,7 @@ function scoreSubject(studentAns, key, subject) {
       if (ans === String(correctAns).trim().toUpperCase()) {
         marks += 2;
         correct++;
+        effectiveCorrect += 1;
       } else {
         marks -= 0.5;
         wrong++;
@@ -57,12 +63,27 @@ function scoreSubject(studentAns, key, subject) {
       } else {
         const hit = studentOpts.filter((x) => correctSet.has(x)).length;
         marks += (hit / correctSet.size) * 2;
-        if (hit === correctSet.size) correct++;
+        effectiveCorrect += hit / correctSet.size;
+        if (hit === correctSet.size) {
+          correct++;
+        } else {
+          partial++;
+        }
       }
     }
   }
 
-  return { marks: round2(marks), correct, wrong, skipped };
+  const answered = totalQuestions - skipped;
+  return {
+    marks: round2(marks),
+    correct,
+    partial,
+    wrong,
+    skipped,
+    answered,
+    totalQuestions,
+    accuracy: answered ? round2((effectiveCorrect / answered) * 100) : 0,
+  };
 }
 
 function scoreSubmission(answers, keys) {
@@ -78,11 +99,19 @@ function scoreSubmission(answers, keys) {
   };
   const analytics = {
     correct: math.correct + physics.correct + chemistry.correct,
+    partial: math.partial + physics.partial + chemistry.partial,
     wrong: math.wrong + physics.wrong + chemistry.wrong,
     skipped: math.skipped + physics.skipped + chemistry.skipped,
   };
-  const attempted = analytics.correct + analytics.wrong;
-  analytics.accuracy = attempted ? round2((analytics.correct / attempted) * 100) : 0;
+  const answered = math.answered + physics.answered + chemistry.answered;
+  const effectiveCorrect = (
+    (math.accuracy * math.answered) +
+    (physics.accuracy * physics.answered) +
+    (chemistry.accuracy * chemistry.answered)
+  ) / 100;
+  analytics.answered = answered;
+  analytics.totalQuestions = math.totalQuestions + physics.totalQuestions + chemistry.totalQuestions;
+  analytics.accuracy = answered ? round2((effectiveCorrect / answered) * 100) : 0;
 
   return { scores, analytics, perSubject: { math, physics, chemistry } };
 }

@@ -56,7 +56,9 @@ test('Cat 3 edge: correct=ABC student=AB -> 1.33', () => {
   const ans = { 66: ['A', 'B'] };
   const r = scoreSubject(ans, key, 'math');
   assert.equal(r.marks, 1.33);
+  assert.equal(r.partial, 1);
   assert.equal(r.wrong, 0);
+  assert.equal(r.accuracy, 66.67);
 });
 
 test('Cat 3 edge: correct=ABC student=A -> 0.67', () => {
@@ -64,6 +66,8 @@ test('Cat 3 edge: correct=ABC student=A -> 0.67', () => {
   const ans = { 66: ['A'] };
   const r = scoreSubject(ans, key, 'math');
   assert.equal(r.marks, 0.67);
+  assert.equal(r.partial, 1);
+  assert.equal(r.accuracy, 33.33);
 });
 
 test('Cat 3 edge: correct=ABC student=ABD -> 0 (any wrong)', () => {
@@ -80,6 +84,7 @@ test('Cat 3: full match gives 2 and counts as correct', () => {
   const r = scoreSubject(ans, key, 'math');
   assert.equal(r.marks, 2);
   assert.equal(r.correct, 1);
+  assert.equal(r.partial, 0);
 });
 
 test('Skipped: null and undefined both count as skipped, not wrong', () => {
@@ -122,8 +127,27 @@ test('scoreSubmission: aggregates math + physics + chemistry', () => {
   assert.equal(r.scores.chemistry, 1);
   assert.equal(r.scores.total, 4);
   assert.equal(r.analytics.correct, 4);
+  assert.equal(r.analytics.partial, 0);
   assert.equal(r.analytics.wrong, 0);
   assert.equal(r.analytics.accuracy, 100);
+});
+
+test('scoreSubmission: partial answers are counted in analytics', () => {
+  const answers = {
+    math: { 66: ['A', 'B'] },
+    physics: {},
+    chemistry: {},
+  };
+  const keys = {
+    math: { 66: 'A,B,C' },
+    physics: {},
+    chemistry: {},
+  };
+  const r = scoreSubmission(answers, keys);
+  assert.equal(r.scores.math, 1.33);
+  assert.equal(r.analytics.correct, 0);
+  assert.equal(r.analytics.partial, 1);
+  assert.equal(r.analytics.wrong, 0);
 });
 
 test('predictRank: finds the right band', () => {

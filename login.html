@@ -83,7 +83,7 @@
 
     <!-- Admin link -->
     <div style="text-align:center; margin-top:18px;">
-      <a href="admin/index.html" style="color:var(--ink-mute); font-size:12px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
+      <a href="#" onclick="goToAdmin(event)" style="color:var(--ink-mute); font-size:12px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
         <i class="fas fa-shield-alt"></i> Admin Login
       </a>
     </div>
@@ -139,15 +139,70 @@
       try {
         const result = await auth.signInWithPopup(provider);
         const user = result.user;
-        const userRef = db.collection('users').doc(user.uid);
-        const doc = await userRef.get();
-        if (!doc.exists) {
-          await userRef.set({ name: user.displayName, email: user.email, role: 'student', createdAt: firebase.firestore.FieldValue.serverTimestamp(), xp: 0, streak: 0 });
+        
+        const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
+        const isAdmin = adminEmails.includes(user.email.toLowerCase());
+        
+        // 1. Check if there is an existing account with this email in Firestore (under any UID)
+        const emailQuery = await db.collection('users').where('email', '==', user.email).get();
+        let existingData = {};
+        let oldUid = null;
+        
+        if (!emailQuery.empty) {
+          existingData = emailQuery.docs[0].data();
+          oldUid = emailQuery.docs[0].id;
         }
-        const role = doc.exists ? doc.data().role : 'student';
+        
+        let role = existingData.role || (isAdmin ? 'admin' : 'student');
+        if (isAdmin) {
+          role = 'admin'; // Always ensure admin emails have admin role
+        }
+        
+        // 2. If UID mismatch (e.g. account was created on old UID by script or other login), migrate it
+        if (oldUid && oldUid !== user.uid) {
+          // Delete old pre-created UID document to avoid duplicates
+          await db.collection('users').doc(oldUid).delete();
+        }
+        
+        // 3. Save/Merge data to the new Google user UID
+        const userRef = db.collection('users').doc(user.uid);
+        await userRef.set({
+          name: user.displayName || existingData.name || user.email.split('@')[0],
+          email: user.email,
+          role: role,
+          createdAt: existingData.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+          xp: existingData.xp || 0,
+          streak: existingData.streak || 0,
+          wbjeeYear: existingData.wbjeeYear || '',
+          phone: existingData.phone || '',
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
         window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
       } catch (err) {
+        console.error(err);
         showError('Google login failed. Please try again.');
+      }
+    }
+
+    async function goToAdmin(e) {
+      e.preventDefault();
+      document.getElementById('errorMsg').style.display = 'none';
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          const role = doc.exists ? doc.data().role : 'student';
+          if (role === 'admin') {
+            window.location.href = 'admin/index.html';
+          } else {
+            showError('Access denied. Your account is registered as a student.');
+          }
+        } catch (err) {
+          showError('Error checking role. Please log in again using the form above.');
+        }
+      } else {
+        showError('Please enter your admin credentials in the form above and click "Login to Account". The system will direct you to the Admin Panel automatically.');
       }
     }
 

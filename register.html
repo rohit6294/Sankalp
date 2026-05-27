@@ -212,27 +212,62 @@
       try {
         const result = await auth.signInWithPopup(provider);
         const user = result.user;
-        const userRef = db.collection('users').doc(user.uid);
-        const doc = await userRef.get();
-        if (!doc.exists) {
-          await userRef.set({
-            name: user.displayName,
-            email: user.email,
-            role: 'student',
-            xp: 0, streak: 0,
-            badges: [], enrolledCourses: [], completedModules: [],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-          });
+        
+        const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
+        const isAdmin = adminEmails.includes(user.email.toLowerCase());
+        
+        // 1. Check if there is an existing account with this email in Firestore (under any UID)
+        const emailQuery = await db.collection('users').where('email', '==', user.email).get();
+        let existingData = {};
+        let oldUid = null;
+        
+        if (!emailQuery.empty) {
+          existingData = emailQuery.docs[0].data();
+          oldUid = emailQuery.docs[0].id;
         }
-        window.location.href = 'student/dashboard.html';
+        
+        let role = existingData.role || (isAdmin ? 'admin' : 'student');
+        if (isAdmin) {
+          role = 'admin'; // Always ensure admin emails have admin role
+        }
+        
+        // 2. If UID mismatch (e.g. account was created on old UID by script or other login), migrate it
+        if (oldUid && oldUid !== user.uid) {
+          // Delete old pre-created UID document to avoid duplicates
+          await db.collection('users').doc(oldUid).delete();
+        }
+        
+        // 3. Save/Merge data to the new Google user UID
+        const userRef = db.collection('users').doc(user.uid);
+        await userRef.set({
+          name: user.displayName || existingData.name || user.email.split('@')[0],
+          email: user.email,
+          role: role,
+          createdAt: existingData.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+          xp: existingData.xp || 0,
+          streak: existingData.streak || 0,
+          wbjeeYear: existingData.wbjeeYear || '',
+          phone: existingData.phone || '',
+          badges: existingData.badges || [],
+          enrolledCourses: existingData.enrolledCourses || [],
+          completedModules: existingData.completedModules || [],
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
       } catch (err) {
+        console.error(err);
         showError('Google signup failed. Please try again.');
       }
     }
 
-    auth.onAuthStateChanged(user => {
-      if (user) window.location.href = 'student/dashboard.html';
+    // Auto redirect based on role if already logged in
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const doc = await db.collection('users').doc(user.uid).get();
+        const role = doc.exists ? doc.data().role : 'student';
+        window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+      }
     });
   </script>
 </body>

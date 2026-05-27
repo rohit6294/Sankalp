@@ -230,7 +230,7 @@
           // If read fails (e.g. permissions), skip block and assume student since email didn't match admin list
         }
         
-        window.location.href = 'student/dashboard.html';
+        window.location.href = 'student/evaluate.html';
       } catch (err) {
         setLoading(btn, false);
         const msgs = {
@@ -268,7 +268,7 @@
             xp: 0, streak: 0
           });
         }
-        window.location.href = 'student/dashboard.html';
+        window.location.href = 'student/evaluate.html';
       } catch (err) {
         showError('Google login failed. Please try again.');
       }
@@ -325,7 +325,7 @@
           }
         }
         
-        window.location.href = 'admin/index.html';
+        window.location.href = 'admin/evaluators.html';
       } catch (err) {
         setAdminLoading(btn, false);
         const msgs = {
@@ -372,7 +372,7 @@
           lastLogin: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
-        window.location.href = 'admin/index.html';
+        window.location.href = 'admin/evaluators.html';
       } catch (err) {
         console.error(err);
         showAdminError('Google login failed. Please try again.');
@@ -400,13 +400,13 @@
         try {
           const doc = await db.collection('users').doc(user.uid).get();
           const role = doc.exists ? doc.data().role : 'student';
-          window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+          window.location.href = role === 'admin' ? 'admin/evaluators.html' : 'student/evaluate.html';
         } catch(e) {
           // Robust fallback routing using email checks if Firestore read throws permission error
           if (adminEmails.includes(user.email.toLowerCase())) {
-            window.location.href = 'admin/index.html';
+            window.location.href = 'admin/evaluators.html';
           } else {
-            window.location.href = 'student/dashboard.html';
+            window.location.href = 'student/evaluate.html';
           }
         }
       }

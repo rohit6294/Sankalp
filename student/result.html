@@ -51,15 +51,8 @@
   </div>
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
-    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home" style="width:18px"></i> Dashboard</a>
-    <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> My Courses</a>
-    <a href="mock-test.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Mock Tests</a>
-    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
-    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
-    <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Counseling</a>
-    <a href="leaderboard.html" class="sidebar-link"><i class="fas fa-trophy" style="width:18px"></i> Leaderboard</a>
+    <a href="evaluate.html" class="sidebar-link active"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
-    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
 </aside>
@@ -167,7 +160,7 @@
     <!-- Actions -->
     <div style="display:flex; gap:12px; flex-wrap:wrap;">
       <a href="evaluate.html" class="btn-ghost btn-sm"><i class="fas fa-redo"></i> Evaluate Another Exam</a>
-      <a href="dashboard.html" class="btn-rust btn-sm"><i class="fas fa-home"></i> Back to Dashboard</a>
+      <a href="evaluate.html" class="btn-rust btn-sm"><i class="fas fa-home"></i> Back to Evaluator</a>
       <button class="btn-ink btn-sm" onclick="shareResult()"><i class="fas fa-share-alt"></i> Share Result</button>
     </div>
   </div>
@@ -264,6 +257,18 @@ function setAccuracyRing(accuracy) {
   ring.style.border = `4px solid var(--rule)`;
   ring.style.background = `conic-gradient(${color} ${deg}deg, var(--paper-soft) ${deg}deg)`;
   document.getElementById('accuracyPct').textContent = accuracy + '%';
+}
+
+async function isAdminUser(user) {
+  const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
+  const email = (user.email || '').toLowerCase();
+  if (adminEmails.includes(email)) return true;
+  try {
+    const doc = await db.collection('users').doc(user.uid).get();
+    return doc.exists && doc.data().role === 'admin';
+  } catch {
+    return adminEmails.includes(email);
+  }
 }
 
 async function loadResult(user) {
@@ -380,6 +385,7 @@ function shareResult() {
 // ===== Auth gate =====
 auth.onAuthStateChanged(async (user) => {
   if (!user) { window.location.href = '../login.html'; return; }
+  if (await isAdminUser(user)) { window.location.href = '../admin/evaluators.html'; return; }
   await loadResult(user);
 });
 </script>

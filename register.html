@@ -194,7 +194,7 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
         });
-        window.location.href = 'student/dashboard.html';
+        window.location.href = 'student/evaluate.html';
       } catch (err) {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Free Account';
@@ -225,7 +225,7 @@
             role: 'admin',
             lastLogin: firebase.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
-          window.location.href = 'admin/index.html';
+          window.location.href = 'admin/evaluators.html';
           return;
         }
         
@@ -244,7 +244,7 @@
           });
         }
         
-        window.location.href = 'student/dashboard.html';
+        window.location.href = 'student/evaluate.html';
       } catch (err) {
         console.error(err);
         showError('Google signup failed. Please try again.');
@@ -258,13 +258,13 @@
         try {
           const doc = await db.collection('users').doc(user.uid).get();
           const role = doc.exists ? doc.data().role : 'student';
-          window.location.href = role === 'admin' ? 'admin/index.html' : 'student/dashboard.html';
+          window.location.href = role === 'admin' ? 'admin/evaluators.html' : 'student/evaluate.html';
         } catch(e) {
           // Robust fallback routing using email checks if Firestore read throws permission error
           if (adminEmails.includes(user.email.toLowerCase())) {
-            window.location.href = 'admin/index.html';
+            window.location.href = 'admin/evaluators.html';
           } else {
-            window.location.href = 'student/dashboard.html';
+            window.location.href = 'student/evaluate.html';
           }
         }
       }

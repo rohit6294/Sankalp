@@ -309,13 +309,11 @@
     try {
       const doc = await db.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data().role !== 'admin') {
-        window.location.href = '../student/dashboard.html';
+        window.location.href = '../student/evaluate.html';
         return;
       }
     } catch(e) {}
-    const name = user.displayName || 'Admin';
-    document.getElementById('adminAvatar').textContent = name[0].toUpperCase();
-    loadStudents();
+    window.location.replace('evaluators.html');
   });
 </script>
 </body>

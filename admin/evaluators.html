@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exam Evaluators — Admin · Sankalp WBJEE</title>
+  <title>Exam Evaluators - Admin - Sankalp WBJEE</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
@@ -38,7 +38,6 @@
 <button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
 <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<!-- Admin Sidebar -->
 <aside class="sidebar sidebar-ink" id="adminSidebar">
   <div class="sidebar-head">
     <a href="../index.html" class="brand">
@@ -50,88 +49,66 @@
     </a>
   </div>
   <nav style="padding:8px 0;">
-    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Overview</div>
-    <a href="index.html" class="sidebar-link"><i class="fas fa-chart-pie" style="width:18px"></i> Dashboard</a>
-    <a href="students.html" class="sidebar-link"><i class="fas fa-users" style="width:18px"></i> Students</a>
-    <a href="content.html" class="sidebar-link"><i class="fas fa-book" style="width:18px"></i> Content</a>
-    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Tests</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
     <a href="evaluators.html" class="sidebar-link active"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
-    <a href="bookings.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Bookings</a>
-    <a href="announcements.html" class="sidebar-link"><i class="fas fa-bullhorn" style="width:18px"></i> Announcements</a>
-    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Revenue</div>
-    <a href="payments.html" class="sidebar-link"><i class="fas fa-rupee-sign" style="width:18px"></i> Payments</a>
-    <a href="analytics.html" class="sidebar-link"><i class="fas fa-chart-line" style="width:18px"></i> Analytics</a>
-    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">System</div>
-    <a href="settings.html" class="sidebar-link"><i class="fas fa-cog" style="width:18px"></i> Settings</a>
     <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
 </aside>
 
-<!-- Main Content -->
 <main class="main-content" style="padding:28px 32px;">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px;">
     <div>
       <h1 class="display-lg">Exam Evaluators</h1>
-      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage WBJEE exams, answer keys, and rank prediction tables</p>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage set-wise answer keys and rank bands for the marks calculator launch.</p>
     </div>
     <button class="btn-rust btn-sm" onclick="showCreateExam()"><i class="fas fa-plus"></i> Create Exam</button>
   </div>
 
-  <!-- Tabs -->
   <div style="display:flex; gap:0;">
     <button class="tab-btn active" data-tab="exams" onclick="switchMainTab('exams', this)">Exams & Answer Keys</button>
     <button class="tab-btn" data-tab="rank" onclick="switchMainTab('rank', this)">Rank Prediction</button>
   </div>
 
-  <!-- TAB 1: Exams & Answer Keys -->
   <div id="tabExams" style="border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
-
-    <!-- Exam List -->
     <div id="examList" style="border:1px solid var(--ink); background:var(--paper);">
       <div style="padding:16px; border-bottom:1px solid var(--ink); display:flex; align-items:center; justify-content:space-between;">
-        <span class="eyebrow">Active Exams</span>
+        <span class="eyebrow">Exams</span>
         <span style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono);" id="examCount">0 exams</span>
       </div>
       <div id="examRows">
-        <div style="padding:32px; text-align:center; color:var(--ink-mute); font-size:13px;">Loading exams...</div>
+        <div style="padding:32px; text-align:center; color:var(--ink-mute); font-size:13px;">Loading exams. First load can take up to 60 seconds if the evaluator service is waking up.</div>
       </div>
     </div>
 
-    <!-- Answer Key Editor (shown when exam selected) -->
     <div id="keyEditor" style="display:none; margin-top:24px;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <div>
-          <div class="eyebrow">Answer Key Editor</div>
-          <h2 style="font-family:var(--font-display); font-weight:700; font-size:1.2rem; margin-top:4px;" id="keyExamName">—</h2>
+          <div class="eyebrow">Set-wise Answer Key Editor</div>
+          <h2 style="font-family:var(--font-display); font-weight:700; font-size:1.2rem; margin-top:4px;" id="keyExamName">-</h2>
         </div>
         <button class="btn-ghost btn-sm" onclick="hideKeyEditor()"><i class="fas fa-times"></i> Close</button>
       </div>
 
-      <!-- Set tabs -->
       <div style="display:flex; gap:0; margin-bottom:0;">
-        <div class="set-tab active" id="setTabA" onclick="switchSet('A', this)"><i class="fa-solid fa-diamond" style="margin-right: 6px;"></i>Set A</div>
-        <div class="set-tab" id="setTabB" onclick="switchSet('B', this)"><i class="fa-regular fa-square" style="margin-right: 6px;"></i>Set B</div>
-        <div class="set-tab" id="setTabC" onclick="switchSet('C', this)"><i class="fa-solid fa-droplet" style="margin-right: 6px;"></i>Set C</div>
-        <div class="set-tab" id="setTabD" onclick="switchSet('D', this)"><i class="fa-solid fa-circle" style="margin-right: 6px;"></i>Set D</div>
+        <div class="set-tab active" data-exam-set="A" onclick="switchSet('A', this)"><i class="fa-solid fa-diamond" style="margin-right:6px;"></i>Set A</div>
+        <div class="set-tab" data-exam-set="B" onclick="switchSet('B', this)"><i class="fa-regular fa-square" style="margin-right:6px;"></i>Set B</div>
+        <div class="set-tab" data-exam-set="C" onclick="switchSet('C', this)"><i class="fa-solid fa-droplet" style="margin-right:6px;"></i>Set C</div>
+        <div class="set-tab" data-exam-set="D" onclick="switchSet('D', this)"><i class="fa-solid fa-circle" style="margin-right:6px;"></i>Set D</div>
         <div style="flex:1;"></div>
         <button class="btn-ghost btn-sm" onclick="importJson()" style="margin-left:8px;"><i class="fas fa-file-import"></i> Import JSON</button>
       </div>
 
-      <!-- Paper selectors (Paper 1 vs Paper 2) -->
       <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none; margin-top:16px;">
         <button class="tab-btn active" id="paperMathBtn" onclick="switchPaper('math')" style="font-size:11px; padding:10px 16px;">Paper 1: Mathematics <span style="font-family:var(--font-mono); opacity:0.6;">(Set A/B/C/D)</span></button>
         <button class="tab-btn" id="paperPhysChemBtn" onclick="switchPaper('physChem')" style="font-size:11px; padding:10px 16px;">Paper 2: Physics & Chemistry <span style="font-family:var(--font-mono); opacity:0.6;">(Set A/B/C/D)</span></button>
       </div>
 
-      <!-- Subject tabs inside key editor (only shown for Phys-Chem) -->
       <div id="physChemSubjectTabs" style="display:none; gap:0; border:1px solid var(--ink); border-bottom:none; background:var(--paper-soft);">
         <button class="tab-btn active" data-keytab="physics" onclick="switchKeySubject('physics', this)" style="font-size:11px; padding:10px 16px; border-top:none;">Physics <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></button>
         <button class="tab-btn" data-keytab="chemistry" onclick="switchKeySubject('chemistry', this)" style="font-size:11px; padding:10px 16px; border-top:none;">Chemistry <span style="font-family:var(--font-mono); opacity:0.6;">(40)</span></button>
       </div>
 
-      <div style="border:1px solid var(--ink); background:var(--paper); max-height:500px; overflow-y:auto;" id="keyGrid">
-        <!-- Filled by JS -->
-      </div>
+      <div style="border:1px solid var(--ink); background:var(--paper); max-height:500px; overflow-y:auto;" id="keyGrid"></div>
 
       <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end;">
         <button class="btn-rust" onclick="saveAnswerKey()" id="saveKeyBtn"><i class="fas fa-save"></i> Save Answer Key</button>
@@ -139,23 +116,21 @@
     </div>
   </div>
 
-  <!-- TAB 2: Rank Prediction -->
   <div id="tabRank" style="display:none; border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
     <div style="margin-bottom:16px;">
       <label class="input-label">Select Exam</label>
       <select id="rankExamSelect" class="input-field" onchange="loadRankTable()">
-        <option value="">— Choose exam —</option>
+        <option value="">- Choose exam -</option>
       </select>
     </div>
 
-    <!-- Rank subtabs (Engineering vs B-Pharma) -->
     <div id="rankTableSubTabs" style="display:none; gap:0; margin-bottom:16px;">
-      <button class="set-tab active" id="rankEngTab" onclick="switchRankType('engineering')" style="font-size:11px; font-weight:700;">Engineering Rank (PMY/GMR)</button>
-      <button class="set-tab" id="rankBphTab" onclick="switchRankType('bpharma')" style="font-size:11px; font-weight:700;">B-Pharma Rank (PMR)</button>
+      <button class="set-tab active" id="rankEngTab" onclick="switchRankType('engineering')" style="font-size:11px; font-weight:700;">Engineering Rank</button>
+      <button class="set-tab" id="rankBphTab" onclick="switchRankType('bpharma')" style="font-size:11px; font-weight:700;">B-Pharma Rank</button>
     </div>
 
     <div id="rankTableEditor" style="display:none;">
-      <div class="eyebrow" style="margin-bottom:12px;" id="rankTableHeading">Engineering Marks → Rank Mapping</div>
+      <div class="eyebrow" style="margin-bottom:12px;" id="rankTableHeading">Engineering Marks to Rank Mapping</div>
       <div style="border:1px solid var(--ink); background:var(--paper); padding:16px;">
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 48px; gap:8px; padding:0 0 8px; border-bottom:1px solid var(--ink); margin-bottom:8px;">
           <span class="eyebrow" style="font-size:10px;">Marks Min</span>
@@ -164,9 +139,7 @@
           <span class="eyebrow" style="font-size:10px;">Rank Max</span>
           <span></span>
         </div>
-        <div id="rankRows">
-          <!-- Filled by JS -->
-        </div>
+        <div id="rankRows"></div>
         <button class="btn-ghost btn-sm" onclick="addRankRow()" style="margin-top:10px;"><i class="fas fa-plus"></i> Add Row</button>
       </div>
       <div style="margin-top:16px; display:flex; justify-content:flex-end;">
@@ -176,7 +149,6 @@
   </div>
 </main>
 
-<!-- Create Exam Modal -->
 <div id="createExamModal" class="modal-overlay">
   <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:480px; width:100%;">
     <div class="eyebrow" style="margin-bottom:4px;">New Exam</div>
@@ -184,7 +156,7 @@
     <div style="margin-bottom:16px;">
       <label class="input-label">Exam ID (slug)</label>
       <input type="text" id="newExamId" class="input-field" placeholder="wbjee-2026" pattern="[a-z0-9-]+" required>
-      <div style="font-size:11px; color:var(--ink-mute); margin-top:4px;">Lowercase, hyphens only. e.g. wbjee-2026</div>
+      <div style="font-size:11px; color:var(--ink-mute); margin-top:4px;">Lowercase, hyphens only. Example: wbjee-2026</div>
     </div>
     <div style="margin-bottom:20px;">
       <label class="input-label">Display Name</label>
@@ -197,12 +169,11 @@
   </div>
 </div>
 
-<!-- JSON Import Modal -->
 <div id="importModal" class="modal-overlay">
   <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:560px; width:100%;">
     <div class="eyebrow" style="margin-bottom:4px;">Import Answer Key</div>
-    <h2 class="display-md" style="margin-bottom:8px;">Paste JSON for <span id="importSetLabel">—</span></h2>
-    <p style="font-size:12px; color:var(--ink-mute); margin-bottom:16px;">Format: <code>{"math":{"1":"A","2":"B",...,"66":"A,B,C"},"physics":{...},"chemistry":{...}}</code></p>
+    <h2 class="display-md" style="margin-bottom:8px;">Paste JSON for <span id="importSetLabel">-</span></h2>
+    <p style="font-size:12px; color:var(--ink-mute); margin-bottom:16px;">Format: <code>{"math":{"1":"A","2":"B"},"physics":{"1":"C"},"chemistry":{"1":"A"}}</code></p>
     <textarea id="importJsonText" class="input-field" rows="8" style="font-family:var(--font-mono); font-size:12px;" placeholder='{"math":{"1":"A","2":"B"},"physics":{"1":"C"},"chemistry":{"1":"A"}}'></textarea>
     <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
       <button class="btn-ghost btn-sm" onclick="hideImportModal()">Cancel</button>
@@ -214,143 +185,259 @@
 <div id="toast" class="toast"></div>
 
 <script>
-// ===== Config =====
 const COUNTS = { math: 75, physics: 40, chemistry: 40 };
 const CAT_RANGES = {
-  math:      { 1:[1,50], 2:[51,65], 3:[66,75] },
-  physics:   { 1:[1,30], 2:[31,35], 3:[36,40] },
-  chemistry: { 1:[1,30], 2:[31,35], 3:[36,40] },
+  math: { 1: [1, 50], 2: [51, 65], 3: [66, 75] },
+  physics: { 1: [1, 30], 2: [31, 35], 3: [36, 40] },
+  chemistry: { 1: [1, 30], 2: [31, 35], 3: [36, 40] },
 };
+const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
 
-// ===== State =====
 let selectedExamId = null;
+let selectedExamName = '';
 let currentSet = 'A';
-let currentPaper = 'math'; // 'math' or 'physChem'
-let currentKeySubject = 'math'; // 'math', 'physics', or 'chemistry'
-let currentRankType = 'engineering'; // 'engineering' or 'bpharma'
-let keyData = {}; // keyed by `docId` (e.g. `math_A`, `physChem_B`)
+let currentPaper = 'math';
+let currentKeySubject = 'math';
+let currentRankType = 'engineering';
+let keyData = {};
 let rankRows = [];
+let currentUser = null;
+let currentToken = null;
 
 function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');
   document.getElementById('overlay').classList.toggle('open');
 }
-function logout() { auth.signOut(); }
 
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
+function logout() {
+  auth.signOut().then(() => {
+    window.location.href = '../login.html';
+  });
+}
+
+function toast(message) {
+  const node = document.getElementById('toast');
+  node.textContent = message;
+  node.classList.add('show');
+  setTimeout(() => node.classList.remove('show'), 2400);
 }
 
 function categoryFor(subject, qNo) {
-  const r = CAT_RANGES[subject];
-  if (qNo >= r[1][0] && qNo <= r[1][1]) return 1;
-  if (qNo >= r[2][0] && qNo <= r[2][1]) return 2;
+  const range = CAT_RANGES[subject];
+  if (qNo >= range[1][0] && qNo <= range[1][1]) return 1;
+  if (qNo >= range[2][0] && qNo <= range[2][1]) return 2;
   return 3;
 }
 
-// ===== Tab switching =====
+async function apiFetch(path, options = {}) {
+  if (!currentUser) throw new Error('Not authenticated');
+  const token = currentToken || await currentUser.getIdToken();
+  currentToken = token;
+  const headers = { Authorization: `Bearer ${token}`, ...options.headers };
+  if (options.body !== undefined && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  let response = await fetch(`${EVALUATOR_API}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    currentToken = await currentUser.getIdToken(true);
+    response = await fetch(`${EVALUATOR_API}${path}`, {
+      ...options,
+      headers: { ...headers, Authorization: `Bearer ${currentToken}` },
+    });
+  }
+  return response;
+}
+
+async function apiJson(path, options = {}) {
+  const response = await apiFetch(path, options);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload.message || payload.error || `HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+}
+
+function handleAccessError(error) {
+  if (!error || typeof error.status !== 'number') return false;
+  if (error.status === 401) {
+    window.location.href = '../login.html';
+    return true;
+  }
+  if (error.status === 403) {
+    window.location.href = '../student/evaluate.html';
+    return true;
+  }
+  return false;
+}
+
+function setExamRowsMessage(message) {
+  const rows = document.getElementById('examRows');
+  rows.innerHTML = '';
+  const block = document.createElement('div');
+  block.style.padding = '32px';
+  block.style.textAlign = 'center';
+  block.style.color = 'var(--ink-mute)';
+  block.style.fontSize = '13px';
+  block.textContent = message;
+  rows.appendChild(block);
+}
+
+function updateKeyEditorTitle() {
+  document.getElementById('keyExamName').textContent = `${selectedExamName || selectedExamId || 'Exam'} - Set ${currentSet}`;
+}
+
+function resetKeyEditorState() {
+  currentSet = 'A';
+  currentPaper = 'math';
+  currentKeySubject = 'math';
+  keyData = {};
+  document.querySelectorAll('[data-exam-set]').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.examSet === 'A');
+  });
+  document.getElementById('paperMathBtn').classList.add('active');
+  document.getElementById('paperPhysChemBtn').classList.remove('active');
+  document.getElementById('physChemSubjectTabs').style.display = 'none';
+  document.querySelectorAll('[data-keytab]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.keytab === 'physics');
+  });
+}
+
 function switchMainTab(tab, btn) {
-  document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[data-tab]').forEach((node) => node.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tabExams').style.display = tab === 'exams' ? 'block' : 'none';
   document.getElementById('tabRank').style.display = tab === 'rank' ? 'block' : 'none';
 }
 
-// ===== Exam CRUD =====
-function showCreateExam() { document.getElementById('createExamModal').style.display = 'flex'; }
-function hideCreateExam() { document.getElementById('createExamModal').style.display = 'none'; }
+function showCreateExam() {
+  document.getElementById('createExamModal').style.display = 'flex';
+}
+
+function hideCreateExam() {
+  document.getElementById('createExamModal').style.display = 'none';
+}
 
 async function createExam() {
   const id = document.getElementById('newExamId').value.trim();
   const name = document.getElementById('newExamName').value.trim();
-  if (!id || !name) { toast('Please fill all fields'); return; }
-  if (!/^[a-z0-9-]+$/.test(id)) { toast('ID must be lowercase with hyphens only'); return; }
+  if (!id || !name) {
+    toast('Please fill all fields');
+    return;
+  }
+  if (!/^[a-z0-9-]+$/.test(id)) {
+    toast('ID must be lowercase with hyphens only');
+    return;
+  }
 
   try {
-    await db.collection('exams').doc(id).set({
-      name: name,
-      active: true,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    await apiJson('/api/admin/exams', {
+      method: 'POST',
+      body: JSON.stringify({ id, name, active: true }),
     });
-    toast(`Exam "${name}" created!`);
     hideCreateExam();
     document.getElementById('newExamId').value = '';
     document.getElementById('newExamName').value = '';
-    loadExams();
-  } catch (e) {
-    toast('Error: ' + e.message);
+    toast(`Exam "${name}" created`);
+    await loadExams();
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error: ${error.message}`);
+  }
+}
+
+function renderExamRows(exams) {
+  const rows = document.getElementById('examRows');
+  const rankSelect = document.getElementById('rankExamSelect');
+  const previousRankExam = rankSelect.value;
+
+  rows.innerHTML = '';
+  document.getElementById('examCount').textContent = `${exams.length} exam${exams.length > 1 ? 's' : ''}`;
+
+  for (const exam of exams) {
+    const row = document.createElement('div');
+    row.className = 'exam-row';
+    row.innerHTML = `
+      <div>
+        <div style="font-weight:700; font-size:14px;"></div>
+        <div style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono); margin-top:2px;"></div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span class="badge ${exam.active ? 'badge-success' : 'badge-warning'}">${exam.active ? 'Active' : 'Inactive'}</span>
+        <button class="btn-ghost btn-sm" data-action="keys"><i class="fas fa-key"></i> Keys</button>
+        <button class="btn-ghost btn-sm" data-action="toggle"><i class="fas fa-${exam.active ? 'eye-slash' : 'eye'}"></i></button>
+      </div>
+    `;
+    row.children[0].children[0].textContent = exam.name;
+    row.children[0].children[1].textContent = exam.id;
+    row.querySelector('[data-action="keys"]').addEventListener('click', () => openKeyEditor(exam.id, exam.name));
+    row.querySelector('[data-action="toggle"]').addEventListener('click', () => toggleExamActive(exam.id, !exam.active));
+    rows.appendChild(row);
+  }
+
+  rankSelect.innerHTML = '';
+  rankSelect.appendChild(new Option('- Choose exam -', ''));
+  exams.forEach((exam) => rankSelect.appendChild(new Option(exam.name, exam.id)));
+  if (exams.some((exam) => exam.id === previousRankExam)) {
+    rankSelect.value = previousRankExam;
   }
 }
 
 async function loadExams() {
   try {
-    const snap = await db.collection('exams').orderBy('createdAt', 'desc').get();
-    const rows = document.getElementById('examRows');
-    const rankSelect = document.getElementById('rankExamSelect');
-
-    if (snap.empty) {
-      rows.innerHTML = '<div style="padding:32px; text-align:center; color:var(--ink-mute); font-size:13px;">No exams yet. Create one above.</div>';
+    const { exams } = await apiJson('/api/admin/exams');
+    if (!exams.length) {
       document.getElementById('examCount').textContent = '0 exams';
+      document.getElementById('rankExamSelect').innerHTML = '<option value="">- Choose exam -</option>';
+      setExamRowsMessage('No exams yet. Create one above.');
       return;
     }
-
-    document.getElementById('examCount').textContent = `${snap.size} exam${snap.size > 1 ? 's' : ''}`;
-
-    rows.innerHTML = snap.docs.map(d => {
-      const data = d.data();
-      return `
-        <div class="exam-row">
-          <div>
-            <div style="font-weight:700; font-size:14px;">${data.name}</div>
-            <div style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono); margin-top:2px;">${d.id}</div>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <span class="badge ${data.active ? 'badge-success' : 'badge-warning'}">${data.active ? 'Active' : 'Inactive'}</span>
-            <button class="btn-ghost btn-sm" onclick="openKeyEditor('${d.id}', '${data.name.replace(/'/g, "\\'")}')"><i class="fas fa-key"></i> Keys</button>
-            <button class="btn-ghost btn-sm" onclick="toggleExamActive('${d.id}', ${!data.active})"><i class="fas fa-${data.active ? 'eye-slash' : 'eye'}"></i></button>
-          </div>
-        </div>`;
-    }).join('');
-
-    // Populate rank select
-    rankSelect.innerHTML = '<option value="">— Choose exam —</option>' +
-      snap.docs.map(d => `<option value="${d.id}">${d.data().name}</option>`).join('');
-
-  } catch (e) {
-    toast('Error loading exams: ' + e.message);
+    renderExamRows(exams);
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    document.getElementById('examCount').textContent = '0 exams';
+    document.getElementById('rankExamSelect').innerHTML = '<option value="">- Choose exam -</option>';
+    setExamRowsMessage(`Could not load exams: ${error.message}`);
+    toast(`Error loading exams: ${error.message}`);
   }
 }
 
 async function toggleExamActive(examId, active) {
   try {
-    await db.collection('exams').doc(examId).update({ active: active });
+    await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active }),
+    });
     toast(`Exam ${active ? 'activated' : 'deactivated'}`);
-    loadExams();
-  } catch (e) { toast('Error: ' + e.message); }
+    await loadExams();
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error: ${error.message}`);
+  }
 }
 
-// ===== Answer Key Editor =====
 function openKeyEditor(examId, examName) {
   selectedExamId = examId;
-  document.getElementById('keyExamName').textContent = examName + ' — Set ' + currentSet;
+  selectedExamName = examName;
+  resetKeyEditorState();
+  updateKeyEditorTitle();
   document.getElementById('keyEditor').style.display = 'block';
-  keyData = {};
   loadAnswerKey();
 }
 
 function hideKeyEditor() {
   document.getElementById('keyEditor').style.display = 'none';
   selectedExamId = null;
+  selectedExamName = '';
 }
 
 function switchSet(set, btn) {
   currentSet = set;
-  document.querySelectorAll('.set-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[data-exam-set]').forEach((node) => node.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('keyExamName').textContent = document.getElementById('keyExamName').textContent.replace(/Set [A-D]/, 'Set ' + set);
+  updateKeyEditorTitle();
   loadAnswerKey();
 }
 
@@ -358,180 +445,211 @@ function switchPaper(paper) {
   currentPaper = paper;
   document.getElementById('paperMathBtn').classList.toggle('active', paper === 'math');
   document.getElementById('paperPhysChemBtn').classList.toggle('active', paper === 'physChem');
-
   document.getElementById('physChemSubjectTabs').style.display = paper === 'physChem' ? 'flex' : 'none';
-
   if (paper === 'math') {
     currentKeySubject = 'math';
   } else {
     currentKeySubject = 'physics';
-    document.querySelectorAll('[data-keytab]').forEach(btn => {
+    document.querySelectorAll('[data-keytab]').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.keytab === 'physics');
     });
   }
   loadAnswerKey();
 }
 
-function switchKeySubject(sub, btn) {
-  currentKeySubject = sub;
-  document.querySelectorAll('[data-keytab]').forEach(b => b.classList.remove('active'));
+function switchKeySubject(subject, btn) {
+  currentKeySubject = subject;
+  document.querySelectorAll('[data-keytab]').forEach((node) => node.classList.remove('active'));
   btn.classList.add('active');
   renderKeyGrid();
 }
 
 async function loadAnswerKey() {
+  if (!selectedExamId) return;
+  const docId = `${currentPaper}_${currentSet}`;
   try {
-    const docId = `${currentPaper}_${currentSet}`;
-    const doc = await db.collection('exams').doc(selectedExamId)
-      .collection('answerKeys').doc(docId).get();
-
-    if (doc.exists) {
-      keyData[docId] = doc.data();
-    } else {
-      keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
-    }
+    const { data } = await apiJson(`/api/admin/exams/${encodeURIComponent(selectedExamId)}/answer-keys/${encodeURIComponent(currentPaper)}/${encodeURIComponent(currentSet)}`);
+    keyData[docId] = data || (currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} });
     renderKeyGrid();
-  } catch (e) {
-    toast('Error loading key: ' + e.message);
-    const docId = `${currentPaper}_${currentSet}`;
+  } catch (error) {
+    if (handleAccessError(error)) return;
     keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
     renderKeyGrid();
+    toast(`Error loading key: ${error.message}`);
   }
 }
 
 function renderKeyGrid() {
-  const sub = currentKeySubject;
+  const subject = currentKeySubject;
   const grid = document.getElementById('keyGrid');
   const docId = `${currentPaper}_${currentSet}`;
-  const answers = (keyData[docId] && keyData[docId][sub]) || {};
+  const answers = (keyData[docId] && keyData[docId][subject]) || {};
   grid.innerHTML = '';
 
-  let lastCat = 0;
-  for (let q = 1; q <= COUNTS[sub]; q++) {
-    const cat = categoryFor(sub, q);
-    if (cat !== lastCat) {
+  let lastCategory = 0;
+  for (let q = 1; q <= COUNTS[subject]; q += 1) {
+    const category = categoryFor(subject, q);
+    if (category !== lastCategory) {
       const header = document.createElement('div');
       header.className = 'cat-header';
-      const markingText = cat === 1 ? '+1 / -0.25' : cat === 2 ? '+2 / -0.5' : 'Partial / 0 neg';
-      header.innerHTML = `<span>Category ${cat}</span><span style="font-family:var(--font-mono); font-size:10px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-mute);">${markingText}</span>`;
+      const markingText = category === 1 ? '+1 / -0.25' : category === 2 ? '+2 / -0.5' : 'Partial / 0 neg';
+      header.innerHTML = `<span>Category ${category}</span><span style="font-family:var(--font-mono); font-size:10px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-mute);">${markingText}</span>`;
       grid.appendChild(header);
-      lastCat = cat;
+      lastCategory = category;
     }
 
-    const isCat3 = cat === 3;
+    const isCat3 = category === 3;
     const current = answers[String(q)] || '';
-    const currentOpts = isCat3 ? current.split(',').filter(Boolean).map(s => s.trim().toUpperCase()) : [current.trim().toUpperCase()];
+    const currentOpts = isCat3 ? current.split(',').filter(Boolean).map((value) => value.trim().toUpperCase()) : [current.trim().toUpperCase()];
+    const prefix = subject === 'math' ? 'M' : subject === 'physics' ? 'P' : 'C';
 
     const row = document.createElement('div');
     row.className = 'key-grid';
+    row.innerHTML = `<div class="qno">${prefix}${q}</div>`;
 
-    const prefix = sub === 'math' ? 'M' : sub === 'physics' ? 'P' : 'C';
-
-    const optsHtml = ['A','B','C','D'].map(letter => {
-      const selected = currentOpts.includes(letter);
-      return `<div class="key-opt ${isCat3 ? 'multi' : ''} ${selected ? 'selected' : ''}"
-                   onclick="toggleKeyOpt('${sub}', ${q}, '${letter}', ${cat})">${letter}</div>`;
-    }).join('');
-
-    row.innerHTML = `<div class="qno">${prefix}${q}</div>${optsHtml}`;
+    ['A', 'B', 'C', 'D'].forEach((letter) => {
+      const opt = document.createElement('div');
+      opt.className = `key-opt ${isCat3 ? 'multi' : ''} ${currentOpts.includes(letter) ? 'selected' : ''}`;
+      opt.textContent = letter;
+      opt.addEventListener('click', () => toggleKeyOpt(subject, q, letter, category));
+      row.appendChild(opt);
+    });
     grid.appendChild(row);
   }
 }
 
-function toggleKeyOpt(sub, q, letter, cat) {
+function toggleKeyOpt(subject, qNo, letter, category) {
   const docId = `${currentPaper}_${currentSet}`;
-  if (!keyData[docId]) keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
-  if (!keyData[docId][sub]) keyData[docId][sub] = {};
-  const answers = keyData[docId][sub];
+  if (!keyData[docId]) {
+    keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
+  }
+  if (!keyData[docId][subject]) keyData[docId][subject] = {};
+  const answers = keyData[docId][subject];
 
-  if (cat === 3) {
-    const current = (answers[String(q)] || '').split(',').filter(Boolean).map(s => s.trim().toUpperCase());
+  if (category === 3) {
+    const current = (answers[String(qNo)] || '').split(',').filter(Boolean).map((value) => value.trim().toUpperCase());
     const idx = current.indexOf(letter);
     if (idx >= 0) current.splice(idx, 1); else current.push(letter);
-    answers[String(q)] = current.sort().join(',');
-    if (!answers[String(q)]) delete answers[String(q)];
+    answers[String(qNo)] = current.sort().join(',');
+    if (!answers[String(qNo)]) delete answers[String(qNo)];
+  } else if (answers[String(qNo)] === letter) {
+    delete answers[String(qNo)];
   } else {
-    if (answers[String(q)] === letter) {
-      delete answers[String(q)];
-    } else {
-      answers[String(q)] = letter;
-    }
+    answers[String(qNo)] = letter;
   }
+
   renderKeyGrid();
 }
 
 async function saveAnswerKey() {
   const docId = `${currentPaper}_${currentSet}`;
-  if (!selectedExamId || !keyData[docId]) { toast('No data to save'); return; }
+  if (!selectedExamId || !keyData[docId]) {
+    toast('No data to save');
+    return;
+  }
   const btn = document.getElementById('saveKeyBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
   try {
-    await db.collection('exams').doc(selectedExamId)
-      .collection('answerKeys').doc(docId)
-      .set(keyData[docId], { merge: true });
-
+    await apiJson(`/api/admin/exams/${encodeURIComponent(selectedExamId)}/answer-keys/${encodeURIComponent(currentPaper)}/${encodeURIComponent(currentSet)}`, {
+      method: 'PUT',
+      body: JSON.stringify(keyData[docId]),
+    });
     const data = keyData[docId];
-    let filled = 0;
-    if (currentPaper === 'math') {
-      filled = Object.keys(data.math || {}).length;
-    } else {
-      filled = Object.keys(data.physics || {}).length + Object.keys(data.chemistry || {}).length;
-    }
-    const paperLabel = currentPaper === 'math' ? 'Mathematics' : 'Physics & Chemistry';
-    toast(`${paperLabel} Set ${currentSet} saved! (${filled} answers)`);
-  } catch (e) {
-    toast('Error saving: ' + e.message);
+    const filled = currentPaper === 'math'
+      ? Object.keys(data.math || {}).length
+      : Object.keys(data.physics || {}).length + Object.keys(data.chemistry || {}).length;
+    const label = currentPaper === 'math' ? 'Mathematics' : 'Physics & Chemistry';
+    toast(`${label} Set ${currentSet} saved (${filled} answers)`);
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error saving: ${error.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Save Answer Key';
   }
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fas fa-save"></i> Save Answer Key';
 }
 
-// ===== JSON Import =====
 function importJson() {
-  document.getElementById('importSetLabel').textContent = `Set ${currentSet} — ${selectedExamId}`;
+  document.getElementById('importSetLabel').textContent = `Set ${currentSet} - ${selectedExamId}`;
   document.getElementById('importJsonText').value = '';
   document.getElementById('importModal').style.display = 'flex';
 }
-function hideImportModal() { document.getElementById('importModal').style.display = 'none'; }
+
+function hideImportModal() {
+  document.getElementById('importModal').style.display = 'none';
+}
 
 function doImportJson() {
   const raw = document.getElementById('importJsonText').value.trim();
-  if (!raw) { toast('Paste JSON first'); return; }
+  if (!raw) {
+    toast('Paste JSON first');
+    return;
+  }
   try {
     const parsed = JSON.parse(raw);
     const docId = `${currentPaper}_${currentSet}`;
     if (currentPaper === 'math') {
-      if (!parsed.math) { toast('JSON must contain a "math" key'); return; }
-      if (Object.keys(parsed.math).length > 75) { toast('Math has more than 75 entries!'); return; }
+      if (!parsed.math) {
+        toast('JSON must contain a "math" key');
+        return;
+      }
+      if (Object.keys(parsed.math).length > 75) {
+        toast('Math has more than 75 entries');
+        return;
+      }
       keyData[docId] = { math: parsed.math };
       toast(`Imported Mathematics Set ${currentSet} (${Object.keys(parsed.math).length} answers)`);
     } else {
-      if (!parsed.physics && !parsed.chemistry) { toast('JSON must contain "physics" and/or "chemistry" keys'); return; }
-      if (parsed.physics && Object.keys(parsed.physics).length > 40) { toast('Physics has more than 40 entries!'); return; }
-      if (parsed.chemistry && Object.keys(parsed.chemistry).length > 40) { toast('Chemistry has more than 40 entries!'); return; }
+      if (!parsed.physics && !parsed.chemistry) {
+        toast('JSON must contain "physics" and/or "chemistry" keys');
+        return;
+      }
+      if (parsed.physics && Object.keys(parsed.physics).length > 40) {
+        toast('Physics has more than 40 entries');
+        return;
+      }
+      if (parsed.chemistry && Object.keys(parsed.chemistry).length > 40) {
+        toast('Chemistry has more than 40 entries');
+        return;
+      }
       keyData[docId] = {
         physics: parsed.physics || {},
         chemistry: parsed.chemistry || {},
       };
-      const phyLen = Object.keys(parsed.physics || {}).length;
-      const chemLen = Object.keys(parsed.chemistry || {}).length;
-      toast(`Imported Physics & Chemistry Set ${currentSet} (Phy: ${phyLen}, Chem: ${chemLen})`);
+      toast(`Imported Physics & Chemistry Set ${currentSet} (Phy: ${Object.keys(parsed.physics || {}).length}, Chem: ${Object.keys(parsed.chemistry || {}).length})`);
     }
     hideImportModal();
     renderKeyGrid();
-  } catch (e) {
-    toast('Invalid JSON: ' + e.message);
+  } catch (error) {
+    toast(`Invalid JSON: ${error.message}`);
   }
 }
 
-// ===== Rank Prediction Table =====
+function defaultRankRows(type) {
+  if (type === 'engineering') {
+    return [
+      { marksMin: 0, marksMax: 49, rankMin: 15000, rankMax: 50000 },
+      { marksMin: 50, marksMax: 99, rankMin: 5000, rankMax: 14999 },
+      { marksMin: 100, marksMax: 139, rankMin: 2000, rankMax: 4999 },
+      { marksMin: 140, marksMax: 159, rankMin: 400, rankMax: 1999 },
+      { marksMin: 160, marksMax: 200, rankMin: 1, rankMax: 399 },
+    ];
+  }
+  return [
+    { marksMin: 0, marksMax: 19, rankMin: 10000, rankMax: 30000 },
+    { marksMin: 20, marksMax: 39, rankMin: 4000, rankMax: 9999 },
+    { marksMin: 40, marksMax: 59, rankMin: 1000, rankMax: 3999 },
+    { marksMin: 60, marksMax: 80, rankMin: 1, rankMax: 999 },
+  ];
+}
+
 function switchRankType(type) {
   currentRankType = type;
   document.getElementById('rankEngTab').classList.toggle('active', type === 'engineering');
   document.getElementById('rankBphTab').classList.toggle('active', type === 'bpharma');
-  document.getElementById('rankTableHeading').textContent = (type === 'engineering' ? 'Engineering' : 'B-Pharma') + ' Marks → Rank Mapping';
+  document.getElementById('rankTableHeading').textContent = `${type === 'engineering' ? 'Engineering' : 'B-Pharma'} Marks to Rank Mapping`;
   loadRankTable();
 }
 
@@ -542,46 +660,29 @@ async function loadRankTable() {
     document.getElementById('rankTableSubTabs').style.display = 'none';
     return;
   }
-  document.getElementById('rankTableSubTabs').style.display = 'flex';
+
   document.getElementById('rankTableEditor').style.display = 'block';
+  document.getElementById('rankTableSubTabs').style.display = 'flex';
 
   try {
-    const doc = await db.collection('exams').doc(examId)
-      .collection('rankTable').doc(currentRankType).get();
-    rankRows = doc.exists ? (doc.data().rows || []) : [];
-    if (rankRows.length === 0) {
-      if (currentRankType === 'engineering') {
-        rankRows = [
-          { marksMin: 0, marksMax: 49, rankMin: 15000, rankMax: 50000 },
-          { marksMin: 50, marksMax: 99, rankMin: 5000, rankMax: 14999 },
-          { marksMin: 100, marksMax: 139, rankMin: 2000, rankMax: 4999 },
-          { marksMin: 140, marksMax: 159, rankMin: 400, rankMax: 1999 },
-          { marksMin: 160, marksMax: 200, rankMin: 1, rankMax: 399 },
-        ];
-      } else {
-        rankRows = [
-          { marksMin: 0, marksMax: 19, rankMin: 10000, rankMax: 30000 },
-          { marksMin: 20, marksMax: 39, rankMin: 4000, rankMax: 9999 },
-          { marksMin: 40, marksMax: 59, rankMin: 1000, rankMax: 3999 },
-          { marksMin: 60, marksMax: 80, rankMin: 1, rankMax: 999 },
-        ];
-      }
-    }
+    const { rows } = await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}/rank-table/${encodeURIComponent(currentRankType)}`);
+    rankRows = rows && rows.length ? rows : defaultRankRows(currentRankType);
     renderRankRows();
-  } catch (e) {
-    toast('Error loading rank table: ' + e.message);
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error loading rank table: ${error.message}`);
   }
 }
 
 function renderRankRows() {
-  const container = document.getElementById('rankRows');
-  container.innerHTML = rankRows.map((r, i) => `
+  const rowsNode = document.getElementById('rankRows');
+  rowsNode.innerHTML = rankRows.map((row, index) => `
     <div class="rank-row-input">
-      <input type="number" value="${r.marksMin}" onchange="rankRows[${i}].marksMin=+this.value" placeholder="0">
-      <input type="number" value="${r.marksMax}" onchange="rankRows[${i}].marksMax=+this.value" placeholder="99">
-      <input type="number" value="${r.rankMin}" onchange="rankRows[${i}].rankMin=+this.value" placeholder="1">
-      <input type="number" value="${r.rankMax}" onchange="rankRows[${i}].rankMax=+this.value" placeholder="999">
-      <button class="btn-ghost" onclick="removeRankRow(${i})" style="padding:8px; font-size:12px; color:var(--rust);"><i class="fas fa-trash"></i></button>
+      <input type="number" value="${row.marksMin}" onchange="rankRows[${index}].marksMin=+this.value" placeholder="0">
+      <input type="number" value="${row.marksMax}" onchange="rankRows[${index}].marksMax=+this.value" placeholder="99">
+      <input type="number" value="${row.rankMin}" onchange="rankRows[${index}].rankMin=+this.value" placeholder="1">
+      <input type="number" value="${row.rankMax}" onchange="rankRows[${index}].rankMax=+this.value" placeholder="999">
+      <button class="btn-ghost" onclick="removeRankRow(${index})" style="padding:8px; font-size:12px; color:var(--rust);"><i class="fas fa-trash"></i></button>
     </div>`).join('');
 }
 
@@ -590,49 +691,52 @@ function addRankRow() {
   renderRankRows();
 }
 
-function removeRankRow(i) {
-  rankRows.splice(i, 1);
+function removeRankRow(index) {
+  rankRows.splice(index, 1);
   renderRankRows();
 }
 
 async function saveRankTable() {
   const examId = document.getElementById('rankExamSelect').value;
-  if (!examId) { toast('Select an exam first'); return; }
+  if (!examId) {
+    toast('Select an exam first');
+    return;
+  }
+
   const btn = document.getElementById('saveRankBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
   try {
-    for (const r of rankRows) {
-      if (isNaN(r.marksMin) || isNaN(r.marksMax) || isNaN(r.rankMin) || isNaN(r.rankMax)) {
-        toast('All fields must be valid numbers'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table'; return;
+    for (const row of rankRows) {
+      if ([row.marksMin, row.marksMax, row.rankMin, row.rankMax].some((value) => Number.isNaN(Number(value)))) {
+        toast('All fields must be valid numbers');
+        return;
       }
     }
 
-    await db.collection('exams').doc(examId)
-      .collection('rankTable').doc(currentRankType)
-      .set({ rows: rankRows });
-    const rankLabel = currentRankType === 'engineering' ? 'Engineering' : 'B-Pharma';
-    toast(`${rankLabel} rank table saved (${rankRows.length} bands)`);
-  } catch (e) {
-    toast('Error: ' + e.message);
+    await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}/rank-table/${encodeURIComponent(currentRankType)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ rows: rankRows }),
+    });
+    toast(`${currentRankType === 'engineering' ? 'Engineering' : 'B-Pharma'} rank table saved (${rankRows.length} bands)`);
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error: ${error.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table';
   }
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fas fa-save"></i> Save Rank Table';
-}> Save Rank Table';
 }
 
-// ===== Auth gate =====
 auth.onAuthStateChanged(async (user) => {
-  if (!user) { window.location.href = '../login.html'; return; }
-  try {
-    const doc = await db.collection('users').doc(user.uid).get();
-    if (doc.exists && doc.data().role !== 'admin') {
-      window.location.href = '../student/dashboard.html';
-      return;
-    }
-  } catch {}
-  loadExams();
+  if (!user) {
+    window.location.href = '../login.html';
+    return;
+  }
+  currentUser = user;
+  currentToken = null;
+  await loadExams();
 });
 </script>
 </body>

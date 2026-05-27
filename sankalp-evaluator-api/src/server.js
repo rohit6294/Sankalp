@@ -7,6 +7,7 @@ const examsRouter = require('./routes/exams');
 const submitRouter = require('./routes/submit');
 const resultRouter = require('./routes/result');
 const rankRouter = require('./routes/rank');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 
@@ -16,7 +17,7 @@ const allowed = (process.env.ALLOWED_ORIGIN || '*')
 
 app.use(cors({
   origin: allowed.includes('*') ? true : allowed,
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH'],
   allowedHeaders: ['Authorization', 'Content-Type'],
 }));
 app.use(express.json({ limit: '256kb' }));
@@ -27,6 +28,7 @@ app.use('/api/exams', examsRouter);
 app.use('/api/submit', submitRouter);
 app.use('/api/result', resultRouter);
 app.use('/api/rank', rankRouter);
+app.use('/api/admin', adminRouter);
 
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {

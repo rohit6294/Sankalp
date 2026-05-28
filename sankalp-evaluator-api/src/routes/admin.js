@@ -364,8 +364,6 @@ router.get('/submissions', async (req, res) => {
     if (examId) {
       query = query.where('examId', '==', examId);
     }
-    // Optimization: limit to 100 to avoid massive database reads on the free tier
-    query = query.orderBy('submittedAt', 'desc').limit(100);
     const subSnap = await query.get();
     const submissions = [];
     subSnap.forEach((doc) => {
@@ -377,31 +375,21 @@ router.get('/submissions', async (req, res) => {
       });
     });
 
-    // Optimize user fetching: Only fetch users that appear in these submissions
-    const uids = [...new Set(submissions.map(s => s.id.split('_')[0]))].filter(Boolean);
+    const userSnap = await db.collection('users').get();
     const usersMap = {};
-    
-    // Fetch users in parallel
-    await Promise.all(uids.map(async (uid) => {
-      try {
-        const doc = await db.collection('users').doc(uid).get();
-        if (doc.exists) {
-          const data = doc.data();
-          const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
-          usersMap[uid] = {
-            name: fullName,
-            email: data.email || '—',
-            phone: data.phone || '—',
-            gender: data.gender || '—',
-            caste: data.caste || '—',
-            tfw: data.tfw || '—',
-            wbjeeYear: data.wbjeeYear || '—',
-          };
-        }
-      } catch (err) {
-        console.error('Error fetching user', uid, err);
-      }
-    }));
+    userSnap.forEach((doc) => {
+      const data = doc.data() || {};
+      const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
+      usersMap[doc.id] = {
+        name: fullName,
+        email: data.email || '—',
+        phone: data.phone || '—',
+        gender: data.gender || '—',
+        caste: data.caste || '—',
+        tfw: data.tfw || '—',
+        wbjeeYear: data.wbjeeYear || '—',
+      };
+    });
 
     const reqSnap = await db.collection('resetRequests').where('status', '==', 'pending').get();
     const pendingResets = {};

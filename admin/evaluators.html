@@ -33,6 +33,14 @@
     .toast.show { opacity: 1; }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
 
+    /* Toggle switch styling */
+    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(15,23,42,0.1); border-radius: 100px; transition: 0.3s; border: 1px solid var(--ink); }
+    .toggle-slider:before { position: absolute; content: ''; height: 12px; width: 12px; left: 3px; bottom: 3px; background: var(--ink); border-radius: 50%; transition: 0.3s; }
+    .toggle-switch input:checked + .toggle-slider { background: var(--ink); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: var(--paper); }
+
     /* New Submissions & Leaderboard Dashboard styles */
     .tbl { width: 100%; border-collapse: collapse; }
     .tbl th { padding: 12px 14px; font-size: 11px; font-weight: 700; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--ink); text-align: left; }
@@ -97,6 +105,7 @@
     <button class="tab-btn active" data-tab="exams" onclick="switchMainTab('exams', this)">Exams & Answer Keys</button>
     <button class="tab-btn" data-tab="rank" onclick="switchMainTab('rank', this)">Rank Prediction</button>
     <button class="tab-btn" data-tab="submissions" onclick="switchMainTab('submissions', this)">Submissions & Leaderboard</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchMainTab('settings', this)">Platform Settings</button>
   </div>
 
   <div id="tabExams" style="border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
@@ -251,6 +260,66 @@
          </tbody>
        </table>
      </div>
+  </div>
+
+  <div id="tabSettings" style="display:none; border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
+    <!-- Mandatory Profile Fields Setting -->
+    <div style="border:1px solid var(--ink); padding:28px; background:var(--paper); margin-bottom:24px; max-width:640px;">
+      <h2 style="font-family:var(--font-display); font-size:1.2rem; font-weight:700; margin-bottom:4px; color:var(--ink);">Mandatory Student Profile Fields</h2>
+      <p style="font-size:13px; color:var(--ink-mute); margin-bottom:20px;">Configure which profile fields are required for students to access the Sankalp portal</p>
+      
+      <div style="display:flex; flex-direction:column; gap:0;">
+        
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Student Name</div><div style="font-size:11px; color:var(--ink-mute);">First and Last Name are required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_name" onchange="saveMandatoryField('name', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Phone Number</div><div style="font-size:11px; color:var(--ink-mute);">10-digit mobile number is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_phone" onchange="saveMandatoryField('phone', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Gender</div><div style="font-size:11px; color:var(--ink-mute);">Student gender selection is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_gender" onchange="saveMandatoryField('gender', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Caste / Category</div><div style="font-size:11px; color:var(--ink-mute);">Student category (SC, ST, OBC, EWS) is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_caste" onchange="saveMandatoryField('caste', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">TFW Status</div><div style="font-size:11px; color:var(--ink-mute);">Tuition Fee Waiver choice is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_tfw" onchange="saveMandatoryField('tfw', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:none;">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">WBJEE Target Year</div><div style="font-size:11px; color:var(--ink-mute);">Target prep year selection is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_wbjeeYear" onchange="saveMandatoryField('wbjeeYear', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+      </div>
+    </div>
   </div>
 </main>
 
@@ -512,9 +581,38 @@ function switchMainTab(tab, btn) {
   document.getElementById('tabExams').style.display = tab === 'exams' ? 'block' : 'none';
   document.getElementById('tabRank').style.display = tab === 'rank' ? 'block' : 'none';
   document.getElementById('tabSubmissions').style.display = tab === 'submissions' ? 'block' : 'none';
+  document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
 
   if (tab === 'submissions') {
     loadSubmissions();
+  }
+}
+
+async function loadMandatoryFields() {
+  try {
+    const doc = await db.collection('settings').doc('mandatory_fields').get();
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById('m_name').checked = !!data.name;
+      document.getElementById('m_phone').checked = !!data.phone;
+      document.getElementById('m_gender').checked = !!data.gender;
+      document.getElementById('m_caste').checked = !!data.caste;
+      document.getElementById('m_tfw').checked = !!data.tfw;
+      document.getElementById('m_wbjeeYear').checked = !!data.wbjeeYear;
+    }
+  } catch (err) {
+    console.error("Error loading mandatory fields:", err);
+  }
+}
+
+async function saveMandatoryField(field, val) {
+  try {
+    await db.collection('settings').doc('mandatory_fields').set({
+      [field]: val
+    }, { merge: true });
+    toast(`Mandatory field "${field}" ${val ? 'enabled' : 'disabled'}!`);
+  } catch (err) {
+    toast(`Error: ${err.message}`);
   }
 }
 
@@ -1464,6 +1562,7 @@ auth.onAuthStateChanged(async (user) => {
   currentUser = user;
   currentToken = null;
   await loadExams();
+  await loadMandatoryFields();
 });
 </script>
 </body>

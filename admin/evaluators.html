@@ -231,6 +231,12 @@
            <option value="date">Sort: Submission Date</option>
          </select>
        </div>
+       <div>
+         <select id="subStatusFilter" onchange="filterAndRenderSubmissions()" class="input-field" style="margin-bottom:0; width:200px;">
+           <option value="all">- All Status -</option>
+           <option value="reset_pending">Reset Requested</option>
+         </select>
+       </div>
        <button class="btn-ghost btn-sm" onclick="exportSubmissionsCSV()" style="height:42px;"><i class="fas fa-download"></i> Export CSV</button>
      </div>
 
@@ -1188,6 +1194,7 @@ function updateSubmissionsStats(subs) {
 function filterAndRenderSubmissions() {
   const searchQ = document.getElementById('subSearchInput').value.trim().toLowerCase();
   const sortBy = document.getElementById('subSortBy').value;
+  const statusFilter = document.getElementById('subStatusFilter').value;
 
   // Filter
   filteredSubmissions = allSubmissions.filter((sub) => {
@@ -1198,6 +1205,11 @@ function filterAndRenderSubmissions() {
         return false;
       }
     }
+    
+    if (statusFilter === 'reset_pending' && !sub.resetRequested) {
+      return false;
+    }
+    
     return true;
   });
 

@@ -76,6 +76,40 @@
     }
     .progress-bar { background: rgba(255, 255, 255, 0.06); border-radius: 100px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 100px; transition: width 0.4s ease; }
+
+    @media print {
+      body { background: white; color: black; }
+      .sidebar, .menu-toggle, .sidebar-overlay, .pdf-btn { display: none !important; }
+      main.main-content { margin: 0 !important; padding: 0 !important; max-width: 100% !important; width: 100% !important; }
+      
+      /* Make hero section printer-friendly */
+      .result-hero { background: white !important; color: black !important; border: 2px solid black !important; padding: 24px !important; }
+      .result-hero .eyebrow { color: #555 !important; }
+      .result-hero h1, .result-hero p, .result-hero span { color: black !important; }
+      
+      /* Fix dark backgrounds in score grid */
+      .score-cell.ink-bg { background: white !important; color: black !important; border-left: 1px solid #ddd !important; }
+      .score-cell.ink-bg .score-num { color: black !important; }
+      .score-cell.ink-bg .score-label { color: #555 !important; }
+      
+      /* Fix analytics ring */
+      .analytics-ring { background: #eee !important; }
+      .analytics-ring::before { background: white !important; }
+      
+      /* Ensure borders print properly */
+      * { border-color: #ccc !important; }
+      .result-hero { border-color: black !important; }
+      
+      /* Avoid page breaks inside cards */
+      .score-grid, .rank-grid, .analytics-grid > div, .category-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      
+      /* Force background printing for browsers that support it */
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
   </style>
 </head>
 <body>
@@ -114,7 +148,10 @@
   <div id="resultView" style="display:none;">
 
     <!-- Hero banner -->
-    <div class="result-hero">
+    <div class="result-hero" style="position:relative;">
+      <button class="btn-ghost btn-sm pdf-btn" onclick="window.print()" style="position:absolute; top:24px; right:32px; border-color:rgba(234,219,192,0.3); color:var(--paper);">
+        <i class="fas fa-download"></i> Download PDF
+      </button>
       <div class="eyebrow" style="color:var(--rust); margin-bottom:8px;">Your Result</div>
       <h1 style="font-family:var(--font-display); font-size:2rem; font-weight:900; margin-bottom:6px;" id="examTitle">WBJEE 2026</h1>
       <p style="color:rgba(234,219,192,0.6); font-size:13px;">

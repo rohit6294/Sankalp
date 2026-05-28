@@ -160,6 +160,13 @@
         <div class="eyebrow" style="margin-bottom:12px;">Community Rank (Engg)</div>
         <div class="rank-big" style="color:var(--forest);" id="communityRank">—</div>
         <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="communityRankNote">Loading...</div>
+    </div>
+
+    <!-- Category & Special Ranks (shown dynamically) -->
+    <div id="categoryRanksSection" style="display:none; border:1px solid var(--ink); border-top:none; background:var(--paper-soft); padding:24px; margin-bottom:24px;">
+      <div class="eyebrow" style="margin-bottom:16px; color:var(--rust);">Category & Special Ranks</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;" id="categoryRanksGrid">
+        <!-- Injected dynamically -->
       </div>
     </div>
 
@@ -342,6 +349,20 @@ async function loadResult(user) {
 
     const result = await resultRes.json();
 
+    // Fetch student profile data for category ranks
+    let caste = 'General';
+    let tfw = 'No';
+    try {
+      const userDoc = await db.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        caste = userData.caste || 'General';
+        tfw = userData.tfw || 'No';
+      }
+    } catch (e) {
+      console.error("Error loading user profile: ", e);
+    }
+
     // Populate UI
     document.getElementById('examTitle').textContent = result.examName || examId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     document.getElementById('mathSetLabel').textContent = result.mathSet || result.set || '—';
@@ -373,6 +394,65 @@ async function loadResult(user) {
       document.getElementById('expectedBphRank').textContent = `${bphRank.min} — ${bphRank.max}`;
     } else {
       document.getElementById('expectedBphRank').textContent = 'N/A';
+    }
+
+    // Expected Category Ranks
+    const catSection = document.getElementById('categoryRanksSection');
+    const catGrid = document.getElementById('categoryRanksGrid');
+    let hasCatRanks = false;
+    let catHtml = '';
+
+    if (engRank && engRank.min && engRank.max) {
+      if (caste && caste !== 'General') {
+        hasCatRanks = true;
+        const coefMap = { 'SC': 0.12, 'ST': 0.05, 'OBC-A': 0.08, 'OBC-B': 0.07, 'EWS': 0.10 };
+        const coef = coefMap[caste] || 0.10;
+        const cMin = Math.max(1, Math.round(engRank.min * coef));
+        const cMax = Math.max(1, Math.round(engRank.max * coef));
+        catHtml += `
+          <div style="padding:16px; border:1px solid var(--rule); background:var(--paper-soft); border-radius:8px;">
+            <div class="eyebrow" style="font-size:10px; margin-bottom:6px;">Expected ${caste} Rank (Engg)</div>
+            <div style="font-family:var(--font-display); font-size:1.8rem; font-weight:900; color:var(--ink); line-height:1.1;">${cMin} — ${cMax}</div>
+            <div style="margin-top:4px; font-size:11px; color:var(--ink-mute);">Category GMR Scorecard</div>
+          </div>
+        `;
+      }
+      if (tfw === 'Yes') {
+        hasCatRanks = true;
+        const tMin = Math.max(1, Math.round(engRank.min * 0.04));
+        const tMax = Math.max(1, Math.round(engRank.max * 0.04));
+        catHtml += `
+          <div style="padding:16px; border:1px solid var(--rule); background:var(--paper-soft); border-radius:8px;">
+            <div class="eyebrow" style="font-size:10px; margin-bottom:6px;">Expected TFW Rank</div>
+            <div style="font-family:var(--font-display); font-size:1.8rem; font-weight:900; color:var(--ink); line-height:1.1;">${tMin} — ${tMax}</div>
+            <div style="margin-top:4px; font-size:11px; color:var(--ink-mute);">Tuition Fee Waiver Rank</div>
+          </div>
+        `;
+      }
+    }
+
+    if (bphRank && bphRank.min && bphRank.max) {
+      if (caste && caste !== 'General') {
+        hasCatRanks = true;
+        const coefMap = { 'SC': 0.12, 'ST': 0.05, 'OBC-A': 0.08, 'OBC-B': 0.07, 'EWS': 0.10 };
+        const coef = coefMap[caste] || 0.10;
+        const cMin = Math.max(1, Math.round(bphRank.min * coef));
+        const cMax = Math.max(1, Math.round(bphRank.max * coef));
+        catHtml += `
+          <div style="padding:16px; border:1px solid var(--rule); background:var(--paper-soft); border-radius:8px;">
+            <div class="eyebrow" style="font-size:10px; margin-bottom:6px;">Expected ${caste} Rank (Pharma)</div>
+            <div style="font-family:var(--font-display); font-size:1.8rem; font-weight:900; color:var(--ink); line-height:1.1;">${cMin} — ${cMax}</div>
+            <div style="margin-top:4px; font-size:11px; color:var(--ink-mute);">Category PMR Scorecard</div>
+          </div>
+        `;
+      }
+    }
+
+    if (hasCatRanks) {
+      catGrid.innerHTML = catHtml;
+      catSection.style.display = 'block';
+    } else {
+      catSection.style.display = 'none';
     }
 
     // Analytics

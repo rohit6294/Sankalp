@@ -90,6 +90,19 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         `;
       }
       
+      if (missingFieldKeys.includes('tfw')) {
+        fieldsHtml += `
+          <div style="margin-bottom: 14px;">
+            <label style="display:block; font-size:12px; font-weight:600; color:#94A3B8; margin-bottom:6px">TFW Status *</label>
+            <select id="lock-tfw" class="input-field" style="width:100%; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #E2E8F0; font-size: 13px;" required>
+              <option value="">Select TFW Status</option>
+              <option value="No">No (General Selection)</option>
+              <option value="Yes">Yes (Tuition Fee Waiver Scheme)</option>
+            </select>
+          </div>
+        `;
+      }
+
       if (missingFieldKeys.includes('wbjeeYear')) {
         fieldsHtml += `
           <div style="margin-bottom: 20px;">
@@ -159,6 +172,9 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         }
         if (missingFieldKeys.includes('wbjeeYear')) {
           updateData.wbjeeYear = document.getElementById('lock-wbjeeYear').value;
+        }
+        if (missingFieldKeys.includes('tfw')) {
+          updateData.tfw = document.getElementById('lock-tfw').value;
         }
         
         try {
@@ -248,6 +264,10 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         if (mandatoryFields.wbjeeYear && (!userData.wbjeeYear || !userData.wbjeeYear.trim())) {
           missingFields.push('WBJEE Target Year');
           missingFieldKeys.push('wbjeeYear');
+        }
+        if (mandatoryFields.tfw && (!userData.tfw || !userData.tfw.trim())) {
+          missingFields.push('TFW Status');
+          missingFieldKeys.push('tfw');
         }
 
         if (missingFields.length > 0) {

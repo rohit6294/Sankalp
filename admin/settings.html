@@ -193,6 +193,14 @@
             </label>
           </div>
 
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">TFW Status</div><div style="font-size:12px;color:#475569">Tuition Fee Waiver choice is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_tfw" onchange="saveMandatoryField('tfw', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
         </div>
       </div>
 
@@ -289,6 +297,7 @@
         document.getElementById('m_gender').checked = !!data.gender;
         document.getElementById('m_caste').checked = !!data.caste;
         document.getElementById('m_wbjeeYear').checked = !!data.wbjeeYear;
+        document.getElementById('m_tfw').checked = !!data.tfw;
       }
     } catch(err) {
       console.error("Error loading mandatory fields: ", err);

@@ -27,6 +27,19 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(409).json({ error: 'already_submitted' });
     }
 
+    // Backend enforcement: Check if user profile is complete (valid name)
+    const userDoc = await db.collection('users').doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const nameVal = String(userData.name || userData.displayName || `${userData.firstName || ''} ${userData.lastName || ''}`).trim().toLowerCase();
+    const hasEnoughLetters = /[a-z].*[a-z]/i.test(nameVal);
+    
+    if (nameVal === 'unknown student' || nameVal === '' || !hasEnoughLetters) {
+      return res.status(403).json({ 
+        error: 'incomplete_profile', 
+        message: 'Your profile is incomplete. You must provide a valid full name in your profile settings before submitting an exam.' 
+      });
+    }
+
     const examRef = db.collection('exams').doc(examId);
     const examDoc = await examRef.get();
     if (!examDoc.exists || examDoc.data().active !== true) {

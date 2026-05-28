@@ -321,4 +321,25 @@ router.delete('/submissions/:subId', async (req, res) => {
   }
 });
 
+// Fetch mandatory fields configuration (Admin SDK secure backend route)
+router.get('/settings/mandatory-fields', async (req, res) => {
+  try {
+    const doc = await db.collection('settings').doc('mandatory_fields').get();
+    res.json({ settings: doc.exists ? doc.data() : {} });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_load_failed', message: e.message });
+  }
+});
+
+// Update mandatory fields configuration (Admin SDK secure backend route)
+router.put('/settings/mandatory-fields', async (req, res) => {
+  const payload = ensurePlainObject(req.body);
+  try {
+    await db.collection('settings').doc('mandatory_fields').set(payload, { merge: true });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_save_failed', message: e.message });
+  }
+});
+
 module.exports = router;

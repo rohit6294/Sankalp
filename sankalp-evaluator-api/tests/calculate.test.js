@@ -24,13 +24,13 @@ test('categoryFor: physics ranges', () => {
   assert.equal(categoryFor('physics', 40), 3);
 });
 
-test('categoryFor: chemistry ranges (1..40 local)', () => {
-  assert.equal(categoryFor('chemistry', 1), 1);
-  assert.equal(categoryFor('chemistry', 30), 1);
-  assert.equal(categoryFor('chemistry', 31), 2);
-  assert.equal(categoryFor('chemistry', 35), 2);
-  assert.equal(categoryFor('chemistry', 36), 3);
-  assert.equal(categoryFor('chemistry', 40), 3);
+test('categoryFor: chemistry ranges (41..80 paper)', () => {
+  assert.equal(categoryFor('chemistry', 41), 1);
+  assert.equal(categoryFor('chemistry', 70), 1);
+  assert.equal(categoryFor('chemistry', 71), 2);
+  assert.equal(categoryFor('chemistry', 75), 2);
+  assert.equal(categoryFor('chemistry', 76), 3);
+  assert.equal(categoryFor('chemistry', 80), 3);
 });
 
 test('Cat 1: correct gives +1, wrong gives -0.25', () => {
@@ -123,12 +123,12 @@ test('scoreSubmission: aggregates math + physics + chemistry', () => {
   const answers = {
     math: { 1: 'A', 2: 'B' },
     physics: { 1: 'A' },
-    chemistry: { 1: 'C' },
+    chemistry: { 41: 'C' },
   };
   const keys = {
     math: { 1: 'A', 2: 'B' },
     physics: { 1: 'A' },
-    chemistry: { 1: 'C' },
+    chemistry: { 41: 'C' },
   };
   const r = scoreSubmission(answers, keys);
   assert.equal(r.scores.math, 2);

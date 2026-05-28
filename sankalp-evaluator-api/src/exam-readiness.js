@@ -1,11 +1,12 @@
-const { COUNTS } = require('./categories');
+const { START, END } = require('./categories');
 
 const SETS = ['A', 'B', 'C', 'D'];
 
 function missingAnswerNumbers(subject, keyMap) {
   const missing = [];
-  const count = COUNTS[subject] || 0;
-  for (let qNo = 1; qNo <= count; qNo += 1) {
+  const start = START[subject];
+  const end = END[subject];
+  for (let qNo = start; qNo <= end; qNo += 1) {
     const value = keyMap ? keyMap[String(qNo)] : undefined;
     if (typeof value !== 'string' || !value.trim()) {
       missing.push(qNo);

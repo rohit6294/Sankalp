@@ -1,7 +1,19 @@
 const RANGES = {
   math:      { cat1: [1, 50],  cat2: [51, 65], cat3: [66, 75] },
   physics:   { cat1: [1, 30],  cat2: [31, 35], cat3: [36, 40] },
-  chemistry: { cat1: [1, 30],  cat2: [31, 35], cat3: [36, 40] },
+  chemistry: { cat1: [41, 70], cat2: [71, 75], cat3: [76, 80] },
+};
+
+const START = {
+  math: 1,
+  physics: 1,
+  chemistry: 41,
+};
+
+const END = {
+  math: 75,
+  physics: 40,
+  chemistry: 80,
 };
 
 function categoryFor(subject, qNo) {
@@ -19,4 +31,4 @@ const COUNTS = {
   chemistry: 40,
 };
 
-module.exports = { RANGES, COUNTS, categoryFor };
+module.exports = { RANGES, COUNTS, START, END, categoryFor };

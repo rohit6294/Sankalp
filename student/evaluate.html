@@ -239,10 +239,12 @@
 // ===== Config =====
 const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
 const COUNTS = { math: 75, physics: 40, chemistry: 40 };
+const START = { math: 1, physics: 1, chemistry: 41 };
+const END = { math: 75, physics: 40, chemistry: 80 };
 const CAT_RANGES = {
   math:      { 1:[1,50], 2:[51,65], 3:[66,75] },
   physics:   { 1:[1,30], 2:[31,35], 3:[36,40] },
-  chemistry: { 1:[1,30], 2:[31,35], 3:[36,40] },
+  chemistry: { 1:[41,70], 2:[71,75], 3:[76,80] },
 };
 const MARKING = {
   1: '+1 correct · -0.25 wrong',
@@ -431,8 +433,9 @@ function renderGrid() {
   const sub = state.tab;
   const grid = document.getElementById('answerGrid');
   grid.innerHTML = '';
-  let lastCat = 0;
-  for (let q = 1; q <= COUNTS[sub]; q++) {
+  const start = START[sub];
+  const end = END[sub];
+  for (let q = start; q <= end; q++) {
     const cat = categoryFor(sub, q);
     if (cat !== lastCat) {
       const banner = document.createElement('div');
@@ -491,11 +494,13 @@ function skipQ(q) {
 // ===== Step 4: Review =====
 function summarize(sub) {
   let attempted = 0, skipped = 0;
-  for (let q = 1; q <= COUNTS[sub]; q++) {
+  const start = START[sub];
+  const end = END[sub];
+  for (let q = start; q <= end; q++) {
     const a = state.answers[sub][q];
     if (a == null || (Array.isArray(a) && a.length === 0)) skipped++; else attempted++;
   }
-  return { attempted, skipped, total: COUNTS[sub] };
+  return { attempted, skipped, total: end - start + 1 };
 }
 
 function goReview() {

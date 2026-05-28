@@ -200,10 +200,12 @@
 
 <script>
 const COUNTS = { math: 75, physics: 40, chemistry: 40 };
+const START = { math: 1, physics: 1, chemistry: 41 };
+const END = { math: 75, physics: 40, chemistry: 80 };
 const CAT_RANGES = {
   math: { 1: [1, 50], 2: [51, 65], 3: [66, 75] },
   physics: { 1: [1, 30], 2: [31, 35], 3: [36, 40] },
-  chemistry: { 1: [1, 30], 2: [31, 35], 3: [36, 40] },
+  chemistry: { 1: [41, 70], 2: [71, 75], 3: [76, 80] },
 };
 const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
 
@@ -502,7 +504,9 @@ function renderKeyGrid() {
   grid.innerHTML = '';
 
   let lastCategory = 0;
-  for (let q = 1; q <= COUNTS[subject]; q += 1) {
+  const start = START[subject];
+  const end = END[subject];
+  for (let q = start; q <= end; q += 1) {
     const category = categoryFor(subject, q);
     if (category !== lastCategory) {
       const header = document.createElement('div');

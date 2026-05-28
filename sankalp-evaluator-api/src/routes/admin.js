@@ -1,7 +1,7 @@
 const express = require('express');
 const { admin, db } = require('../firebase');
 const { requireAdmin, verifyToken } = require('../auth');
-const { COUNTS, categoryFor } = require('../categories');
+const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
 
 const router = express.Router();
@@ -40,7 +40,8 @@ function validationError(error, message) {
 function normalizeAnswerKeySubject(subject, value) {
   const source = ensurePlainObject(value);
   const cleaned = {};
-  const count = COUNTS[subject];
+  const start = START[subject];
+  const end = END[subject];
 
   for (const qNoStr of Object.keys(source)) {
     if (!/^\d+$/.test(qNoStr)) {
@@ -48,7 +49,7 @@ function normalizeAnswerKeySubject(subject, value) {
     }
 
     const qNo = Number(qNoStr);
-    if (!Number.isInteger(qNo) || qNo < 1 || qNo > count) {
+    if (!Number.isInteger(qNo) || qNo < start || qNo > end) {
       throw validationError('invalid_question_number', `${subject} question ${qNoStr} is out of range`);
     }
 

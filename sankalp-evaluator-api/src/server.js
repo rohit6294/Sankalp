@@ -74,6 +74,7 @@ app.post('/api/submit/reset-request', verifyToken, async (req, res) => {
   const uid = req.user.uid;
   const { examId, reason } = req.body || {};
   if (!examId) return res.status(400).json({ error: 'missing_examId' });
+  if (!reason || !String(reason).trim()) return res.status(400).json({ error: 'missing_reason', message: 'A reason is required to request a reset.' });
 
   const docId = `${uid}_${examId}`;
   try {

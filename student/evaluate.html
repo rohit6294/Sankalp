@@ -744,8 +744,8 @@ function showResetRequestModal() {
         </ul>
       </div>
       <div style="margin-bottom:16px;">
-        <label style="font-size:12px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Reason for reset (optional)</label>
-        <textarea id="resetReasonInput" rows="2" style="width:100%;padding:10px;border:1px solid var(--rule);background:var(--paper);font-size:13px;font-family:var(--font-sans);resize:none;" placeholder="e.g., I made mistakes in my Physics answers..."></textarea>
+        <label style="font-size:12px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Reason for reset <span style="color:var(--rust);">*</span></label>
+        <textarea id="resetReasonInput" rows="2" style="width:100%;padding:10px;border:1px solid var(--rule);background:var(--paper);font-size:13px;font-family:var(--font-sans);resize:none;" placeholder="e.g., I accidentally submitted before finishing my Physics answers..."></textarea>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn-ghost btn-sm" onclick="document.getElementById('resetReqOverlay').remove()">Cancel</button>
@@ -761,6 +761,12 @@ function showResetRequestModal() {
 async function submitResetRequest() {
   const btn = document.getElementById('resetConfirmBtn');
   const reason = document.getElementById('resetReasonInput').value.trim();
+  
+  if (!reason) {
+    alert("Please provide a reason for requesting a reset. This helps the admin understand why you need to retake the exam.");
+    return;
+  }
+
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
   btn.disabled = true;
 

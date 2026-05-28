@@ -178,7 +178,7 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         }
         
         try {
-          await db.collection('users').doc(uid).update(updateData);
+          await db.collection('users').doc(uid).set(updateData, { merge: true });
           overlay.remove();
           
           const toastEl = document.createElement('div');

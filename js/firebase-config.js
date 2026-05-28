@@ -225,7 +225,7 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         let mandatoryFields = null;
         const token = await user.getIdToken();
         const baseUrl = window.EVALUATOR_API || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/exams/settings/mandatory-fields`, {
+        const res = await fetch(`${baseUrl}/api/settings/mandatory-fields`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {

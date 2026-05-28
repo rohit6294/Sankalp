@@ -771,8 +771,8 @@ async function submitResetRequest() {
   const btn = document.getElementById('resetConfirmBtn');
   const reason = document.getElementById('resetReasonInput').value.trim();
   
-  if (!reason) {
-    alert("Please provide a reason for requesting a reset. This helps the admin understand why you need to retake the exam.");
+  if (!reason || reason.length < 15) {
+    alert("Please provide a more detailed reason (minimum 15 characters) for requesting a reset. This helps the admin understand why you need to retake the exam.");
     return;
   }
 

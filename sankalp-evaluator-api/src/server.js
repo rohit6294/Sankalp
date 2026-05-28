@@ -10,6 +10,7 @@ const rankRouter = require('./routes/rank');
 const adminRouter = require('./routes/admin');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
+const { sendEmail } = require('./mailer');
 
 const app = express();
 
@@ -74,7 +75,9 @@ app.post('/api/submit/reset-request', verifyToken, async (req, res) => {
   const uid = req.user.uid;
   const { examId, reason } = req.body || {};
   if (!examId) return res.status(400).json({ error: 'missing_examId' });
-  if (!reason || !String(reason).trim()) return res.status(400).json({ error: 'missing_reason', message: 'A reason is required to request a reset.' });
+  if (!reason || String(reason).trim().length < 15) {
+    return res.status(400).json({ error: 'missing_reason', message: 'Please provide a detailed reason (minimum 15 characters).' });
+  }
 
   const docId = `${uid}_${examId}`;
   try {
@@ -94,6 +97,26 @@ app.post('/api/submit/reset-request', verifyToken, async (req, res) => {
       status: 'pending',
       requestedAt: require('firebase-admin').firestore.FieldValue.serverTimestamp(),
     });
+
+    // Check automation settings and send email if enabled
+    try {
+      const settingsDoc = await db.collection('settings').doc('email_automations').get();
+      if (settingsDoc.exists) {
+        const automations = settingsDoc.data();
+        if (automations.notifyAdminResetReq && automations.adminEmail) {
+          const userDoc = await db.collection('users').doc(uid).get();
+          const studentName = userDoc.exists ? (userDoc.data().name || userDoc.data().displayName || 'A student') : 'A student';
+          
+          await sendEmail({
+            to: automations.adminEmail,
+            subject: 'New Reset Request - Sankalp Learning',
+            text: `Hello Admin,\n\nA new reset request has been submitted.\n\nStudent: ${studentName}\nExam ID: ${examId}\nReason: ${reason || 'No reason provided'}\n\nPlease check the admin panel to approve or reject this request.\n\nBest regards,\nSankalp Learning Automation`
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to process reset request email automation:', err);
+    }
 
     res.json({ ok: true });
   } catch (e) {

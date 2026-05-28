@@ -7,6 +7,7 @@ const { scoreSubmission, round2 } = require('../scoring/calculate');
 const { defaultRankRows, predictRank } = require('../scoring/ranking');
 
 const router = express.Router();
+const { sendEmail } = require('../mailer');
 
 const VALID_PAPERS = new Set(['math', 'physChem']);
 const VALID_SETS = new Set(['A', 'B', 'C', 'D']);
@@ -492,6 +493,26 @@ router.post('/reset-approve/:subId', async (req, res) => {
     const reqDoc = await reqRef.get();
     if (reqDoc.exists) {
       await reqRef.update({ status: 'approved' });
+      
+      // Email notification
+      try {
+        const settingsDoc = await db.collection('settings').doc('email_automations').get();
+        if (settingsDoc.exists && settingsDoc.data().notifyStudentResetDec) {
+          const userId = reqDoc.data().userId;
+          const userDoc = await db.collection('users').doc(userId).get();
+          const userEmail = userDoc.exists ? userDoc.data().email : null;
+          
+          if (userEmail) {
+            await sendEmail({
+              to: userEmail,
+              subject: 'Update on your Reset Request - Sankalp Learning',
+              text: `Hello,\n\nYour request to reset your exam submission has been APPROVED.\n\nYou may now log in to the portal and take the exam again.\n\nBest regards,\nSankalp Learning Team`
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to send reset approval email:', err);
+      }
     }
     res.json({ ok: true });
   } catch (e) {
@@ -507,6 +528,27 @@ router.post('/reset-reject/:subId', async (req, res) => {
     const reqDoc = await reqRef.get();
     if (!reqDoc.exists) return res.status(404).json({ error: 'request_not_found' });
     await reqRef.update({ status: 'rejected' });
+    
+    // Email notification
+    try {
+      const settingsDoc = await db.collection('settings').doc('email_automations').get();
+      if (settingsDoc.exists && settingsDoc.data().notifyStudentResetDec) {
+        const userId = reqDoc.data().userId;
+        const userDoc = await db.collection('users').doc(userId).get();
+        const userEmail = userDoc.exists ? userDoc.data().email : null;
+        
+        if (userEmail) {
+          await sendEmail({
+            to: userEmail,
+            subject: 'Update on your Reset Request - Sankalp Learning',
+            text: `Hello,\n\nUnfortunately, your request to reset your exam submission has been REJECTED by the admin.\n\nIf you have any questions, please contact support.\n\nBest regards,\nSankalp Learning Team`
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to send reset rejection email:', err);
+    }
+    
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'reset_reject_failed', message: e.message });

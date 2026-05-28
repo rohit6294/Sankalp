@@ -214,21 +214,27 @@
 
       <!-- Email Settings -->
       <div class="glass-card p-6 setting-section">
-        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Email Notifications</h2>
-        <p style="font-size:13px;color:#475569;margin-bottom:20px">Control when emails are sent to students</p>
-        <div style="display:flex;flex-direction:column;gap:0">
-          ${[
-            {label:'Welcome Email',desc:'Send welcome email after registration',on:true},
-            {label:'Booking Confirmation',desc:'Email on counseling session booking',on:true},
-            {label:'Test Result Summary',desc:'Send results after mock test completion',on:false},
-            {label:'Weekly Progress Report',desc:'Weekly progress email every Sunday',on:false},
-          ].map(e=>`
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-              <div><div style="font-size:14px;font-weight:600">${e.label}</div><div style="font-size:12px;color:#475569">${e.desc}</div></div>
-              <label class="toggle"><input type="checkbox" ${e.on?'checked':''}><span class="toggle-slider"></span></label>
-            </div>`).join('')}
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Email Automations (SMTP)</h2>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure automated emails sent via sankalp.learning.edu@gmail.com</p>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Admin Email Address</label>
+          <input type="email" id="adminEmail" class="input-field" placeholder="admin@example.com" style="margin-bottom:4px;">
+          <div style="font-size:11px;color:#64748B;">This email will receive notifications when automations are triggered.</div>
         </div>
-        <button onclick="saveEmail()" class="btn-secondary" style="padding:10px 22px;font-size:13px;margin-top:16px"><i class="fas fa-save"></i> Save Email Settings</button>
+
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Notify Admin on Reset Request</div><div style="font-size:12px;color:#475569">Send an alert to Admin Email when a student asks for a reset</div></div>
+            <label class="toggle"><input type="checkbox" id="notifyAdminResetReq"><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Notify Student on Reset Decision</div><div style="font-size:12px;color:#475569">Email student when their reset request is approved or rejected</div></div>
+            <label class="toggle"><input type="checkbox" id="notifyStudentResetDec"><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        
+        <button onclick="saveEmailAutomations()" class="btn-primary" style="padding:10px 22px;font-size:13px;margin-top:16px;background:var(--rust);color:white;border:none;border-radius:6px;"><i class="fas fa-save"></i> Save Automations</button>
       </div>
 
     </div>
@@ -301,6 +307,7 @@
       if (doc.exists) {
         const data = doc.data();
         document.getElementById('m_name').checked = !!data.name;
+        document.getElementById('m_email').checked = !!data.email;
         document.getElementById('m_phone').checked = !!data.phone;
         document.getElementById('m_gender').checked = !!data.gender;
         document.getElementById('m_caste').checked = !!data.caste;
@@ -323,9 +330,41 @@
     }
   }
 
+  async function loadEmailAutomations() {
+    try {
+      const doc = await db.collection('settings').doc('email_automations').get();
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById('adminEmail').value = data.adminEmail || '';
+        document.getElementById('notifyAdminResetReq').checked = !!data.notifyAdminResetReq;
+        document.getElementById('notifyStudentResetDec').checked = !!data.notifyStudentResetDec;
+      }
+    } catch(err) {
+      console.error("Error loading email automations: ", err);
+    }
+  }
+
+  async function saveEmailAutomations() {
+    const adminEmail = document.getElementById('adminEmail').value.trim();
+    const notifyAdminResetReq = document.getElementById('notifyAdminResetReq').checked;
+    const notifyStudentResetDec = document.getElementById('notifyStudentResetDec').checked;
+
+    try {
+      await db.collection('settings').doc('email_automations').set({
+        adminEmail,
+        notifyAdminResetReq,
+        notifyStudentResetDec
+      }, { merge: true });
+      toast('Email automations saved!');
+    } catch(err) {
+      toast(`Error saving automations: ${err.message}`, 'error');
+    }
+  }
+
   auth.onAuthStateChanged(user=>{
     if(!user) { window.location.href='../login.html'; return; }
     loadMandatoryFields();
+    loadEmailAutomations();
   });
 </script>
 </body>

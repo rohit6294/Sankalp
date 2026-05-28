@@ -218,9 +218,9 @@
         <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure automated emails sent via sankalp.learning.edu@gmail.com</p>
         
         <div style="margin-bottom: 20px;">
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Admin Email Address</label>
-          <input type="email" id="adminEmail" class="input-field" placeholder="admin@example.com" style="margin-bottom:4px;">
-          <div style="font-size:11px;color:#64748B;">This email will receive notifications when automations are triggered.</div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Admin Email Addresses (comma separated)</label>
+          <input type="text" id="adminEmail" class="input-field" placeholder="admin1@example.com, admin2@example.com" style="margin-bottom:4px;">
+          <div style="font-size:11px;color:#64748B;">These emails will receive notifications when automations are triggered.</div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:0">
@@ -353,11 +353,11 @@
     try {
       await apiJson('/api/admin/settings/email_automations', {
         method: 'PUT',
-        body: {
+        body: JSON.stringify({
           adminEmail,
           notifyAdminResetReq,
           notifyStudentResetDec
-        }
+        })
       });
       toast('Email automations saved!');
     } catch(err) {

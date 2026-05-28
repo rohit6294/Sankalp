@@ -4,6 +4,7 @@ const { verifyToken } = require('../auth');
 const { missingAnswerNumbers } = require('../exam-readiness');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
 const { defaultRankRows, predictRank } = require('../scoring/ranking');
+const { sendEmail } = require('../mailer');
 
 const router = express.Router();
 
@@ -119,6 +120,22 @@ router.post('/', verifyToken, async (req, res) => {
       locked: true,
     };
     await subRef.create(payload);
+
+    // Send Exam Submission Receipt Email
+    if (userData.email) {
+      const examName = examDoc.data().name || examId;
+      const totalScore = (scores.engineering || 0);
+      const mathScore = (scores.math || 0);
+      const physicsScore = (scores.physics || 0);
+      const chemistryScore = (scores.chemistry || 0);
+      const rankText = expectedRank ? `\nYour Expected WBJEE Rank is: ${expectedRank}` : '';
+      
+      sendEmail({
+        to: userData.email,
+        subject: `Exam Submission Receipt: ${examName} - Sankalp Learning`,
+        text: `Hello ${userData.name || 'Student'},\n\nYour submission for "${examName}" has been successfully recorded.\n\nScore Breakdown:\n- Total Score: ${totalScore}\n- Math: ${mathScore}\n- Physics: ${physicsScore}\n- Chemistry: ${chemistryScore}${rankText}\n\nLog in to your dashboard to view detailed analytics and performance insights.\n\nBest of luck,\nSankalp Learning Team`
+      }).catch(err => console.error('Submission receipt email failed:', err));
+    }
 
     res.json({ ok: true, scores, analytics, expectedRank });
   } catch (e) {

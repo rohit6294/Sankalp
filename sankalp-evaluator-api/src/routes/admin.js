@@ -459,6 +459,48 @@ router.put('/settings/mandatory-fields', async (req, res) => {
   }
 });
 
+// Broadcast announcement via email
+router.post('/broadcast-announcement', async (req, res) => {
+  const { title, message, target } = req.body || {};
+  if (!title || !message) return res.status(400).json({ error: 'missing_fields' });
+
+  try {
+    // Determine audience
+    let query = db.collection('users');
+    if (target && target !== 'All Students') {
+      query = query.where('wbjeeYear', '==', target);
+    }
+    
+    const snap = await query.get();
+    const emails = [];
+    snap.forEach(doc => {
+      const data = doc.data();
+      if (data.email) emails.push(data.email);
+    });
+
+    if (emails.length === 0) {
+      return res.json({ ok: true, sentCount: 0 });
+    }
+
+    // Send emails in batches of 50 to avoid overloading SMTP or timing out
+    let sentCount = 0;
+    for (let i = 0; i < emails.length; i += 50) {
+      const batch = emails.slice(i, i + 50);
+      await Promise.all(batch.map(email => sendEmail({
+        to: email,
+        subject: `Announcement: ${title} - Sankalp Learning`,
+        text: `Hello,\n\nA new announcement has been posted on Sankalp Learning:\n\n${title}\n\n${message}\n\nPlease log in to the portal for more details.\n\nBest regards,\nSankalp Learning Team`
+      })));
+      sentCount += batch.length;
+    }
+
+    res.json({ ok: true, sentCount });
+  } catch (e) {
+    console.error('Broadcast failed:', e);
+    res.status(500).json({ error: 'broadcast_failed', message: e.message });
+  }
+});
+
 // ── Reset Request Management (Admin) ─────────────────────────────────────
 
 // Get all pending reset requests

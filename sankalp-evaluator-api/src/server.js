@@ -61,7 +61,21 @@ app.put('/api/profile', verifyToken, async (req, res) => {
   if (bio       !== undefined) update.bio       = String(bio).trim();
   if (!Object.keys(update).length) return res.status(400).json({ error: 'no_fields' });
   try {
-    await db.collection('users').doc(uid).set(update, { merge: true });
+    const userDocRef = db.collection('users').doc(uid);
+    const existingUser = await userDocRef.get();
+    const isFirstTime = !existingUser.exists || !existingUser.data().name;
+
+    await userDocRef.set(update, { merge: true });
+
+    // Send Welcome Email if it is their first time completing the profile
+    if (isFirstTime && update.email) {
+      sendEmail({
+        to: update.email,
+        subject: 'Welcome to Sankalp Learning!',
+        text: `Hello ${update.name || 'Student'},\n\nWelcome to Sankalp Learning!\nWe are thrilled to have you on board.\n\nMake sure to subscribe to our YouTube channel (@sankalp_wbjee12) for updates and tips.\nYou can now take mock tests and view detailed analytics on your dashboard.\n\nBest of luck with your preparation,\nSankalp Learning Team`
+      }).catch(err => console.error('Welcome email failed:', err));
+    }
+
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'profile_save_failed', message: e.message });

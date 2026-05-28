@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 
 const { scoreSubject, scoreSubmission, round2, normalizeStudentAnswer } = require('../src/scoring/calculate');
 const { categoryFor } = require('../src/categories');
-const { predictRank } = require('../src/scoring/ranking');
+const { defaultRankRows, predictRank } = require('../src/scoring/ranking');
+const { missingAnswerNumbers } = require('../src/exam-readiness');
 
 test('categoryFor: math ranges', () => {
   assert.equal(categoryFor('math', 1), 1);
@@ -87,6 +88,14 @@ test('Cat 3: full match gives 2 and counts as correct', () => {
   assert.equal(r.partial, 0);
 });
 
+test('Cat 3: compact answer key ABC is treated as A,B,C', () => {
+  const key = { 66: 'ABC' };
+  const ans = { 66: ['A', 'B', 'C'] };
+  const r = scoreSubject(ans, key, 'math');
+  assert.equal(r.marks, 2);
+  assert.equal(r.correct, 1);
+});
+
 test('Skipped: null and undefined both count as skipped, not wrong', () => {
   const key = { 1: 'A', 2: 'B', 66: 'A,B' };
   const ans = { 1: null, 2: undefined, 66: null };
@@ -160,5 +169,19 @@ test('predictRank: finds the right band', () => {
   assert.deepEqual(predictRank(145, rows), { min: 400, max: 1999 });
   assert.deepEqual(predictRank(100, rows), { min: 2000, max: 4999 });
   assert.deepEqual(predictRank(0, rows), { min: 5000, max: 20000 });
-  assert.equal(predictRank(999, rows), null);
+  assert.deepEqual(predictRank(-10, rows), { min: 5000, max: 20000 });
+  assert.deepEqual(predictRank(999, rows), { min: 1, max: 399 });
+});
+
+test('defaultRankRows: provides engineering and bpharma fallbacks', () => {
+  assert.ok(defaultRankRows('engineering').length > 0);
+  assert.ok(defaultRankRows('bpharma').length > 0);
+});
+
+test('missingAnswerNumbers: detects incomplete keys', () => {
+  const key = {};
+  for (let qNo = 1; qNo <= 75; qNo += 1) key[String(qNo)] = 'A';
+  delete key['17'];
+  delete key['75'];
+  assert.deepEqual(missingAnswerNumbers('math', key), [17, 75]);
 });

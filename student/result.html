@@ -300,7 +300,7 @@ async function loadResult(user) {
     const result = await resultRes.json();
 
     // Populate UI
-    document.getElementById('examTitle').textContent = examId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    document.getElementById('examTitle').textContent = result.examName || examId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     document.getElementById('mathSetLabel').textContent = result.mathSet || result.set || '—';
     document.getElementById('pcSetLabel').textContent = result.physChemSet || result.set || '—';
     document.getElementById('submittedAt').textContent = formatDate(result.submittedAt);

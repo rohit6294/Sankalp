@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+const storage = typeof firebase.storage === 'function' ? firebase.storage() : null;
 
 // Evaluator API base URL (update after deploying to Render)
 window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';

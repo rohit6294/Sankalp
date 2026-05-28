@@ -1130,7 +1130,19 @@ select.input-field {
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
-  .main-content { margin-left: 0; padding-top: 60px; }
+  .main-content {
+    margin-left: 0 !important;
+    padding: 72px 16px 24px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden;
+  }
+  .admin-main {
+    margin-left: 0 !important;
+    padding: 72px 16px 24px !important;
+    max-width: 100% !important;
+    overflow-x: hidden;
+  }
   .menu-toggle { display: flex; }
   .stat-row { grid-template-columns: repeat(2, 1fr); }
   .stat-row .stat-card, .stat-row > .stat {
@@ -1154,6 +1166,106 @@ select.input-field {
   .marquee-track { font-size: 1.1rem; gap: 32px; }
   .marquee-track span::after { margin-left: 32px; }
   .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .container,
+  .container-narrow,
+  .navbar-inner,
+  .masthead-inner {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns:1fr auto"],
+  [style*="grid-template-columns: 1fr auto"],
+  [style*="grid-template-columns:1fr 340px"],
+  [style*="grid-template-columns: 1fr 340px"],
+  [style*="grid-template-columns:1fr 380px"],
+  [style*="grid-template-columns: 1fr 380px"],
+  [style*="grid-template-columns:300px 1fr"],
+  [style*="grid-template-columns: 300px 1fr"],
+  [style*="grid-template-columns:80px 1fr auto"],
+  [style*="grid-template-columns: 80px 1fr auto"],
+  [style*="grid-template-columns:100px 1fr auto"],
+  [style*="grid-template-columns: 100px 1fr auto"],
+  [style*="grid-template-columns:1.4fr 1fr"],
+  [style*="grid-template-columns: 1.4fr 1fr"],
+  [style*="grid-template-columns:2fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns:repeat(2"],
+  [style*="grid-template-columns: repeat(2"],
+  [style*="grid-template-columns:repeat(3"],
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns:repeat(4"],
+  [style*="grid-template-columns: repeat(4"],
+  [style*="grid-template-columns:repeat(5"],
+  [style*="grid-template-columns: repeat(5"],
+  [style*="grid-template-columns:repeat(auto-fit"],
+  [style*="grid-template-columns: repeat(auto-fit"],
+  [style*="grid-template-columns:repeat(auto-fill"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [style*="grid-template-columns: repeat(auto-fill"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [style*="display:flex"][style*="justify-content:space-between"],
+  [style*="display:flex"][style*="align-items:center"],
+  [style*="display: flex"][style*="justify-content: space-between"],
+  [style*="display: flex"][style*="align-items: center"] {
+    flex-wrap: wrap !important;
+  }
+  .marquee {
+    max-width: 100vw;
+    contain: paint;
+  }
+  [style*="max-width:480px"],
+  [style*="max-width:500px"],
+  [style*="max-width:560px"],
+  [style*="max-width:640px"] {
+    max-width: 100% !important;
+  }
+  img,
+  svg,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+    height: auto;
+  }
+  .glass-card,
+  .feature-card,
+  .course-card,
+  .chapter-card,
+  .practice-card,
+  .subject-panel {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .display-hero { font-size: clamp(2.2rem, 16vw, 3rem); }
+  .display-xl { font-size: clamp(2rem, 13vw, 2.7rem); }
+  .display-lg { font-size: clamp(1.65rem, 10vw, 2.2rem); }
+  .btn-primary,
+  .btn-rust,
+  .btn-ink,
+  .btn-secondary,
+  .btn-ghost,
+  .btn-gold {
+    min-height: 44px;
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
+  }
+  .notification {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+    max-width: none;
+  }
+  .footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 /* ==========================================================
@@ -1695,5 +1807,3 @@ code { font-family: var(--font-mono); background: var(--paper-soft); border: 1px
 .set-card-mini.active i {
   color: #FFFFFF !important; /* Ensure icons turn white when selected */
 }
-
-

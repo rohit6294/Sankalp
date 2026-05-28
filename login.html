@@ -305,7 +305,18 @@
       try {
         const cred = await auth.signInWithEmailAndPassword(email, password);
         
-        if (!isHardcodedAdmin) {
+        if (isHardcodedAdmin) {
+          try {
+            await db.collection('users').doc(cred.user.uid).set({
+              name: cred.user.displayName || email.split('@')[0],
+              email,
+              role: 'admin',
+              lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+          } catch (firestoreErr) {
+            console.warn('Admin role sync failed; backend email allowlist still applies.', firestoreErr);
+          }
+        } else {
           // If not in hardcoded admin list, check Firestore role
           try {
             const userDoc = await db.collection('users').doc(cred.user.uid).get();

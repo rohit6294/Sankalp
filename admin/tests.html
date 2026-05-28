@@ -11,6 +11,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../js/firebase-config.js"></script>
+  <script>
+    window.location.replace('evaluators.html');
+  </script>
   <style>
     .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s}
     .admin-main{margin-left:240px;min-height:100vh}
@@ -50,9 +53,19 @@
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
     <div>
       <h1 style="font-size:22px;font-weight:700;font-family:'Poppins',sans-serif">Mock Test Management</h1>
-      <p style="font-size:13px;color:#475569;margin-top:2px">Create, edit and monitor mock tests</p>
+      <p style="font-size:13px;color:#475569;margin-top:2px">Answer-key exams are created in the Evaluators tool</p>
     </div>
-    <button onclick="openCreateModal()" class="btn-primary" style="padding:10px 20px;font-size:13px"><i class="fas fa-plus"></i> Create Test</button>
+    <button onclick="openEvaluatorAdmin()" class="btn-primary" style="padding:10px 20px;font-size:13px"><i class="fas fa-plus"></i> Create Exam</button>
+  </div>
+
+  <div class="glass-card p-6" style="margin-bottom:24px;background:rgba(79,70,229,0.08);border-color:rgba(129,140,248,0.28)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Use Evaluators for answer keys</h2>
+        <p style="font-size:13px;color:#94A3B8;max-width:620px">Create WBJEE exams, add set-wise answer keys, and manage rank tables from the Evaluators admin page.</p>
+      </div>
+      <a href="evaluators.html" class="btn-primary" style="padding:10px 18px;font-size:13px"><i class="fas fa-calculator"></i> Open Evaluators</a>
+    </div>
   </div>
 
   <!-- Stats -->
@@ -134,6 +147,7 @@
 <script>
   function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
   function logout(){auth.signOut()}
+  function openEvaluatorAdmin(){window.location.href='evaluators.html'}
   function openCreateModal(){document.getElementById('createModal').style.display='flex'}
   function closeCreateModal(){document.getElementById('createModal').style.display='none'}
   document.getElementById('createModal').addEventListener('click',e=>{if(e.target===document.getElementById('createModal'))closeCreateModal()})

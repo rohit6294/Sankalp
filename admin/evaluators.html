@@ -31,6 +31,20 @@
     .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
     .toast.show { opacity: 1; }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+    @media (max-width: 700px) {
+      main.main-content { padding: 72px 14px 24px !important; }
+      .tab-btn, .set-tab { flex: 1 1 100%; padding: 10px 12px; letter-spacing: 0.06em; text-align: center; }
+      #keyEditor [style*="display:flex"], #tabExams [style*="display:flex"], #tabRank [style*="display:flex"] { flex-wrap: wrap !important; }
+      .key-grid { grid-template-columns: 42px repeat(4, minmax(42px, 1fr)); gap: 4px; padding: 6px; }
+      .cat-header, .exam-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .exam-row > div:last-child { width: 100%; flex-wrap: wrap; }
+      .exam-row button { flex: 1 1 auto; justify-content: center; }
+      .rank-row-input { grid-template-columns: 1fr 1fr; }
+      .rank-row-input button { grid-column: 1 / -1; justify-content: center; }
+      .modal-overlay { padding: 12px; align-items: flex-start; overflow-y: auto; }
+      .modal-overlay > div { max-width: 100% !important; padding: 20px !important; max-height: calc(100dvh - 24px); overflow-y: auto; }
+      .toast { left: 12px; right: 12px; top: 12px; text-align: center; }
+    }
   </style>
 </head>
 <body>
@@ -335,12 +349,12 @@ async function createExam() {
   try {
     await apiJson('/api/admin/exams', {
       method: 'POST',
-      body: JSON.stringify({ id, name, active: true }),
+      body: JSON.stringify({ id, name }),
     });
     hideCreateExam();
     document.getElementById('newExamId').value = '';
     document.getElementById('newExamName').value = '';
-    toast(`Exam "${name}" created`);
+    toast(`Exam "${name}" created. Add answer keys, then activate it.`);
     await loadExams();
   } catch (error) {
     if (handleAccessError(error)) return;
@@ -365,9 +379,10 @@ function renderExamRows(exams) {
         <div style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono); margin-top:2px;"></div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
+        <span class="badge ${exam.ready ? 'badge-success' : 'badge-warning'}">${exam.ready ? 'Ready' : 'Setup'}</span>
         <span class="badge ${exam.active ? 'badge-success' : 'badge-warning'}">${exam.active ? 'Active' : 'Inactive'}</span>
         <button class="btn-ghost btn-sm" data-action="keys"><i class="fas fa-key"></i> Keys</button>
-        <button class="btn-ghost btn-sm" data-action="toggle"><i class="fas fa-${exam.active ? 'eye-slash' : 'eye'}"></i></button>
+        <button class="btn-ghost btn-sm" data-action="toggle" title="${exam.active ? 'Deactivate' : 'Activate after all answer keys are complete'}"><i class="fas fa-${exam.active ? 'eye-slash' : 'eye'}"></i></button>
       </div>
     `;
     row.children[0].children[0].textContent = exam.name;

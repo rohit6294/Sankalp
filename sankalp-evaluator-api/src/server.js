@@ -11,12 +11,8 @@ const adminRouter = require('./routes/admin');
 
 const app = express();
 
-const allowed = (process.env.ALLOWED_ORIGIN || '*')
-  .split(',')
-  .map((s) => s.trim());
-
 app.use(cors({
-  origin: allowed.includes('*') ? true : allowed,
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH'],
   allowedHeaders: ['Authorization', 'Content-Type'],
 }));

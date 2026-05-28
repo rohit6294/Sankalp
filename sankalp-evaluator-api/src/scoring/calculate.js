@@ -12,7 +12,11 @@ function normalizeStudentAnswer(ans) {
 }
 
 function parseCorrect(correctAns) {
-  return String(correctAns).split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const value = String(correctAns).trim().toUpperCase();
+  if (/^[A-D]{2,4}$/.test(value)) {
+    return Array.from(new Set(value.split(''))).sort();
+  }
+  return value.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
 }
 
 function scoreSubject(studentAns, key, subject) {

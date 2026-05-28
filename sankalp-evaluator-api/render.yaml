@@ -8,8 +8,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
-      - key: ALLOWED_ORIGIN
-        value: https://sankalp-learning-5442f.web.app,https://sankalp-learning-5442f.firebaseapp.com
+      - key: ADMIN_EMAILS
+        value: rohitgupta6294@gmail.com,rahulgupta6294@gmail.com
       - key: FIREBASE_PROJECT_ID
         value: sankalp-learning-5442f
       - key: FIREBASE_SERVICE_ACCOUNT_JSON

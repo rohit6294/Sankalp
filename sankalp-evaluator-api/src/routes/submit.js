@@ -1,23 +1,11 @@
 const express = require('express');
 const { admin, db } = require('../firebase');
 const { verifyToken } = require('../auth');
-const { COUNTS } = require('../categories');
+const { missingAnswerNumbers } = require('../exam-readiness');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
-const { predictRank } = require('../scoring/ranking');
+const { defaultRankRows, predictRank } = require('../scoring/ranking');
 
 const router = express.Router();
-
-function validateAnswerKeyBlock(subject, keyMap) {
-  const missing = [];
-  const count = COUNTS[subject] || 0;
-  for (let qNo = 1; qNo <= count; qNo += 1) {
-    const value = keyMap ? keyMap[String(qNo)] : undefined;
-    if (typeof value !== 'string' || !value.trim()) {
-      missing.push(qNo);
-    }
-  }
-  return missing;
-}
 
 router.post('/', verifyToken, async (req, res) => {
   const { examId, mathSet, physChemSet, answers } = req.body || {};
@@ -39,9 +27,15 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(409).json({ error: 'already_submitted' });
     }
 
+    const examRef = db.collection('exams').doc(examId);
+    const examDoc = await examRef.get();
+    if (!examDoc.exists || examDoc.data().active !== true) {
+      return res.status(404).json({ error: 'exam_not_available' });
+    }
+
     // Fetch the two separate answer key documents
-    const mathKeyRef = db.collection('exams').doc(examId).collection('answerKeys').doc(`math_${mathSet}`);
-    const physChemKeyRef = db.collection('exams').doc(examId).collection('answerKeys').doc(`physChem_${physChemSet}`);
+    const mathKeyRef = examRef.collection('answerKeys').doc(`math_${mathSet}`);
+    const physChemKeyRef = examRef.collection('answerKeys').doc(`physChem_${physChemSet}`);
 
     const [mathKeyDoc, physChemKeyDoc] = await Promise.all([
       mathKeyRef.get(),
@@ -61,9 +55,9 @@ router.post('/', verifyToken, async (req, res) => {
       chemistry: physChemData.chemistry || {},
     };
 
-    const missingMath = validateAnswerKeyBlock('math', keys.math);
-    const missingPhysics = validateAnswerKeyBlock('physics', keys.physics);
-    const missingChemistry = validateAnswerKeyBlock('chemistry', keys.chemistry);
+    const missingMath = missingAnswerNumbers('math', keys.math);
+    const missingPhysics = missingAnswerNumbers('physics', keys.physics);
+    const missingChemistry = missingAnswerNumbers('chemistry', keys.chemistry);
     if (missingMath.length || missingPhysics.length || missingChemistry.length) {
       const problems = [];
       if (missingMath.length) problems.push(`math missing ${missingMath.length}`);
@@ -82,26 +76,25 @@ router.post('/', verifyToken, async (req, res) => {
     scores.bpharma = round2(scores.physics + scores.chemistry);
 
     // Fetch both rank tables
-    const engRankRef = db.collection('exams').doc(examId).collection('rankTable').doc('engineering');
-    const bphRankRef = db.collection('exams').doc(examId).collection('rankTable').doc('bpharma');
+    const engRankRef = examRef.collection('rankTable').doc('engineering');
+    const bphRankRef = examRef.collection('rankTable').doc('bpharma');
 
     const [engRankDoc, bphRankDoc] = await Promise.all([
       engRankRef.get(),
       bphRankRef.get(),
     ]);
 
-    let expectedRank = { engineering: null, bpharma: null };
-
-    if (engRankDoc.exists) {
-      expectedRank.engineering = predictRank(scores.engineering, engRankDoc.data().rows || []);
-    }
-    if (bphRankDoc.exists) {
-      expectedRank.bpharma = predictRank(scores.bpharma, bphRankDoc.data().rows || []);
-    }
+    const engineeringRows = engRankDoc.exists ? (engRankDoc.data().rows || []) : defaultRankRows('engineering');
+    const bpharmaRows = bphRankDoc.exists ? (bphRankDoc.data().rows || []) : defaultRankRows('bpharma');
+    const expectedRank = {
+      engineering: predictRank(scores.engineering, engineeringRows),
+      bpharma: predictRank(scores.bpharma, bpharmaRows),
+    };
 
     const payload = {
       userId: uid,
       examId,
+      examName: examDoc.data().name || examId,
       mathSet,
       physChemSet,
       answers,

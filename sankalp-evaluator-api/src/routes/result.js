@@ -11,8 +11,11 @@ router.get('/:examId', verifyToken, async (req, res) => {
     const snap = await db.collection('submissions').doc(`${uid}_${examId}`).get();
     if (!snap.exists) return res.status(404).json({ error: 'no_submission' });
     const data = snap.data();
+    const examSnap = await db.collection('exams').doc(examId).get();
+    const examData = examSnap.exists ? examSnap.data() : {};
     res.json({
       examId,
+      examName: data.examName || examData.name || examId,
       set: data.set || data.mathSet,
       mathSet: data.mathSet,
       physChemSet: data.physChemSet,

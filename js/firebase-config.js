@@ -18,9 +18,9 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
 
 // ===== Global Profile Validation Checker for Student Portal =====
 (function() {
-  const path = window.location.pathname;
+  const path = window.location.pathname.toLowerCase();
   if (path.includes('/student/')) {
-    const isProfilePage = path.includes('/student/profile.html');
+    const isProfilePage = path.includes('/student/profile');
 
     // Helper to render locking form
     function showProfileLockOverlay(missingFields, missingFieldKeys, uid, currentDisplayName) {
@@ -110,7 +110,7 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
             <select id="lock-wbjeeYear" class="input-field" style="width:100%; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #E2E8F0; font-size: 13px;" required>
               <option value="">Select Year</option>
               <option value="2025">WBJEE 2025</option>
-              <option value="2026">WBJEE 2026</option>
+              <option value="2026" selected>WBJEE 2026</option>
               <option value="2027">WBJEE 2027</option>
             </select>
           </div>
@@ -223,20 +223,14 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
       try {
         // 1. Fetch mandatory fields from settings
         let mandatoryFields = null;
-        const cached = sessionStorage.getItem('mandatory_profile_fields');
-        if (cached) {
-          mandatoryFields = JSON.parse(cached);
-        } else {
-          const token = await user.getIdToken();
-          const baseUrl = window.EVALUATOR_API || 'http://localhost:3000';
-          const res = await fetch(`${baseUrl}/api/exams/settings/mandatory-fields`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            mandatoryFields = data.settings || {};
-            sessionStorage.setItem('mandatory_profile_fields', JSON.stringify(mandatoryFields));
-          }
+        const token = await user.getIdToken();
+        const baseUrl = window.EVALUATOR_API || 'http://localhost:3000';
+        const res = await fetch(`${baseUrl}/api/exams/settings/mandatory-fields`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          mandatoryFields = data.settings || {};
         }
         
         if (!mandatoryFields) return;

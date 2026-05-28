@@ -243,9 +243,14 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         const missingFields = [];
         const missingFieldKeys = [];
         
-        if (mandatoryFields.name && (!userData.firstName || !userData.lastName || !userData.firstName.trim() || !userData.lastName.trim())) {
-          missingFields.push('Full Name');
-          missingFieldKeys.push('name');
+        if (mandatoryFields.name) {
+          const hasName = (userData.name && userData.name.trim()) ||
+                          (userData.firstName && userData.firstName.trim()) ||
+                          (user.displayName && user.displayName.trim());
+          if (!hasName) {
+            missingFields.push('Full Name');
+            missingFieldKeys.push('name');
+          }
         }
         if (mandatoryFields.phone && (!userData.phone || !userData.phone.trim())) {
           missingFields.push('Phone Number');

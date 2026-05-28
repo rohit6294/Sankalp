@@ -939,22 +939,6 @@ async function saveRankTable() {
   }
 }
 
-async function loadUsersMap() {
-  try {
-    const snap = await db.collection('users').get();
-    allUsersMap = {};
-    snap.forEach((doc) => {
-      const data = doc.data() || {};
-      allUsersMap[doc.id] = {
-        name: data.name || data.displayName || 'Unknown',
-        email: data.email || '—',
-      };
-    });
-  } catch (e) {
-    console.error('Error loading users map:', e);
-  }
-}
-
 async function populateSubmissionsExamSelect() {
   try {
     const { exams } = await apiJson('/api/admin/exams');
@@ -987,27 +971,9 @@ async function loadSubmissions() {
 
   const examIdFilter = document.getElementById('subExamSelect').value;
   try {
-    let query = db.collection('submissions');
-    if (examIdFilter) {
-      query = query.where('examId', '==', examIdFilter);
-    }
-    const snap = await query.get();
-    
-    // Refresh user map just to be sure we have latest user profiles
-    await loadUsersMap();
-
-    allSubmissions = [];
-    snap.forEach((doc) => {
-      const data = doc.data() || {};
-      const user = allUsersMap[data.userId] || { name: 'Unknown Student', email: data.userId || '—' };
-      allSubmissions.push({
-        id: doc.id,
-        ...data,
-        studentName: user.name,
-        studentEmail: user.email,
-      });
-    });
-
+    const path = `/api/admin/submissions` + (examIdFilter ? `?examId=${encodeURIComponent(examIdFilter)}` : '');
+    const { submissions } = await apiJson(path);
+    allSubmissions = submissions || [];
     filterAndRenderSubmissions();
   } catch (error) {
     console.error('Error loading submissions:', error);
@@ -1404,7 +1370,9 @@ async function resetSubmission(subId, studentName) {
   }
 
   try {
-    await db.collection('submissions').doc(subId).delete();
+    await apiJson(`/api/admin/submissions/${encodeURIComponent(subId)}`, {
+      method: 'DELETE',
+    });
     toast(`Submission for ${studentName} successfully reset!`);
     await loadSubmissions();
   } catch (error) {
@@ -1417,7 +1385,9 @@ async function resetSubmissionFromModal() {
   const sub = currentModalSub;
   if (confirm(`Are you absolutely sure you want to reset the submission for ${sub.studentName}?\nThis will permanently delete their OMR response and score sheet so they can submit again.`)) {
     try {
-      await db.collection('submissions').doc(sub.id).delete();
+      await apiJson(`/api/admin/submissions/${encodeURIComponent(sub.id)}`, {
+        method: 'DELETE',
+      });
       toast(`Submission for ${sub.studentName} successfully reset!`);
       hideSubmissionModal();
       await loadSubmissions();
@@ -1447,7 +1417,7 @@ function exportSubmissionsCSV() {
     let dateStr = '—';
     if (sub.submittedAt) {
       try {
-        const d = sub.submittedAt.toDate ? sub.submittedAt.toDate() : new Date(sub.submittedAt);
+        const d = new Date(sub.submittedAt);
         dateStr = d.toISOString();
       } catch (e) {
         dateStr = '—';
@@ -1493,7 +1463,6 @@ auth.onAuthStateChanged(async (user) => {
   }
   currentUser = user;
   currentToken = null;
-  await loadUsersMap();
   await loadExams();
 });
 </script>

@@ -266,4 +266,59 @@ router.put('/exams/:examId/rank-table/:type', async (req, res) => {
   }
 });
 
+// Get all student submissions with joined user profile details
+router.get('/submissions', async (req, res) => {
+  const { examId } = req.query;
+  try {
+    let query = db.collection('submissions');
+    if (examId) {
+      query = query.where('examId', '==', examId);
+    }
+    const subSnap = await query.get();
+    const submissions = [];
+    subSnap.forEach((doc) => {
+      const data = doc.data() || {};
+      submissions.push({
+        id: doc.id,
+        ...data,
+        submittedAt: normalizeTimestamp(data.submittedAt),
+      });
+    });
+
+    const userSnap = await db.collection('users').get();
+    const usersMap = {};
+    userSnap.forEach((doc) => {
+      const data = doc.data() || {};
+      usersMap[doc.id] = {
+        name: data.name || data.displayName || 'Unknown',
+        email: data.email || '—',
+      };
+    });
+
+    const joined = submissions.map((sub) => {
+      const user = usersMap[sub.userId] || { name: 'Unknown Student', email: sub.userId || '—' };
+      return {
+        ...sub,
+        studentName: user.name,
+        studentEmail: user.email,
+      };
+    });
+
+    res.json({ submissions: joined });
+  } catch (e) {
+    res.status(500).json({ error: 'submissions_load_failed', message: e.message });
+  }
+});
+
+// Delete a submission (Reset attempt)
+router.delete('/submissions/:subId', async (req, res) => {
+  const { subId } = req.params;
+  try {
+    await db.collection('submissions').doc(subId).delete();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'submission_delete_failed', message: e.message });
+  }
+});
+
 module.exports = router;

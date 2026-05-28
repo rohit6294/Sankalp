@@ -243,8 +243,7 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         
         // 2. Fetch student document
         const userDoc = await db.collection('users').doc(user.uid).get();
-        if (!userDoc.exists) return;
-        const userData = userDoc.data() || {};
+        const userData = userDoc.exists ? (userDoc.data() || {}) : {};
         
         // 3. Match missing fields
         const missingFields = [];

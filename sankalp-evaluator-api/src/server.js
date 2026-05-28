@@ -13,7 +13,7 @@ const app = express();
 
 app.use(cors({
   origin: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Authorization', 'Content-Type'],
 }));
 app.use(express.json({ limit: '256kb' }));

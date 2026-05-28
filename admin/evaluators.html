@@ -590,29 +590,29 @@ function switchMainTab(tab, btn) {
 
 async function loadMandatoryFields() {
   try {
-    const doc = await db.collection('settings').doc('mandatory_fields').get();
-    if (doc.exists) {
-      const data = doc.data();
-      document.getElementById('m_name').checked = !!data.name;
-      document.getElementById('m_phone').checked = !!data.phone;
-      document.getElementById('m_gender').checked = !!data.gender;
-      document.getElementById('m_caste').checked = !!data.caste;
-      document.getElementById('m_tfw').checked = !!data.tfw;
-      document.getElementById('m_wbjeeYear').checked = !!data.wbjeeYear;
-    }
+    const data = await apiJson('/api/admin/settings/mandatory-fields');
+    const settings = data.settings || {};
+    document.getElementById('m_name').checked = !!settings.name;
+    document.getElementById('m_phone').checked = !!settings.phone;
+    document.getElementById('m_gender').checked = !!settings.gender;
+    document.getElementById('m_caste').checked = !!settings.caste;
+    document.getElementById('m_tfw').checked = !!settings.tfw;
+    document.getElementById('m_wbjeeYear').checked = !!settings.wbjeeYear;
   } catch (err) {
-    console.error("Error loading mandatory fields:", err);
+    console.error("Error loading mandatory fields via REST API:", err);
   }
 }
 
 async function saveMandatoryField(field, val) {
   try {
-    await db.collection('settings').doc('mandatory_fields').set({
-      [field]: val
-    }, { merge: true });
+    await apiJson('/api/admin/settings/mandatory-fields', {
+      method: 'PUT',
+      body: JSON.stringify({ [field]: val })
+    });
     toast(`Mandatory field "${field}" ${val ? 'enabled' : 'disabled'}!`);
   } catch (err) {
     toast(`Error: ${err.message}`);
+    document.getElementById(`m_${field}`).checked = !val; // Revert checkbox state
   }
 }
 

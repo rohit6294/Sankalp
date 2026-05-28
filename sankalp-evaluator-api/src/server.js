@@ -63,6 +63,53 @@ app.put('/api/profile', verifyToken, async (req, res) => {
   }
 });
 
+// ── Reset Submission Request (Student → Admin) ──────────────────────────
+
+// Student sends a reset request
+app.post('/api/submit/reset-request', verifyToken, async (req, res) => {
+  const uid = req.user.uid;
+  const { examId, reason } = req.body || {};
+  if (!examId) return res.status(400).json({ error: 'missing_examId' });
+
+  const docId = `${uid}_${examId}`;
+  try {
+    const subDoc = await db.collection('submissions').doc(docId).get();
+    if (!subDoc.exists) return res.status(404).json({ error: 'no_submission' });
+
+    // Check if already requested
+    const existing = await db.collection('resetRequests').doc(docId).get();
+    if (existing.exists && existing.data().status === 'pending') {
+      return res.status(409).json({ error: 'already_requested' });
+    }
+
+    await db.collection('resetRequests').doc(docId).set({
+      userId: uid,
+      examId,
+      reason: reason ? String(reason).trim().substring(0, 500) : '',
+      status: 'pending',
+      requestedAt: require('firebase-admin').firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'reset_request_failed', message: e.message });
+  }
+});
+
+// Student checks their reset request status
+app.get('/api/submit/reset-status/:examId', verifyToken, async (req, res) => {
+  const uid = req.user.uid;
+  const docId = `${uid}_${req.params.examId}`;
+  try {
+    const doc = await db.collection('resetRequests').doc(docId).get();
+    if (!doc.exists) return res.json({ requested: false });
+    const data = doc.data();
+    res.json({ requested: true, status: data.status, reason: data.reason || '' });
+  } catch (e) {
+    res.status(500).json({ error: 'status_check_failed', message: e.message });
+  }
+});
+
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {
   console.log(`sankalp-evaluator-api listening on :${port}`);

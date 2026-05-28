@@ -1181,8 +1181,8 @@ function filterAndRenderSubmissions() {
     if (sortBy === 'physics') return (scoresB.physics || 0) - (scoresA.physics || 0);
     if (sortBy === 'chemistry') return (scoresB.chemistry || 0) - (scoresA.chemistry || 0);
     if (sortBy === 'date') {
-      const tA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : 0;
-      const tB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : 0;
+      const tA = typeof a.submittedAt === 'number' ? a.submittedAt : 0;
+      const tB = typeof b.submittedAt === 'number' ? b.submittedAt : 0;
       return tB - tA;
     }
     return 0;
@@ -1239,7 +1239,7 @@ function filterAndRenderSubmissions() {
     let dateStr = '—';
     if (sub.submittedAt) {
       try {
-        const d = sub.submittedAt.toDate ? sub.submittedAt.toDate() : new Date(sub.submittedAt);
+        const d = new Date(sub.submittedAt);
         dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       } catch (e) {
         dateStr = '—';

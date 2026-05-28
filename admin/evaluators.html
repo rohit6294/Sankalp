@@ -628,7 +628,10 @@ function switchMainTab(tab, btn) {
   document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
 
   if (tab === 'submissions') {
-    loadSubmissions();
+    // Cache data: Only load if it's the first time, to save database reads!
+    if (allSubmissions.length === 0) {
+      loadSubmissions();
+    }
   }
 }
 

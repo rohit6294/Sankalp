@@ -12,29 +12,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../js/firebase-config.js"></script>
-  <style>
-    .tab-btn { padding: 12px 24px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--font-sans); }
-    .tab-btn.active { background: var(--ink); color: var(--paper); }
-    .key-grid { display: grid; grid-template-columns: 56px repeat(4, 1fr); gap: 6px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--rule); font-size: 13px; }
-    .key-grid .qno { font-family: var(--font-mono); font-size: 12px; color: var(--ink-mute); font-weight: 700; }
-    .key-opt { padding: 8px 4px; border: 1px solid var(--rule); cursor: pointer; text-align: center; font-weight: 700; font-family: var(--font-mono); font-size: 12px; user-select: none; background: var(--paper); transition: all 0.1s; }
-    .key-opt:hover { border-color: var(--ink); }
-    .key-opt.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-    .key-opt.multi.selected { background: var(--forest); color: var(--paper); border-color: var(--forest); }
-    .cat-header { background: var(--paper-soft); border: 1px solid var(--ink); padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
-    .set-tab { padding: 10px 18px; border: 1px solid var(--ink); cursor: pointer; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--paper); }
-    .set-tab.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
-    .rank-row-input { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 48px; gap: 8px; align-items: center; padding: 6px 0; }
-    .rank-row-input input { padding: 8px; border: 1px solid var(--rule); font-family: var(--font-mono); font-size: 13px; background: var(--paper); }
-    .exam-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--rule); }
-    .exam-row:hover { background: var(--paper-soft); }
-    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
-    .toast.show { opacity: 1; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { padding: 12px 14px; font-size: 11px; font-weight: 700; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--ink); text-align: left; }
+    .tbl td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--rule); vertical-align: middle; color: var(--ink-soft); }
+    .tbl tr:hover td { background: var(--paper-soft); }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+    .badge-sub { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge-sub-primary { background: rgba(10, 116, 245, 0.1); color: var(--rust); }
+    .badge-sub-success { background: rgba(16, 185, 129, 0.1); color: var(--forest); }
+    .badge-sub-warning { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
+    .sub-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .sub-detail-card { border: 1px solid var(--rule); background: var(--paper-deep); padding: 14px; border-radius: 4px; }
     @media (max-width: 700px) {
       main.main-content { padding: 72px 14px 24px !important; }
       .tab-btn, .set-tab { flex: 1 1 100%; padding: 10px 12px; letter-spacing: 0.06em; text-align: center; }
-      #keyEditor [style*="display:flex"], #tabExams [style*="display:flex"], #tabRank [style*="display:flex"] { flex-wrap: wrap !important; }
+      #keyEditor [style*="display:flex"], #tabExams [style*="display:flex"], #tabRank [style*="display:flex"], #tabSubmissions [style*="display:flex"] { flex-wrap: wrap !important; }
       .key-grid { grid-template-columns: 42px repeat(4, minmax(42px, 1fr)); gap: 4px; padding: 6px; }
       .cat-header, .exam-row { flex-direction: column; align-items: flex-start; gap: 10px; }
       .exam-row > div:last-child { width: 100%; flex-wrap: wrap; }
@@ -63,8 +55,19 @@
     </a>
   </div>
   <nav style="padding:8px 0;">
-    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Overview</div>
+    <a href="index.html" class="sidebar-link"><i class="fas fa-chart-pie" style="width:18px"></i> Dashboard</a>
+    <a href="students.html" class="sidebar-link"><i class="fas fa-users" style="width:18px"></i> Students</a>
+    <a href="content.html" class="sidebar-link"><i class="fas fa-book" style="width:18px"></i> Content</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> Tests</a>
     <a href="evaluators.html" class="sidebar-link active"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="bookings.html" class="sidebar-link"><i class="fas fa-calendar-check" style="width:18px"></i> Bookings</a>
+    <a href="announcements.html" class="sidebar-link"><i class="fas fa-bullhorn" style="width:18px"></i> Announcements</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Revenue</div>
+    <a href="payments.html" class="sidebar-link"><i class="fas fa-rupee-sign" style="width:18px"></i> Payments</a>
+    <a href="analytics.html" class="sidebar-link"><i class="fas fa-chart-line" style="width:18px"></i> Analytics</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">System</div>
+    <a href="settings.html" class="sidebar-link"><i class="fas fa-cog" style="width:18px"></i> Settings</a>
     <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
 </aside>
@@ -81,6 +84,7 @@
   <div style="display:flex; gap:0;">
     <button class="tab-btn active" data-tab="exams" onclick="switchMainTab('exams', this)">Exams & Answer Keys</button>
     <button class="tab-btn" data-tab="rank" onclick="switchMainTab('rank', this)">Rank Prediction</button>
+    <button class="tab-btn" data-tab="submissions" onclick="switchMainTab('submissions', this)">Submissions & Leaderboard</button>
   </div>
 
   <div id="tabExams" style="border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
@@ -161,6 +165,81 @@
       </div>
     </div>
   </div>
+
+  <div id="tabSubmissions" style="display:none; border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
+     <!-- Statistics Overview -->
+     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
+       <div style="border:1px solid var(--ink); background:var(--paper); padding:16px; border-radius:4px;">
+         <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Total Submissions</div>
+         <div id="subStatTotal" style="font-family:var(--font-display); font-weight:800; font-size:24px; margin-top:6px; color:var(--ink);">0</div>
+       </div>
+       <div style="border:1px solid var(--ink); background:var(--paper); padding:16px; border-radius:4px;">
+         <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Avg Engineering Score</div>
+         <div id="subStatAvgEng" style="font-family:var(--font-display); font-weight:800; font-size:24px; margin-top:6px; color:var(--ink);">0.0</div>
+       </div>
+       <div style="border:1px solid var(--ink); background:var(--paper); padding:16px; border-radius:4px;">
+         <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Highest Engineering Score</div>
+         <div id="subStatMaxEng" style="font-family:var(--font-display); font-weight:800; font-size:24px; margin-top:6px; color:var(--forest);">0.0</div>
+       </div>
+       <div style="border:1px solid var(--ink); background:var(--paper); padding:16px; border-radius:4px;">
+         <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Avg B-Pharma Score</div>
+         <div id="subStatAvgBph" style="font-family:var(--font-display); font-weight:800; font-size:24px; margin-top:6px; color:var(--ink);">0.0</div>
+       </div>
+     </div>
+
+     <!-- Filters Row -->
+     <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+       <div style="flex:1; min-width:200px; position:relative;">
+         <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:13px; pointer-events:none;"></i>
+         <input type="text" id="subSearchInput" placeholder="Search student name or email..." oninput="filterAndRenderSubmissions()" style="width:100%; padding:10px 12px 10px 34px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+       </div>
+       <div>
+         <select id="subExamSelect" onchange="loadSubmissions()" class="input-field" style="margin-bottom:0; width:200px;">
+           <option value="">- All Exams -</option>
+         </select>
+       </div>
+       <div>
+         <select id="subSortBy" onchange="filterAndRenderSubmissions()" class="input-field" style="margin-bottom:0; width:220px;">
+           <option value="eng">Sort: Engineering Score</option>
+           <option value="bph">Sort: B-Pharma Score</option>
+           <option value="math">Sort: Math Score</option>
+           <option value="physics">Sort: Physics Score</option>
+           <option value="chemistry">Sort: Chemistry Score</option>
+           <option value="date">Sort: Submission Date</option>
+         </select>
+       </div>
+       <button class="btn-ghost btn-sm" onclick="exportSubmissionsCSV()" style="height:42px;"><i class="fas fa-download"></i> Export CSV</button>
+     </div>
+
+     <!-- Table Wrapper -->
+     <div style="border:1px solid var(--ink); background:var(--paper); overflow-x:auto;">
+       <table class="tbl" style="width:100%;">
+         <thead>
+           <tr style="background:var(--paper-soft);">
+             <th style="width:60px;">Rank</th>
+             <th>Student</th>
+             <th>Exam</th>
+             <th>Sets</th>
+             <th style="text-align:right;">Math</th>
+             <th style="text-align:right;">Physics</th>
+             <th style="text-align:right;">Chemistry</th>
+             <th style="text-align:right;">Eng Total</th>
+             <th style="text-align:right;">Bph Total</th>
+             <th style="text-align:center;">Predicted Ranks</th>
+             <th>Submitted</th>
+             <th style="width:110px; text-align:center;">Actions</th>
+           </tr>
+         </thead>
+         <tbody id="submissionsTableBody">
+           <tr>
+             <td colspan="12" style="text-align:center; padding:48px; color:var(--ink-mute);">
+               <i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Loading student submissions...
+             </td>
+           </tr>
+         </tbody>
+       </table>
+     </div>
+  </div>
 </main>
 
 <div id="createExamModal" class="modal-overlay">
@@ -196,6 +275,94 @@
   </div>
 </div>
 
+<div id="viewSubmissionModal" class="modal-overlay">
+  <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:760px; width:100%; max-height:90vh; overflow-y:auto; position:relative;">
+    <button onclick="hideSubmissionModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:18px; color:var(--ink-mute); cursor:pointer; font-weight:700;">✕</button>
+    <div class="eyebrow" style="margin-bottom:4px;">Submission Detailed Report</div>
+    <h2 class="display-md" id="modalStudentName" style="margin-bottom:2px;">Student Name</h2>
+    <p style="font-size:12px; color:var(--ink-mute); margin-bottom:24px;" id="modalStudentEmail">email@example.com</p>
+
+    <!-- Details Summary Grid -->
+    <div class="sub-detail-grid">
+      <div class="sub-detail-card">
+        <div class="eyebrow" style="font-size:9px; color:var(--ink-mute);">Exam & Sets</div>
+        <div style="font-weight:700; font-size:14px; margin-top:4px;" id="modalExamName">-</div>
+        <div style="font-size:12px; color:var(--ink-mute); margin-top:2px;" id="modalSets">-</div>
+      </div>
+      <div class="sub-detail-card">
+        <div class="eyebrow" style="font-size:9px; color:var(--ink-mute);">Engineering Score & Rank</div>
+        <div style="font-weight:700; font-size:18px; margin-top:4px; color:var(--rust);" id="modalEngScore">0.0</div>
+        <div style="font-size:11px; color:var(--ink-soft); margin-top:2px;" id="modalEngRank">-</div>
+      </div>
+      <div class="sub-detail-card">
+        <div class="eyebrow" style="font-size:9px; color:var(--ink-mute);">B-Pharma Score & Rank</div>
+        <div style="font-weight:700; font-size:18px; margin-top:4px; color:var(--rust);" id="modalBphScore">0.0</div>
+        <div style="font-size:11px; color:var(--ink-soft); margin-top:2px;" id="modalBphRank">-</div>
+      </div>
+      <div class="sub-detail-card">
+        <div class="eyebrow" style="font-size:9px; color:var(--ink-mute);">Overall Accuracy</div>
+        <div style="font-weight:700; font-size:18px; margin-top:4px;" id="modalAccuracy">0.0%</div>
+        <div style="font-size:11px; color:var(--ink-mute); margin-top:2px;" id="modalAnsweredRatio">-</div>
+      </div>
+    </div>
+
+    <!-- Subject Breakdowns -->
+    <h3 style="font-family:var(--font-display); font-weight:700; font-size:14px; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink);">Subject Metrics</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:24px;">
+      <!-- Math -->
+      <div style="border:1px solid var(--ink); padding:12px; background:var(--paper-soft);">
+        <div style="font-weight:700; font-size:13px; border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:8px; display:flex; justify-content:space-between;">
+          <span>Mathematics</span>
+          <span style="color:var(--rust);" id="modalMathScore">0.0</span>
+        </div>
+        <div style="font-size:12px; display:flex; flex-direction:column; gap:4px; color:var(--ink-soft);" id="modalMathStats">
+          <div>Correct: <span style="font-weight:700; color:var(--forest);">0</span></div>
+          <div>Incorrect: <span style="font-weight:700; color:var(--danger);">0</span></div>
+          <div>Skipped: <span style="font-weight:700;">0</span></div>
+        </div>
+      </div>
+      <!-- Physics -->
+      <div style="border:1px solid var(--ink); padding:12px; background:var(--paper-soft);">
+        <div style="font-weight:700; font-size:13px; border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:8px; display:flex; justify-content:space-between;">
+          <span>Physics</span>
+          <span style="color:var(--rust);" id="modalPhysScore">0.0</span>
+        </div>
+        <div style="font-size:12px; display:flex; flex-direction:column; gap:4px; color:var(--ink-soft);" id="modalPhysStats">
+          <div>Correct: <span style="font-weight:700; color:var(--forest);">0</span></div>
+          <div>Incorrect: <span style="font-weight:700; color:var(--danger);">0</span></div>
+          <div>Skipped: <span style="font-weight:700;">0</span></div>
+        </div>
+      </div>
+      <!-- Chemistry -->
+      <div style="border:1px solid var(--ink); padding:12px; background:var(--paper-soft);">
+        <div style="font-weight:700; font-size:13px; border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:8px; display:flex; justify-content:space-between;">
+          <span>Chemistry</span>
+          <span style="color:var(--rust);" id="modalChemScore">0.0</span>
+        </div>
+        <div style="font-size:12px; display:flex; flex-direction:column; gap:4px; color:var(--ink-soft);" id="modalChemStats">
+          <div>Correct: <span style="font-weight:700; color:var(--forest);">0</span></div>
+          <div>Incorrect: <span style="font-weight:700; color:var(--danger);">0</span></div>
+          <div>Skipped: <span style="font-weight:700;">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OMR Response Sheet grid view -->
+    <h3 style="font-family:var(--font-display); font-weight:700; font-size:14px; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink);">Answers & Responses</h3>
+    <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none;">
+      <button class="tab-btn active" id="modalPaperMathBtn" onclick="switchModalPaper('math')" style="font-size:11px; padding:10px 16px;">Math Responses</button>
+      <button class="tab-btn" id="modalPaperPhysBtn" onclick="switchModalPaper('physics')" style="font-size:11px; padding:10px 16px;">Physics Responses</button>
+      <button class="tab-btn" id="modalPaperChemBtn" onclick="switchModalPaper('chemistry')" style="font-size:11px; padding:10px 16px;">Chemistry Responses</button>
+    </div>
+    <div style="border:1px solid var(--ink); max-height:280px; overflow-y:auto; background:var(--paper); padding:8px;" id="modalAnswersGrid"></div>
+
+    <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:12px;">
+      <button class="btn-ghost" onclick="hideSubmissionModal()">Close Report</button>
+      <button class="btn-rust" id="modalResetBtn" style="background:var(--danger); border-color:var(--danger); color: white;" onclick="resetSubmissionFromModal()"><i class="fas fa-trash-can" style="margin-right:6px;"></i> Reset Submission</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -219,6 +386,12 @@ let keyData = {};
 let rankRows = [];
 let currentUser = null;
 let currentToken = null;
+
+let allSubmissions = [];
+let filteredSubmissions = [];
+let allUsersMap = {};
+let currentModalSub = null;
+let currentModalPaper = 'math';
 
 function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');
@@ -326,6 +499,11 @@ function switchMainTab(tab, btn) {
   btn.classList.add('active');
   document.getElementById('tabExams').style.display = tab === 'exams' ? 'block' : 'none';
   document.getElementById('tabRank').style.display = tab === 'rank' ? 'block' : 'none';
+  document.getElementById('tabSubmissions').style.display = tab === 'submissions' ? 'block' : 'none';
+
+  if (tab === 'submissions') {
+    loadSubmissions();
+  }
 }
 
 function showCreateExam() {
@@ -412,6 +590,7 @@ async function loadExams() {
       return;
     }
     renderExamRows(exams);
+    await populateSubmissionsExamSelect();
   } catch (error) {
     if (handleAccessError(error)) return;
     document.getElementById('examCount').textContent = '0 exams';
@@ -748,6 +927,553 @@ async function saveRankTable() {
   }
 }
 
+async function loadUsersMap() {
+  try {
+    const snap = await db.collection('users').get();
+    allUsersMap = {};
+    snap.forEach((doc) => {
+      const data = doc.data() || {};
+      allUsersMap[doc.id] = {
+        name: data.name || data.displayName || 'Unknown',
+        email: data.email || '—',
+      };
+    });
+  } catch (e) {
+    console.error('Error loading users map:', e);
+  }
+}
+
+async function populateSubmissionsExamSelect() {
+  try {
+    const { exams } = await apiJson('/api/admin/exams');
+    const select = document.getElementById('subExamSelect');
+    const currentSel = select.value;
+    select.innerHTML = '<option value="">- All Exams -</option>';
+    exams.forEach((exam) => {
+      const opt = document.createElement('option');
+      opt.value = exam.id;
+      opt.textContent = exam.name;
+      select.appendChild(opt);
+    });
+    if (exams.some((exam) => exam.id === currentSel)) {
+      select.value = currentSel;
+    }
+  } catch (e) {
+    console.error('Error populating submissions exam select:', e);
+  }
+}
+
+async function loadSubmissions() {
+  const tableBody = document.getElementById('submissionsTableBody');
+  tableBody.innerHTML = `
+    <tr>
+      <td colspan="12" style="text-align:center; padding:48px; color:var(--ink-mute);">
+        <i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Loading student submissions...
+      </td>
+    </tr>
+  `;
+
+  const examIdFilter = document.getElementById('subExamSelect').value;
+  try {
+    let query = db.collection('submissions');
+    if (examIdFilter) {
+      query = query.where('examId', '==', examIdFilter);
+    }
+    const snap = await query.get();
+    
+    // Refresh user map just to be sure we have latest user profiles
+    await loadUsersMap();
+
+    allSubmissions = [];
+    snap.forEach((doc) => {
+      const data = doc.data() || {};
+      const user = allUsersMap[data.userId] || { name: 'Unknown Student', email: data.userId || '—' };
+      allSubmissions.push({
+        id: doc.id,
+        ...data,
+        studentName: user.name,
+        studentEmail: user.email,
+      });
+    });
+
+    filterAndRenderSubmissions();
+  } catch (error) {
+    console.error('Error loading submissions:', error);
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="12" style="text-align:center; padding:48px; color:var(--danger); font-weight:700;">
+          <i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i> Failed to load submissions: ${error.message}
+        </td>
+      </tr>
+    `;
+    toast(`Error: ${error.message}`);
+  }
+}
+
+function updateSubmissionsStats(subs) {
+  const total = subs.length;
+  document.getElementById('subStatTotal').textContent = total;
+
+  if (total === 0) {
+    document.getElementById('subStatAvgEng').textContent = '0.0';
+    document.getElementById('subStatMaxEng').textContent = '0.0';
+    document.getElementById('subStatAvgBph').textContent = '0.0';
+    return;
+  }
+
+  let sumEng = 0;
+  let maxEng = -Infinity;
+  let sumBph = 0;
+
+  subs.forEach((sub) => {
+    const eng = sub.scores?.engineering || 0;
+    const bph = sub.scores?.bpharma || 0;
+    sumEng += eng;
+    sumBph += bph;
+    if (eng > maxEng) maxEng = eng;
+  });
+
+  const avgEng = sumEng / total;
+  const avgBph = sumBph / total;
+
+  document.getElementById('subStatAvgEng').textContent = avgEng.toFixed(2);
+  document.getElementById('subStatMaxEng').textContent = maxEng.toFixed(2);
+  document.getElementById('subStatAvgBph').textContent = avgBph.toFixed(2);
+}
+
+function filterAndRenderSubmissions() {
+  const searchQ = document.getElementById('subSearchInput').value.trim().toLowerCase();
+  const sortBy = document.getElementById('subSortBy').value;
+
+  // Filter
+  filteredSubmissions = allSubmissions.filter((sub) => {
+    if (searchQ) {
+      const name = (sub.studentName || '').toLowerCase();
+      const email = (sub.studentEmail || '').toLowerCase();
+      if (!name.includes(searchQ) && !email.includes(searchQ)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Sort
+  filteredSubmissions.sort((a, b) => {
+    const scoresA = a.scores || {};
+    const scoresB = b.scores || {};
+    if (sortBy === 'eng') return (scoresB.engineering || 0) - (scoresA.engineering || 0);
+    if (sortBy === 'bph') return (scoresB.bpharma || 0) - (scoresA.bpharma || 0);
+    if (sortBy === 'math') return (scoresB.math || 0) - (scoresA.math || 0);
+    if (sortBy === 'physics') return (scoresB.physics || 0) - (scoresA.physics || 0);
+    if (sortBy === 'chemistry') return (scoresB.chemistry || 0) - (scoresA.chemistry || 0);
+    if (sortBy === 'date') {
+      const tA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : 0;
+      const tB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : 0;
+      return tB - tA;
+    }
+    return 0;
+  });
+
+  // Calculate & Update Stats overview on the fly for filtered list
+  updateSubmissionsStats(filteredSubmissions);
+
+  // Render
+  const tableBody = document.getElementById('submissionsTableBody');
+  if (!filteredSubmissions.length) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="12" style="text-align:center; padding:48px; color:var(--ink-mute);">
+          <i class="fas fa-folder-open" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+          No student submissions found.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const avatarColors = ['#0A74F5', '#10B981', '#7C3AED', '#EC4899', '#F59E0B', '#EF4444', '#06B6D4'];
+  const getAvatarBg = (name) => {
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) {
+      hash = (name.charCodeAt(i) + (hash << 5) - hash) % avatarColors.length;
+    }
+    return avatarColors[Math.abs(hash)];
+  };
+  const getInitialsText = (name) => {
+    const parts = (name || '').trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return (name || '?').substring(0, 2).toUpperCase();
+  };
+
+  tableBody.innerHTML = filteredSubmissions.map((sub, index) => {
+    const rankNo = index + 1;
+    const name = sub.studentName || 'Unknown Student';
+    const email = sub.studentEmail || '—';
+    const examName = sub.examName || sub.examId || 'WBJEE';
+    const sets = `M:${sub.mathSet || '—'} P/C:${sub.physChemSet || '—'}`;
+    const scores = sub.scores || {};
+    
+    // Predicted Rank range strings
+    const engRank = sub.expectedRank?.engineering
+      ? `${sub.expectedRank.engineering.min} - ${sub.expectedRank.engineering.max}`
+      : '—';
+    const bphRank = sub.expectedRank?.bpharma
+      ? `${sub.expectedRank.bpharma.min} - ${sub.expectedRank.bpharma.max}`
+      : '—';
+    
+    // Formatted date
+    let dateStr = '—';
+    if (sub.submittedAt) {
+      try {
+        const d = sub.submittedAt.toDate ? sub.submittedAt.toDate() : new Date(sub.submittedAt);
+        dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        dateStr = '—';
+      }
+    }
+
+    const initials = getInitialsText(name);
+    const avBg = getAvatarBg(name);
+
+    return `
+      <tr>
+        <td style="font-weight:800; font-family:var(--font-mono); color:var(--ink-mute); font-size:12px; text-align:center;">
+          ${rankNo <= 3 ? `<i class="fa-solid fa-crown" style="color:${rankNo === 1 ? '#FBBF24' : rankNo === 2 ? '#94A3B8' : '#B45309'}; margin-right:4px;"></i>` : ''}${rankNo}
+        </td>
+        <td>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="avatar" style="background:${avBg};">${initials}</div>
+            <div>
+              <div style="font-weight:700; color:var(--ink); font-size:13px;">${name}</div>
+              <div style="font-size:11px; color:var(--ink-mute);">${email}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div style="font-weight:600; font-size:12px; color:var(--ink-soft);">${examName}</div>
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--ink-mute);">${sub.examId}</div>
+        </td>
+        <td style="font-family:var(--font-mono); font-size:11px; font-weight:700;">${sets}</td>
+        <td style="text-align:right; font-family:var(--font-mono); font-weight:700;">${scores.math !== undefined ? scores.math.toFixed(2) : '0.00'}</td>
+        <td style="text-align:right; font-family:var(--font-mono); font-weight:700;">${scores.physics !== undefined ? scores.physics.toFixed(2) : '0.00'}</td>
+        <td style="text-align:right; font-family:var(--font-mono); font-weight:700;">${scores.chemistry !== undefined ? scores.chemistry.toFixed(2) : '0.00'}</td>
+        <td style="text-align:right; font-family:var(--font-mono); font-weight:800; color:var(--rust);">${scores.engineering !== undefined ? scores.engineering.toFixed(2) : '0.00'}</td>
+        <td style="text-align:right; font-family:var(--font-mono); font-weight:800; color:var(--rust);">${scores.bpharma !== undefined ? scores.bpharma.toFixed(2) : '0.00'}</td>
+        <td style="text-align:center;">
+          <div style="font-size:11px; font-weight:600; color:var(--ink-soft);">Eng: <span style="font-family:var(--font-mono); font-weight:700; color:var(--rust);">${engRank}</span></div>
+          <div style="font-size:11px; font-weight:600; color:var(--ink-soft); margin-top:2px;">BPh: <span style="font-family:var(--font-mono); font-weight:700; color:var(--forest);">${bphRank}</span></div>
+        </td>
+        <td style="font-size:12px; color:var(--ink-mute); white-space:nowrap;">${dateStr}</td>
+        <td>
+          <div style="display:flex; gap:6px; justify-content:center;">
+            <button class="btn-ghost" style="padding:6px 10px; font-size:11px;" onclick="viewSubmissionReport('${sub.id}')" title="Detailed Report"><i class="fas fa-chart-line"></i> View</button>
+            <button class="btn-ghost" style="padding:6px 10px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.2);" onclick="resetSubmission('${sub.id}', '${name.replace(/'/g, "\\'")}')" title="Reset (Delete) Submission"><i class="fas fa-trash-can"></i> Reset</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function normalizeStudentAnswer(ans) {
+  if (ans === null || ans === undefined || ans === '') return null;
+  if (Array.isArray(ans)) {
+    const clean = ans.filter(Boolean).map(String).map((s) => s.trim().toUpperCase());
+    return clean.length ? Array.from(new Set(clean)).sort() : null;
+  }
+  return String(ans).trim().toUpperCase();
+}
+
+function parseCorrect(correctAns) {
+  const value = String(correctAns).trim().toUpperCase();
+  if (/^[A-D]{2,4}$/.test(value)) {
+    return Array.from(new Set(value.split(''))).sort();
+  }
+  return value.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+}
+
+function viewSubmissionReport(subId) {
+  const sub = allSubmissions.find((s) => s.id === subId);
+  if (!sub) return;
+
+  currentModalSub = sub;
+  currentModalPaper = 'math';
+
+  document.getElementById('modalStudentName').textContent = sub.studentName || 'Unknown Student';
+  document.getElementById('modalStudentEmail').textContent = sub.studentEmail || '—';
+  document.getElementById('modalExamName').textContent = sub.examName || sub.examId || 'WBJEE';
+  document.getElementById('modalSets').textContent = `Set Codes: Math Set ${sub.mathSet || '—'}, Phys/Chem Set ${sub.physChemSet || '—'}`;
+
+  const scores = sub.scores || {};
+  document.getElementById('modalEngScore').textContent = (scores.engineering !== undefined ? scores.engineering : 0).toFixed(2);
+  document.getElementById('modalBphScore').textContent = (scores.bpharma !== undefined ? scores.bpharma : 0).toFixed(2);
+
+  const engRank = sub.expectedRank?.engineering
+    ? `${sub.expectedRank.engineering.min} - ${sub.expectedRank.engineering.max}`
+    : '—';
+  const bphRank = sub.expectedRank?.bpharma
+    ? `${sub.expectedRank.bpharma.min} - ${sub.expectedRank.bpharma.max}`
+    : '—';
+  document.getElementById('modalEngRank').textContent = `Est. Rank: ${engRank}`;
+  document.getElementById('modalBphRank').textContent = `Est. Rank: ${bphRank}`;
+
+  const analytics = sub.analytics || {};
+  const correct = analytics.correct || 0;
+  const partial = analytics.partial || 0;
+  const wrong = analytics.wrong || 0;
+  const skipped = analytics.skipped || 0;
+  const totalQ = analytics.totalQuestions || 155;
+  const answered = analytics.answered || 0;
+  const accuracy = analytics.accuracy || 0;
+
+  document.getElementById('modalAccuracy').textContent = `${accuracy.toFixed(1)}%`;
+  document.getElementById('modalAnsweredRatio').textContent = `Answered: ${answered} / ${totalQ} Qs (Acc: ${accuracy.toFixed(1)}%)`;
+
+  // Subject breakouts
+  const subMetrics = sub.perSubject || {};
+  // Math
+  const mathM = subMetrics.math || {};
+  document.getElementById('modalMathScore').textContent = (mathM.marks !== undefined ? mathM.marks : 0).toFixed(2);
+  document.getElementById('modalMathStats').innerHTML = `
+    <div>Correct: <span style="font-weight:700; color:var(--forest);">${mathM.correct || 0}</span> ${mathM.partial ? `<span style="font-size:10px; color:var(--ink-mute);">(+${mathM.partial} Partial)</span>` : ''}</div>
+    <div>Incorrect: <span style="font-weight:700; color:var(--danger);">${mathM.wrong || 0}</span></div>
+    <div>Skipped: <span style="font-weight:700;">${mathM.skipped || 0}</span></div>
+  `;
+  // Physics
+  const physM = subMetrics.physics || {};
+  document.getElementById('modalPhysScore').textContent = (physM.marks !== undefined ? physM.marks : 0).toFixed(2);
+  document.getElementById('modalPhysStats').innerHTML = `
+    <div>Correct: <span style="font-weight:700; color:var(--forest);">${physM.correct || 0}</span> ${physM.partial ? `<span style="font-size:10px; color:var(--ink-mute);">(+${physM.partial} Partial)</span>` : ''}</div>
+    <div>Incorrect: <span style="font-weight:700; color:var(--danger);">${physM.wrong || 0}</span></div>
+    <div>Skipped: <span style="font-weight:700;">${physM.skipped || 0}</span></div>
+  `;
+  // Chemistry
+  const chemM = subMetrics.chemistry || {};
+  document.getElementById('modalChemScore').textContent = (chemM.marks !== undefined ? chemM.marks : 0).toFixed(2);
+  document.getElementById('modalChemStats').innerHTML = `
+    <div>Correct: <span style="font-weight:700; color:var(--forest);">${chemM.correct || 0}</span> ${chemM.partial ? `<span style="font-size:10px; color:var(--ink-mute);">(+${chemM.partial} Partial)</span>` : ''}</div>
+    <div>Incorrect: <span style="font-weight:700; color:var(--danger);">${chemM.wrong || 0}</span></div>
+    <div>Skipped: <span style="font-weight:700;">${chemM.skipped || 0}</span></div>
+  `;
+
+  // Reset tab selection for responses
+  document.getElementById('modalPaperMathBtn').classList.add('active');
+  document.getElementById('modalPaperPhysBtn').classList.remove('active');
+  document.getElementById('modalPaperChemBtn').classList.remove('active');
+
+  renderModalAnswers();
+
+  document.getElementById('viewSubmissionModal').style.display = 'flex';
+}
+
+function hideSubmissionModal() {
+  document.getElementById('viewSubmissionModal').style.display = 'none';
+  currentModalSub = null;
+}
+
+function switchModalPaper(paper) {
+  currentModalPaper = paper;
+  document.getElementById('modalPaperMathBtn').classList.toggle('active', paper === 'math');
+  document.getElementById('modalPaperPhysBtn').classList.toggle('active', paper === 'physics');
+  document.getElementById('modalPaperChemBtn').classList.toggle('active', paper === 'chemistry');
+  renderModalAnswers();
+}
+
+async function renderModalAnswers() {
+  const sub = currentModalSub;
+  if (!sub) return;
+
+  const subject = currentModalPaper; // math, physics, chemistry
+  const grid = document.getElementById('modalAnswersGrid');
+  grid.innerHTML = '<div style="padding:20px; text-align:center; color:var(--ink-mute);">Loading answer key for verification...</div>';
+
+  const paperRef = subject === 'math' ? 'math' : 'physChem';
+  const setRef = subject === 'math' ? sub.mathSet : sub.physChemSet;
+  const docId = `${paperRef}_${setRef}`;
+
+  let examKeys = {};
+  try {
+    if (keyData[docId] && keyData[docId][subject]) {
+      examKeys = keyData[docId][subject];
+    } else {
+      const { data } = await apiJson(`/api/admin/exams/${encodeURIComponent(sub.examId)}/answer-keys/${encodeURIComponent(paperRef)}/${encodeURIComponent(setRef)}`);
+      if (data) {
+        keyData[docId] = data;
+        examKeys = data[subject] || {};
+      }
+    }
+  } catch (e) {
+    console.error('Error fetching key for report modal:', e);
+    examKeys = {};
+  }
+
+  const studentAnsMap = (sub.answers && sub.answers[subject]) || {};
+
+  grid.innerHTML = '';
+  const start = START[subject];
+  const end = END[subject];
+
+  const listContainer = document.createElement('div');
+  listContainer.style.display = 'grid';
+  listContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
+  listContainer.style.gap = '8px';
+
+  for (let q = start; q <= end; q++) {
+    const qNoStr = String(q);
+    const cat = categoryFor(subject, q);
+    
+    const sRaw = studentAnsMap[qNoStr];
+    const sAns = normalizeStudentAnswer(sRaw);
+    
+    const cRaw = examKeys[qNoStr];
+    const cAns = cRaw ? (cat === 3 ? parseCorrect(cRaw) : String(cRaw).trim().toUpperCase()) : null;
+
+    let statusText = 'Skipped';
+    let statusBg = 'var(--paper-deep)';
+    let borderStyle = '1px solid var(--rule)';
+
+    if (sAns !== null) {
+      if (cat === 3) {
+        const correctSet = new Set(cAns || []);
+        const studentOpts = Array.isArray(sAns) ? sAns : [sAns];
+        const anyWrong = studentOpts.some((x) => !correctSet.has(x));
+        if (anyWrong) {
+          statusText = `Wrong (${studentOpts.join(',')})`;
+          statusBg = 'rgba(239,68,68,0.06)';
+          borderStyle = '1px solid var(--danger)';
+        } else {
+          const hit = studentOpts.filter((x) => correctSet.has(x)).length;
+          if (hit === correctSet.size) {
+            statusText = `Correct (${studentOpts.join(',')})`;
+            statusBg = 'rgba(16,185,129,0.08)';
+            borderStyle = '1px solid var(--forest)';
+          } else {
+            statusText = `Partial (${studentOpts.join(',')})`;
+            statusBg = 'rgba(245,158,11,0.08)';
+            borderStyle = '1px solid #F59E0B';
+          }
+        }
+      } else {
+        if (sAns === cAns) {
+          statusText = `Correct (${sAns})`;
+          statusBg = 'rgba(16,185,129,0.08)';
+          borderStyle = '1px solid var(--forest)';
+        } else {
+          statusText = `Incorrect (${sAns})`;
+          statusBg = 'rgba(239,68,68,0.06)';
+          borderStyle = '1px solid var(--danger)';
+        }
+      }
+    }
+
+    const block = document.createElement('div');
+    block.style.background = statusBg;
+    block.style.border = borderStyle;
+    block.style.padding = '8px';
+    block.style.borderRadius = '4px';
+    block.style.fontSize = '12px';
+
+    const prefix = subject === 'math' ? 'M' : subject === 'physics' ? 'P' : 'C';
+    const correctLabel = cAns ? (Array.isArray(cAns) ? cAns.join(',') : cAns) : '—';
+    block.innerHTML = `
+      <div style="font-weight:700; color:var(--ink-mute); font-family:var(--font-mono);">Q ${prefix}${q} <span style="font-size:9px; font-weight:400;">(Cat ${cat})</span></div>
+      <div style="font-weight:700; margin-top:4px; font-size:11px;">${statusText}</div>
+      <div style="font-size:10px; color:var(--ink-mute); margin-top:2px;">Key: <strong>${correctLabel}</strong></div>
+    `;
+    listContainer.appendChild(block);
+  }
+
+  grid.appendChild(listContainer);
+}
+
+async function resetSubmission(subId, studentName) {
+  if (!confirm(`Are you absolutely sure you want to reset the submission for ${studentName || 'this student'}?\nThis will permanently delete their OMR response and score sheet so they can submit again.`)) {
+    return;
+  }
+
+  try {
+    await db.collection('submissions').doc(subId).delete();
+    toast(`Submission for ${studentName} successfully reset!`);
+    await loadSubmissions();
+  } catch (error) {
+    toast(`Error resetting submission: ${error.message}`);
+  }
+}
+
+async function resetSubmissionFromModal() {
+  if (!currentModalSub) return;
+  const sub = currentModalSub;
+  if (confirm(`Are you absolutely sure you want to reset the submission for ${sub.studentName}?\nThis will permanently delete their OMR response and score sheet so they can submit again.`)) {
+    try {
+      await db.collection('submissions').doc(sub.id).delete();
+      toast(`Submission for ${sub.studentName} successfully reset!`);
+      hideSubmissionModal();
+      await loadSubmissions();
+    } catch (error) {
+      toast(`Error resetting submission: ${error.message}`);
+    }
+  }
+}
+
+function exportSubmissionsCSV() {
+  const headers = [
+    'Rank', 'Student Name', 'Student Email', 'Exam Name', 'Exam ID',
+    'Math Set', 'PhysChem Set', 'Math Score', 'Physics Score', 'Chemistry Score',
+    'Engineering Total', 'B-Pharma Total',
+    'Engineering Rank Est', 'B-Pharma Rank Est', 'Submission Date'
+  ];
+
+  const rows = filteredSubmissions.map((sub, index) => {
+    const scores = sub.scores || {};
+    const engRank = sub.expectedRank?.engineering
+      ? `${sub.expectedRank.engineering.min}-${sub.expectedRank.engineering.max}`
+      : '—';
+    const bphRank = sub.expectedRank?.bpharma
+      ? `${sub.expectedRank.bpharma.min}-${sub.expectedRank.bpharma.max}`
+      : '—';
+    
+    let dateStr = '—';
+    if (sub.submittedAt) {
+      try {
+        const d = sub.submittedAt.toDate ? sub.submittedAt.toDate() : new Date(sub.submittedAt);
+        dateStr = d.toISOString();
+      } catch (e) {
+        dateStr = '—';
+      }
+    }
+
+    return [
+      index + 1,
+      sub.studentName || 'Unknown Student',
+      sub.studentEmail || '—',
+      sub.examName || sub.examId || 'WBJEE',
+      sub.examId || '',
+      sub.mathSet || '—',
+      sub.physChemSet || '—',
+      scores.math !== undefined ? scores.math.toFixed(2) : '0.00',
+      scores.physics !== undefined ? scores.physics.toFixed(2) : '0.00',
+      scores.chemistry !== undefined ? scores.chemistry.toFixed(2) : '0.00',
+      scores.engineering !== undefined ? scores.engineering.toFixed(2) : '0.00',
+      scores.bpharma !== undefined ? scores.bpharma.toFixed(2) : '0.00',
+      engRank,
+      bphRank,
+      dateStr
+    ];
+  });
+
+  const csvContent = 'data:text/csv;charset=utf-8,' 
+    + [headers, ...rows].map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `wbjee_student_submissions_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast('Submissions CSV downloaded successfully!');
+}
+
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.href = '../login.html';
@@ -755,6 +1481,7 @@ auth.onAuthStateChanged(async (user) => {
   }
   currentUser = user;
   currentToken = null;
+  await loadUsersMap();
   await loadExams();
 });
 </script>

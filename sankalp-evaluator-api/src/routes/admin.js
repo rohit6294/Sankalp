@@ -301,6 +301,12 @@ router.get('/submissions', async (req, res) => {
       };
     });
 
+    const reqSnap = await db.collection('resetRequests').where('status', '==', 'pending').get();
+    const pendingResets = {};
+    reqSnap.forEach(doc => {
+      pendingResets[doc.id] = doc.data();
+    });
+
     const joined = submissions.map((sub) => {
       const user = usersMap[sub.userId] || {
         name: 'Unknown Student',
@@ -320,6 +326,8 @@ router.get('/submissions', async (req, res) => {
         studentCaste: user.caste,
         studentTFW: user.tfw,
         studentYear: user.wbjeeYear,
+        resetRequested: !!pendingResets[sub.id],
+        resetReason: pendingResets[sub.id] ? pendingResets[sub.id].reason : null,
       };
     });
 
@@ -358,6 +366,61 @@ router.put('/settings/mandatory-fields', async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'settings_save_failed', message: e.message });
+  }
+});
+
+// ── Reset Request Management (Admin) ─────────────────────────────────────
+
+// Get all pending reset requests
+router.get('/reset-requests', async (_req, res) => {
+  try {
+    const snap = await db.collection('resetRequests').where('status', '==', 'pending').get();
+    const requests = {};
+    snap.forEach(doc => {
+      const data = doc.data();
+      requests[doc.id] = {
+        userId: data.userId,
+        examId: data.examId,
+        reason: data.reason || '',
+        status: data.status,
+        requestedAt: normalizeTimestamp(data.requestedAt),
+      };
+    });
+    res.json({ requests });
+  } catch (e) {
+    res.status(500).json({ error: 'reset_requests_load_failed', message: e.message });
+  }
+});
+
+// Approve reset: delete submission + mark request as approved
+router.post('/reset-approve/:subId', async (req, res) => {
+  const { subId } = req.params;
+  try {
+    // Delete the submission
+    await db.collection('submissions').doc(subId).delete();
+    // Mark request as approved
+    const reqRef = db.collection('resetRequests').doc(subId);
+    const reqDoc = await reqRef.get();
+    if (reqDoc.exists) {
+      await reqRef.update({ status: 'approved' });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'reset_approve_failed', message: e.message });
+  }
+});
+
+// Reject reset request
+router.post('/reset-reject/:subId', async (req, res) => {
+  const { subId } = req.params;
+  try {
+    const reqRef = db.collection('resetRequests').doc(subId);
+    const reqDoc = await reqRef.get();
+    if (!reqDoc.exists) return res.status(404).json({ error: 'request_not_found' });
+    await reqRef.update({ status: 'rejected' });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'reset_reject_failed', message: e.message });
   }
 });
 

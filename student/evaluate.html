@@ -226,7 +226,19 @@
       <div class="eyebrow">Already Submitted</div>
       <h1 class="display-md" style="margin-top:8px;">You've already submitted this exam.</h1>
       <p style="color:var(--ink-mute); margin-top:8px;">One submission per exam. View your result below.</p>
-      <a id="viewResultLink" class="btn-rust btn-sm" style="margin-top:16px; display:inline-block;"><i class="fas fa-chart-line"></i> View Result</a>
+      <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; align-items:center;">
+        <a id="viewResultLink" class="btn-rust btn-sm"><i class="fas fa-chart-line"></i> View Result</a>
+        <button id="resetRequestBtn" class="btn-ghost btn-sm" onclick="showResetRequestModal()" style="border-color:rgba(245,158,11,0.4); color:#F59E0B;">
+          <i class="fas fa-rotate-right"></i> Request Reset
+        </button>
+      </div>
+      <!-- Pending status banner -->
+      <div id="resetPendingBanner" style="display:none; margin-top:16px; padding:14px 18px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); font-size:13px; color:#F59E0B;">
+        <i class="fas fa-clock"></i> <strong>Reset request pending.</strong> Waiting for admin approval. You'll be able to resubmit once approved.
+      </div>
+      <div id="resetRejectedBanner" style="display:none; margin-top:16px; padding:14px 18px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); font-size:13px; color:#EF4444;">
+        <i class="fas fa-times-circle"></i> <strong>Reset request was rejected</strong> by the admin. Your current submission stands.
+      </div>
     </div>
   </div>
 
@@ -374,6 +386,8 @@ async function chooseExam(examId, name) {
     if (res.ok) {
       document.getElementById('viewResultLink').href = `result.html?examId=${encodeURIComponent(examId)}`;
       show('alreadyView');
+      // Check reset request status
+      checkResetStatus(examId);
       return;
     }
   } catch {}
@@ -663,6 +677,113 @@ function showError(title, msg) {
   document.getElementById('errorTitle').textContent = title;
   document.getElementById('errorMsg').textContent = msg || 'Please try again.';
   show('errorView');
+}
+
+// ===== Reset Submission Request =====
+async function checkResetStatus(examId) {
+  // Hide all banners first
+  document.getElementById('resetPendingBanner').style.display = 'none';
+  document.getElementById('resetRejectedBanner').style.display = 'none';
+  document.getElementById('resetRequestBtn').style.display = '';
+
+  try {
+    const token = await state.user.getIdToken();
+    const res = await fetch(`${EVALUATOR_API}/api/submit/reset-status/${encodeURIComponent(examId)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.requested) {
+      if (data.status === 'pending') {
+        document.getElementById('resetPendingBanner').style.display = 'block';
+        document.getElementById('resetRequestBtn').style.display = 'none';
+      } else if (data.status === 'rejected') {
+        document.getElementById('resetRejectedBanner').style.display = 'block';
+        document.getElementById('resetRequestBtn').style.display = 'none';
+      }
+      // If status is 'approved', the submission should already be gone — student can resubmit
+    }
+  } catch (e) {
+    console.warn('Reset status check failed:', e.message);
+  }
+}
+
+function showResetRequestModal() {
+  // Remove old modal
+  const old = document.getElementById('resetReqOverlay');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'resetReqOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(26,20,16,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = `
+    <div style="background:var(--paper);border:1px solid var(--ink);padding:32px;max-width:520px;width:100%;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-exclamation-triangle" style="color:#F59E0B;font-size:20px;"></i>
+        </div>
+        <div>
+          <div class="eyebrow" style="color:#F59E0B;margin-bottom:2px;">Reset Submission</div>
+          <h2 style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">Are you sure you want to request a reset?</h2>
+        </div>
+      </div>
+      <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);padding:14px;margin-bottom:16px;font-size:13px;color:var(--ink-soft);line-height:1.6;">
+        <strong style="color:#EF4444;">⚠ Important:</strong>
+        <ul style="margin:8px 0 0 16px;padding:0;">
+          <li>This request will be sent to the <strong>admin for approval</strong>.</li>
+          <li>If approved, your <strong>current submission will be permanently deleted</strong>.</li>
+          <li>You will need to <strong>submit a new version</strong> of your answers.</li>
+          <li>The admin may <strong>reject</strong> your request.</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Reason for reset (optional)</label>
+        <textarea id="resetReasonInput" rows="2" style="width:100%;padding:10px;border:1px solid var(--rule);background:var(--paper);font-size:13px;font-family:var(--font-sans);resize:none;" placeholder="e.g., I made mistakes in my Physics answers..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn-ghost btn-sm" onclick="document.getElementById('resetReqOverlay').remove()">Cancel</button>
+        <button class="btn-rust btn-sm" onclick="submitResetRequest()" id="resetConfirmBtn" style="background:#F59E0B;border-color:#F59E0B;">
+          <i class="fas fa-paper-plane"></i> Send Request
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function submitResetRequest() {
+  const btn = document.getElementById('resetConfirmBtn');
+  const reason = document.getElementById('resetReasonInput').value.trim();
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+  btn.disabled = true;
+
+  try {
+    const token = await state.user.getIdToken();
+    const res = await fetch(`${EVALUATOR_API}/api/submit/reset-request`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ examId: state.examId, reason })
+    });
+
+    const data = await res.json();
+    document.getElementById('resetReqOverlay').remove();
+
+    if (res.status === 409) {
+      toast('Reset request already pending');
+      document.getElementById('resetPendingBanner').style.display = 'block';
+      document.getElementById('resetRequestBtn').style.display = 'none';
+      return;
+    }
+    if (!res.ok) throw new Error(data.message || data.error || 'Request failed');
+
+    toast('Reset request sent to admin!');
+    document.getElementById('resetPendingBanner').style.display = 'block';
+    document.getElementById('resetRequestBtn').style.display = 'none';
+  } catch (e) {
+    toast('Failed: ' + e.message);
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Request';
+    btn.disabled = false;
+  }
 }
 
 async function isAdminUser(user) {

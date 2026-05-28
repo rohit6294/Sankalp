@@ -1258,7 +1258,10 @@ function filterAndRenderSubmissions() {
           <div class="student-profile-trigger" style="display:flex; align-items:center; gap:10px;" onclick="viewStudentProfile('${sub.id}')" title="Click to view student profile">
             <div class="avatar" style="background:${avBg};">${initials}</div>
             <div>
-              <div class="student-name" style="font-weight:700; color:var(--ink); font-size:13px;">${name}</div>
+              <div class="student-name" style="font-weight:700; color:var(--ink); font-size:13px;">
+                ${name}
+                ${sub.resetRequested ? `<i class="fas fa-exclamation-triangle" style="color:#F59E0B; margin-left:6px;" title="Reset Requested: ${sub.resetReason ? sub.resetReason.replace(/"/g, '&quot;') : 'No reason provided'}"></i>` : ''}
+              </div>
               <div style="font-size:11px; color:var(--ink-mute);">${email}</div>
             </div>
           </div>
@@ -1281,7 +1284,10 @@ function filterAndRenderSubmissions() {
         <td>
           <div style="display:flex; gap:6px; justify-content:center;">
             <button class="btn-ghost" style="padding:6px 10px; font-size:11px;" onclick="viewSubmissionReport('${sub.id}')" title="Detailed Report"><i class="fas fa-chart-line"></i> View</button>
-            <button class="btn-ghost" style="padding:6px 10px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.2);" onclick="resetSubmission('${sub.id}', '${name.replace(/'/g, "\\'")}')" title="Reset (Delete) Submission"><i class="fas fa-trash-can"></i> Reset</button>
+            ${sub.resetRequested ? 
+              `<button class="btn-ghost" style="padding:6px 10px; font-size:11px; color:#F59E0B; border-color:rgba(245,158,11,0.3);" onclick="reviewResetRequest('${sub.id}', '${name.replace(/'/g, "\\'")}', '${sub.resetReason ? sub.resetReason.replace(/'/g, "\\'") : ''}')" title="Review Reset Request"><i class="fas fa-rotate-right"></i> Review Reset</button>` :
+              `<button class="btn-ghost" style="padding:6px 10px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.2);" onclick="resetSubmission('${sub.id}', '${name.replace(/'/g, "\\'")}')" title="Reset (Delete) Submission"><i class="fas fa-trash-can"></i> Reset</button>`
+            }
           </div>
         </td>
       </tr>
@@ -1498,6 +1504,85 @@ async function renderModalAnswers() {
   }
 
   grid.appendChild(listContainer);
+}
+
+// ── Reset Requests (Admin) ────────────────────────────────────────────────
+
+function reviewResetRequest(subId, studentName, reason) {
+  const old = document.getElementById('adminResetReqOverlay');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'adminResetReqOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(26,20,16,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = `
+    <div style="background:var(--paper);border:1px solid var(--ink);padding:32px;max-width:520px;width:100%;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-rotate-right" style="color:#F59E0B;font-size:20px;"></i>
+        </div>
+        <div>
+          <div class="eyebrow" style="color:#F59E0B;margin-bottom:2px;">Reset Request</div>
+          <h2 style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">${studentName}</h2>
+        </div>
+      </div>
+      <div style="margin-bottom:24px;font-size:13px;color:var(--ink-soft);line-height:1.6;">
+        <p>This student has requested to reset their submission.</p>
+        <div style="margin-top:12px;background:var(--paper-soft);padding:12px;border:1px solid var(--rule);border-left:3px solid #F59E0B;">
+          <strong>Reason provided:</strong><br>
+          <span style="color:var(--ink);">${reason || '<em>No reason provided.</em>'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn-ghost btn-sm" onclick="document.getElementById('adminResetReqOverlay').remove()">Cancel</button>
+        <button class="btn-ghost btn-sm" onclick="rejectResetReq('${subId}')" id="rejResetBtn" style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
+          <i class="fas fa-times"></i> Reject
+        </button>
+        <button class="btn-rust btn-sm" onclick="approveResetReq('${subId}', '${studentName}')" id="appResetBtn" style="background:#F59E0B;border-color:#F59E0B;">
+          <i class="fas fa-check"></i> Approve & Delete Submission
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function approveResetReq(subId, studentName) {
+  const btn = document.getElementById('appResetBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
+  btn.disabled = true;
+  document.getElementById('rejResetBtn').disabled = true;
+
+  try {
+    await apiJson(`/api/admin/reset-approve/${encodeURIComponent(subId)}`, { method: 'POST' });
+    toast(`Reset approved. Submission for ${studentName} deleted.`);
+    document.getElementById('adminResetReqOverlay').remove();
+    await loadSubmissions();
+  } catch (error) {
+    toast(`Error approving reset: ${error.message}`);
+    btn.innerHTML = '<i class="fas fa-check"></i> Approve & Delete Submission';
+    btn.disabled = false;
+    document.getElementById('rejResetBtn').disabled = false;
+  }
+}
+
+async function rejectResetReq(subId) {
+  const btn = document.getElementById('rejResetBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+  btn.disabled = true;
+  document.getElementById('appResetBtn').disabled = true;
+
+  try {
+    await apiJson(`/api/admin/reset-reject/${encodeURIComponent(subId)}`, { method: 'POST' });
+    toast(`Reset request rejected.`);
+    document.getElementById('adminResetReqOverlay').remove();
+    await loadSubmissions();
+  } catch (error) {
+    toast(`Error rejecting reset: ${error.message}`);
+    btn.innerHTML = '<i class="fas fa-times"></i> Reject';
+    btn.disabled = false;
+    document.getElementById('appResetBtn').disabled = false;
+  }
 }
 
 async function resetSubmission(subId, studentName) {

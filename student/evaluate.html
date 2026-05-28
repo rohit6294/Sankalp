@@ -28,6 +28,8 @@
     .subject-tab { padding: 12px 22px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
     .subject-tab.active { background: var(--ink); color: var(--paper); }
     .subject-tab .count { font-family: var(--font-mono); font-size: 11px; margin-left: 6px; opacity: 0.7; font-weight: 400; }
+    .tab-text-short { display: none; }
+    .tab-text-full { display: inline; }
     .set-card { padding: 28px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; text-align: center; transition: all 0.15s; }
     .set-card:hover { background: var(--ink); color: var(--paper); }
     .set-card .letter { font-family: var(--font-display); font-size: 3rem; font-weight: 800; }
@@ -38,8 +40,14 @@
     .toast.show { opacity: 1; }
     .set-card-mini.active { background: var(--rust) !important; color: var(--paper) !important; border-color: var(--rust) !important; }
     @media (max-width: 640px) {
+      .tab-text-full { display: none; }
+      .tab-text-short { display: inline; }
+      .subject-tab { padding: 10px 10px; font-size: 11px; letter-spacing: 0.05em; }
+      .subject-tab .count { font-size: 10px; margin-left: 2px; }
       .qrow { grid-template-columns: 44px repeat(4, 1fr) 56px; gap: 4px; padding: 6px; }
       .opt { padding: 6px 2px; font-size: 12px; }
+      .set-card-mini { padding: 12px 4px !important; font-size: 10px !important; gap: 4px !important; }
+      .set-card-mini i { font-size: 12px !important; margin-top: 2px !important; }
     }
   </style>
 </head>
@@ -91,48 +99,48 @@
     <h1 class="display-lg">Select your <span class="rust-accent">paper sets</span></h1>
     <p style="color:var(--ink-mute); font-size:14px; margin-top:4px; margin-bottom:24px;">WBJEE booklets have independent sets. Please choose the sets printed on your cover pages.</p>
     
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:640px; margin-bottom:32px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; max-width:640px; margin-bottom:32px;">
       <!-- Math Booklet Set -->
       <div style="border:1px solid var(--ink); padding:24px; background:var(--paper-soft);">
         <label class="input-label" style="margin-bottom:12px; font-weight:700; font-size:12px;">📐 Paper 1: Mathematics Set</label>
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
           <div class="set-card-mini" id="mathSetBtnA" onclick="selectMathSet('A')">
-            <span>Series A</span>
+            <span>Set A</span>
             <i class="fa-solid fa-diamond"></i>
           </div>
           <div class="set-card-mini" id="mathSetBtnB" onclick="selectMathSet('B')">
-            <span>Series B</span>
+            <span>Set B</span>
             <i class="fa-regular fa-square"></i>
           </div>
           <div class="set-card-mini" id="mathSetBtnC" onclick="selectMathSet('C')">
-            <span>Series C</span>
+            <span>Set C</span>
             <i class="fa-solid fa-droplet"></i>
           </div>
           <div class="set-card-mini" id="mathSetBtnD" onclick="selectMathSet('D')">
-            <span>Series D</span>
+            <span>Set D</span>
             <i class="fa-solid fa-circle"></i>
           </div>
         </div>
       </div>
 
       <!-- Phys Chem Booklet Set -->
-      <div style="border:1px solid var(--ink); padding:24px; background:var(--paper-soft); border-radius:12px; box-shadow:0 4px 12px rgba(15,23,42,0.02);">
+      <div style="border:1px solid var(--ink); padding:24px; background:var(--paper-soft);">
         <label class="input-label" style="margin-bottom:12px; font-weight:700; font-size:12px;">⚡ Paper 2: Physics & Chem Set</label>
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
           <div class="set-card-mini" id="pcSetBtnA" onclick="selectPhysChemSet('A')">
-            <span>Series A</span>
+            <span>Set A</span>
             <i class="fa-solid fa-diamond"></i>
           </div>
           <div class="set-card-mini" id="pcSetBtnB" onclick="selectPhysChemSet('B')">
-            <span>Series B</span>
+            <span>Set B</span>
             <i class="fa-regular fa-square"></i>
           </div>
           <div class="set-card-mini" id="pcSetBtnC" onclick="selectPhysChemSet('C')">
-            <span>Series C</span>
+            <span>Set C</span>
             <i class="fa-solid fa-droplet"></i>
           </div>
           <div class="set-card-mini" id="pcSetBtnD" onclick="selectPhysChemSet('D')">
-            <span>Series D</span>
+            <span>Set D</span>
             <i class="fa-solid fa-circle"></i>
           </div>
         </div>
@@ -157,9 +165,21 @@
     </div>
 
     <div style="display:flex; gap:0; margin-top:24px;">
-      <div class="subject-tab active" data-tab="math" onclick="switchTab('math')">Mathematics <span class="count" id="countMath">0 / 75</span></div>
-      <div class="subject-tab" data-tab="physics" onclick="switchTab('physics')">Physics <span class="count" id="countPhysics">0 / 40</span></div>
-      <div class="subject-tab" data-tab="chemistry" onclick="switchTab('chemistry')">Chemistry <span class="count" id="countChemistry">0 / 40</span></div>
+      <div class="subject-tab active" data-tab="math" onclick="switchTab('math')">
+        <span class="tab-text-full">Mathematics</span>
+        <span class="tab-text-short">Math</span>
+        <span class="count" id="countMath">0 / 75</span>
+      </div>
+      <div class="subject-tab" data-tab="physics" onclick="switchTab('physics')">
+        <span class="tab-text-full">Physics</span>
+        <span class="tab-text-short">Physics</span>
+        <span class="count" id="countPhysics">0 / 40</span>
+      </div>
+      <div class="subject-tab" data-tab="chemistry" onclick="switchTab('chemistry')">
+        <span class="tab-text-full">Chemistry</span>
+        <span class="tab-text-short">Chem</span>
+        <span class="count" id="countChemistry">0 / 40</span>
+      </div>
     </div>
 
     <div style="border:1px solid var(--ink); background:var(--paper); padding:0;">

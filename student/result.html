@@ -19,8 +19,49 @@
     .score-cell.ink-bg { border-right-color: rgba(234,219,192,0.15); }
     .score-num { font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; line-height: 1; }
     .score-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 8px; }
-    .analytics-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; border: 4px solid var(--rule); margin: 0 auto; }
-    .analytics-ring .pct { font-family: var(--font-display); font-size: 2rem; font-weight: 900; line-height: 1; }
+    .analytics-ring { 
+      width: 140px; 
+      height: 140px; 
+      border-radius: 50%; 
+      margin: 0 auto; 
+      position: relative;
+      transition: all 0.3s ease;
+      background: var(--rule);
+    }
+    .analytics-ring::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      background: var(--paper-soft);
+      border-radius: 50%;
+      z-index: 1;
+    }
+    .analytics-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .analytics-ring .pct { 
+      font-family: var(--font-display); 
+      font-size: 1.6rem; 
+      font-weight: 900; 
+      line-height: 1.1; 
+      color: var(--ink); 
+      margin-bottom: 2px;
+      letter-spacing: -0.02em;
+    }
+    .analytics-ring .label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      line-height: 1;
+    }
     .breakdown-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
     .breakdown-row:last-child { border-bottom: none; }
     .rank-card { padding: 32px; text-align: center; }
@@ -129,8 +170,10 @@
       <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
         <div class="eyebrow" style="margin-bottom:20px;">Performance Analytics</div>
         <div class="analytics-ring" id="accuracyRing" style="margin-bottom:20px;">
-          <div class="pct" id="accuracyPct">—</div>
-          <div style="font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-mute);">Accuracy</div>
+          <div class="analytics-content">
+            <div class="pct" id="accuracyPct">—</div>
+            <div class="label">Accuracy</div>
+          </div>
         </div>
         <div>
           <div class="breakdown-row">
@@ -258,9 +301,9 @@ function renderSubjectBreakdown(perSubject) {
 function setAccuracyRing(accuracy) {
   const ring = document.getElementById('accuracyRing');
   const deg = (accuracy / 100) * 360;
-  const color = accuracy >= 70 ? 'var(--forest)' : accuracy >= 40 ? 'var(--rust)' : 'var(--rust)';
-  ring.style.border = `4px solid var(--rule)`;
-  ring.style.background = `conic-gradient(${color} ${deg}deg, var(--paper-soft) ${deg}deg)`;
+  const color = accuracy >= 70 ? 'var(--forest)' : 'var(--rust)';
+  ring.style.border = 'none';
+  ring.style.background = `conic-gradient(${color} ${deg}deg, var(--rule) ${deg}deg)`;
   document.getElementById('accuracyPct').textContent = accuracy + '%';
 }
 

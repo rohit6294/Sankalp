@@ -393,6 +393,15 @@ async function chooseExam(examId, name) {
 
 // ===== Step 2: Set Selector =====
 function selectMathSet(set) {
+  if (state.mathSet && state.mathSet !== set) {
+    const hasAnswers = Object.values(state.answers.math || {}).some(v => v != null);
+    if (hasAnswers) {
+      if (!confirm("Changing your Mathematics set will clear your currently drafted Math answers. Do you want to continue?")) {
+        return;
+      }
+      state.answers.math = {};
+    }
+  }
   state.mathSet = set;
   document.querySelectorAll('[id^="mathSetBtn"]').forEach(btn => {
     btn.classList.toggle('active', btn.id === `mathSetBtn${set}`);
@@ -400,6 +409,17 @@ function selectMathSet(set) {
 }
 
 function selectPhysChemSet(set) {
+  if (state.physChemSet && state.physChemSet !== set) {
+    const hasPhys = Object.values(state.answers.physics || {}).some(v => v != null);
+    const hasChem = Object.values(state.answers.chemistry || {}).some(v => v != null);
+    if (hasPhys || hasChem) {
+      if (!confirm("Changing your Physics & Chemistry set will clear your currently drafted Physics and Chemistry answers. Do you want to continue?")) {
+        return;
+      }
+      state.answers.physics = {};
+      state.answers.chemistry = {};
+    }
+  }
   state.physChemSet = set;
   document.querySelectorAll('[id^="pcSetBtn"]').forEach(btn => {
     btn.classList.toggle('active', btn.id === `pcSetBtn${set}`);

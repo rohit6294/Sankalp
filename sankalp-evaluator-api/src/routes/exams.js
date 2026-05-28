@@ -5,6 +5,15 @@ const { getExamReadiness } = require('../exam-readiness');
 
 const router = express.Router();
 
+router.get('/settings/mandatory-fields', verifyToken, async (req, res) => {
+  try {
+    const doc = await db.collection('settings').doc('mandatory_fields').get();
+    res.json({ settings: doc.exists ? doc.data() : {} });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_load_failed', message: e.message });
+  }
+});
+
 router.get('/', verifyToken, async (_req, res) => {
   try {
     const snap = await db.collection('exams').where('active', '==', true).get();

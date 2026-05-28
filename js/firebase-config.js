@@ -227,9 +227,14 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         if (cached) {
           mandatoryFields = JSON.parse(cached);
         } else {
-          const doc = await db.collection('settings').doc('mandatory_fields').get();
-          if (doc.exists) {
-            mandatoryFields = doc.data();
+          const token = await user.getIdToken();
+          const baseUrl = window.EVALUATOR_API || 'http://localhost:3000';
+          const res = await fetch(`${baseUrl}/api/exams/settings/mandatory-fields`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            mandatoryFields = data.settings || {};
             sessionStorage.setItem('mandatory_profile_fields', JSON.stringify(mandatoryFields));
           }
         }

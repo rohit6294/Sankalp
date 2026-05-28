@@ -18,15 +18,16 @@ function defaultRankRows(type) {
 
 function predictRank(total, rankRows) {
   if (!Array.isArray(rankRows) || !rankRows.length) return null;
+  const score = Math.round(total);
   const rows = [...rankRows].sort((a, b) => Number(a.marksMin) - Number(b.marksMin));
   const row = rows.find(
-    (r) => total >= Number(r.marksMin) && total <= Number(r.marksMax)
+    (r) => score >= Number(r.marksMin) && score <= Number(r.marksMax)
   );
-  if (!row && total < Number(rows[0].marksMin)) {
+  if (!row && score < Number(rows[0].marksMin)) {
     const lowest = rows[0];
     return { min: Number(lowest.rankMin), max: Number(lowest.rankMax) };
   }
-  if (!row && total > Number(rows[rows.length - 1].marksMax)) {
+  if (!row && score > Number(rows[rows.length - 1].marksMax)) {
     const highest = rows[rows.length - 1];
     return { min: Number(highest.rankMin), max: Number(highest.rankMax) };
   }

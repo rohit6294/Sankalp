@@ -289,18 +289,37 @@ router.get('/submissions', async (req, res) => {
     const usersMap = {};
     userSnap.forEach((doc) => {
       const data = doc.data() || {};
+      const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
       usersMap[doc.id] = {
-        name: data.name || data.displayName || 'Unknown',
+        name: fullName,
         email: data.email || '—',
+        phone: data.phone || '—',
+        gender: data.gender || '—',
+        caste: data.caste || '—',
+        tfw: data.tfw || '—',
+        wbjeeYear: data.wbjeeYear || '—',
       };
     });
 
     const joined = submissions.map((sub) => {
-      const user = usersMap[sub.userId] || { name: 'Unknown Student', email: sub.userId || '—' };
+      const user = usersMap[sub.userId] || {
+        name: 'Unknown Student',
+        email: sub.userId || '—',
+        phone: '—',
+        gender: '—',
+        caste: '—',
+        tfw: '—',
+        wbjeeYear: '—'
+      };
       return {
         ...sub,
         studentName: user.name,
         studentEmail: user.email,
+        studentPhone: user.phone,
+        studentGender: user.gender,
+        studentCaste: user.caste,
+        studentTFW: user.tfw,
+        studentYear: user.wbjeeYear,
       };
     });
 

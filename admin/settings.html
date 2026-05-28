@@ -147,6 +147,55 @@
         </div>
       </div>
 
+      <!-- Mandatory Profile Fields Setting -->
+      <div class="glass-card p-6 setting-section">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Mandatory Profile Fields</h2>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure which profile fields are required for students to access the portal</p>
+        <div style="display:flex;flex-direction:column;gap:0">
+          
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Student Name</div><div style="font-size:12px;color:#475569">First and Last Name are required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_name" onchange="saveMandatoryField('name', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Phone Number</div><div style="font-size:12px;color:#475569">10-digit mobile number is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_phone" onchange="saveMandatoryField('phone', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Gender</div><div style="font-size:12px;color:#475569">Student gender selection is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_gender" onchange="saveMandatoryField('gender', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Caste / Category</div><div style="font-size:12px;color:#475569">Student reservation category is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_caste" onchange="saveMandatoryField('caste', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">WBJEE Target Year</div><div style="font-size:12px;color:#475569">Target prep year is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_wbjeeYear" onchange="saveMandatoryField('wbjeeYear', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Email Settings -->
       <div class="glass-card p-6 setting-section">
         <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Email Notifications</h2>
@@ -230,7 +279,37 @@
     document.querySelector('[style*="grid-template-columns:1fr 320px"]').style.gridTemplateColumns='1fr';
   }
 
-  auth.onAuthStateChanged(user=>{if(!user)window.location.href='../login.html'});
+  async function loadMandatoryFields() {
+    try {
+      const doc = await db.collection('settings').doc('mandatory_fields').get();
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById('m_name').checked = !!data.name;
+        document.getElementById('m_phone').checked = !!data.phone;
+        document.getElementById('m_gender').checked = !!data.gender;
+        document.getElementById('m_caste').checked = !!data.caste;
+        document.getElementById('m_wbjeeYear').checked = !!data.wbjeeYear;
+      }
+    } catch(err) {
+      console.error("Error loading mandatory fields: ", err);
+    }
+  }
+
+  async function saveMandatoryField(field, val) {
+    try {
+      await db.collection('settings').doc('mandatory_fields').set({
+        [field]: val
+      }, { merge: true });
+      toast(`Mandatory field "${field}" ${val ? 'enabled' : 'disabled'}!`);
+    } catch(err) {
+      toast(`Error saving setting: ${err.message}`, 'error');
+    }
+  }
+
+  auth.onAuthStateChanged(user=>{
+    if(!user) { window.location.href='../login.html'; return; }
+    loadMandatoryFields();
+  });
 </script>
 </body>
 </html>

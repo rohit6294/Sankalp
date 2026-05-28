@@ -137,6 +137,29 @@
               </select>
             </div>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Gender</label>
+              <select id="editGender" class="input-field" style="appearance:none">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Caste / Category</label>
+              <select id="editCaste" class="input-field" style="appearance:none">
+                <option value="">Select Category</option>
+                <option value="General">General</option>
+                <option value="OBC-A">OBC-A</option>
+                <option value="OBC-B">OBC-B</option>
+                <option value="SC">SC</option>
+                <option value="ST">ST</option>
+                <option value="EWS">EWS</option>
+              </select>
+            </div>
+          </div>
           <div style="margin-bottom:20px">
             <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">About yourself (optional)</label>
             <textarea id="editBio" class="input-field" rows="3" placeholder="Share a little about your preparation journey..." style="resize:none;line-height:1.6"></textarea>
@@ -219,10 +242,21 @@
     const lastName = document.getElementById('editLastName').value.trim();
     const phone = document.getElementById('editPhone').value.trim();
     const year = document.getElementById('editYear').value;
+    const gender = document.getElementById('editGender').value;
+    const caste = document.getElementById('editCaste').value;
     const bio = document.getElementById('editBio').value.trim();
     try {
       await user.updateProfile({ displayName: `${firstName} ${lastName}` });
-      await db.collection('users').doc(user.uid).update({ firstName, lastName, name: `${firstName} ${lastName}`, phone, wbjeeYear: year, bio });
+      await db.collection('users').doc(user.uid).update({ 
+        firstName, 
+        lastName, 
+        name: `${firstName} ${lastName}`, 
+        phone, 
+        wbjeeYear: year, 
+        gender,
+        caste,
+        bio 
+      });
       const el = document.createElement('div');
       el.className = 'notification success';
       el.innerHTML = '<i class="fas fa-check"></i> Profile saved successfully!';
@@ -267,6 +301,8 @@
         const data = doc.data();
         if (data.phone) document.getElementById('editPhone').value = data.phone;
         if (data.wbjeeYear) document.getElementById('editYear').value = data.wbjeeYear;
+        if (data.gender) document.getElementById('editGender').value = data.gender;
+        if (data.caste) document.getElementById('editCaste').value = data.caste;
         if (data.bio) document.getElementById('editBio').value = data.bio;
         document.getElementById('statXP').textContent = data.xp || 0;
         document.getElementById('statStreak').textContent = `${data.streak || 0} days`;

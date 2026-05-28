@@ -548,8 +548,65 @@ function summarize(sub) {
 
 function goReview() {
   saveDraft();
+
+  // ── Physics & Chemistry are MANDATORY ──
+  const physSummary = summarize('physics');
+  const chemSummary = summarize('chemistry');
+  const missingSubjects = [];
+  if (physSummary.attempted === 0) missingSubjects.push('Physics');
+  if (chemSummary.attempted === 0) missingSubjects.push('Chemistry');
+
+  if (missingSubjects.length > 0) {
+    // Remove any existing warning
+    const old = document.getElementById('subjectWarningOverlay');
+    if (old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'subjectWarningOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(26,20,16,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;';
+
+    const subjectBtns = missingSubjects.map(s => {
+      const tabName = s.toLowerCase();
+      return `<button onclick="document.getElementById('subjectWarningOverlay').remove();switchTab('${tabName}');" style="padding:10px 20px;border:1px solid var(--rust);background:var(--rust);color:var(--paper);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <i class="fas fa-arrow-right"></i> Go to ${s}
+      </button>`;
+    }).join('');
+
+    overlay.innerHTML = `
+      <div style="background:var(--paper);border:1px solid var(--rust);padding:32px;max-width:520px;width:100%;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(201,78,31,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-exclamation-triangle" style="color:var(--rust);font-size:20px;"></i>
+          </div>
+          <div>
+            <div class="eyebrow" style="color:var(--rust);margin-bottom:2px;">Answers Required</div>
+            <h2 style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">
+              ${missingSubjects.join(' & ')} answers are empty!
+            </h2>
+          </div>
+        </div>
+        <p style="color:var(--ink-mute);font-size:14px;line-height:1.6;margin-bottom:8px;">
+          <strong style="color:var(--ink);">Physics and Chemistry are mandatory.</strong> You haven't filled any answers for <strong>${missingSubjects.join(' and ')}</strong>. Please go back and enter your responses.
+        </p>
+        <p style="color:var(--ink-mute);font-size:13px;margin-bottom:20px;">
+          <i class="fas fa-info-circle" style="color:var(--rust);"></i>
+          Mathematics is optional — you can skip it if you didn't attempt Paper 1.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          ${subjectBtns}
+          <button onclick="document.getElementById('subjectWarningOverlay').remove();" style="padding:10px 20px;border:1px solid var(--rule);background:var(--paper-soft);color:var(--ink-mute);font-weight:700;font-size:13px;cursor:pointer;">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    return; // block navigation to review
+  }
+
+  // ── Build review summary ──
   const subs = ['math','physics','chemistry'];
-  const labels = { math: 'Mathematics', physics: 'Physics', chemistry: 'Chemistry' };
+  const labels = { math: 'Mathematics (optional)', physics: 'Physics ✱', chemistry: 'Chemistry ✱' };
   const html = subs.map((s, i) => {
     const r = summarize(s);
     const right = i < subs.length - 1 ? 'border-right:1px solid var(--ink);' : '';

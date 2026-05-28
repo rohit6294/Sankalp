@@ -563,7 +563,14 @@ function summarize(sub) {
 function goReview() {
   saveDraft();
 
-  // ── Physics & Chemistry are MANDATORY ──
+  // ── 1. Profile Mandatory Check ──
+  if (document.getElementById('__pc_banner__')) {
+    alert("You cannot submit the exam because your profile is incomplete.\nPlease click 'Complete Now' in the red banner at the top of the page to fill in the mandatory details required by the admin.");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── 2. Physics & Chemistry are MANDATORY ──
   const physSummary = summarize('physics');
   const chemSummary = summarize('chemistry');
   const missingSubjects = [];

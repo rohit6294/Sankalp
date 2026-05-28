@@ -618,4 +618,24 @@ router.post('/reset-reject/:subId', async (req, res) => {
   }
 });
 
+// ── Test Email Route ──────────────────────────────────────────
+
+router.get('/test-email', async (req, res) => {
+  try {
+    const result = await sendEmail({
+      to: req.user.email || 'rohitgupta6294@gmail.com',
+      subject: 'Test Email from Sankalp Backend',
+      text: 'If you are receiving this, your SMTP configuration is perfect!'
+    });
+    
+    if (result.success) {
+      res.json({ ok: true, message: 'Email sent successfully!' });
+    } else {
+      res.status(500).json({ error: 'email_failed', message: `SMTP Error: ${result.error}` });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'email_failed', message: err.message });
+  }
+});
+
 module.exports = router;

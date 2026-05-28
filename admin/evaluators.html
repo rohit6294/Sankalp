@@ -287,6 +287,14 @@
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Email Address</div><div style="font-size:11px; color:var(--ink-mute);">Student email address is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_email" onchange="saveMandatoryField('email', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
           <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Phone Number</div><div style="font-size:11px; color:var(--ink-mute);">10-digit mobile number is required</div></div>
           <label class="toggle-switch">
             <input type="checkbox" id="m_phone" onchange="saveMandatoryField('phone', this.checked)">
@@ -327,6 +335,33 @@
         </div>
 
       </div>
+    </div>
+
+    <!-- Email Automations Setting -->
+    <div style="border:1px solid var(--ink); padding:28px; background:var(--paper); max-width:640px;">
+      <h2 style="font-family:var(--font-display); font-size:1.2rem; font-weight:700; margin-bottom:4px; color:var(--ink);">Email Automations (SMTP)</h2>
+      <p style="font-size:13px; color:var(--ink-mute); margin-bottom:20px;">Configure automated emails sent via sankalp.learning.edu@gmail.com</p>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Admin Email Address</label>
+        <input type="email" id="adminEmail" class="input-field" placeholder="admin@example.com" style="margin-bottom:4px; width:100%;">
+        <div style="font-size:11px; color:var(--ink-mute);">This email will receive notifications when automations are triggered.</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--rule);">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Notify Admin on Reset Request</div><div style="font-size:11px; color:var(--ink-mute);">Send an alert to Admin Email when a student asks for a reset</div></div>
+          <label class="toggle-switch"><input type="checkbox" id="notifyAdminResetReq"><span class="toggle-slider"></span></label>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:none;">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Notify Student on Reset Decision</div><div style="font-size:11px; color:var(--ink-mute);">Email student when their reset request is approved or rejected</div></div>
+          <label class="toggle-switch"><input type="checkbox" id="notifyStudentResetDec"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      
+      <button onclick="saveEmailAutomations()" class="btn-primary" style="padding:10px 22px; font-size:13px; margin-top:16px;">
+        <i class="fas fa-save" style="margin-right:6px;"></i> Save Automations
+      </button>
     </div>
   </div>
 </main>
@@ -637,6 +672,7 @@ async function loadMandatoryFields() {
     const data = await apiJson('/api/admin/settings/mandatory-fields');
     const settings = data.settings || {};
     document.getElementById('m_name').checked = !!settings.name;
+    document.getElementById('m_email').checked = !!settings.email;
     document.getElementById('m_phone').checked = !!settings.phone;
     document.getElementById('m_gender').checked = !!settings.gender;
     document.getElementById('m_caste').checked = !!settings.caste;
@@ -1738,6 +1774,39 @@ function hideStudentProfileModal() {
   document.getElementById('studentProfileModal').style.display = 'none';
 }
 
+async function loadEmailAutomations() {
+  try {
+    const doc = await db.collection('settings').doc('email_automations').get();
+    if (doc.exists) {
+      const settings = doc.data();
+      document.getElementById('adminEmail').value = settings.adminEmail || '';
+      document.getElementById('notifyAdminResetReq').checked = !!settings.notifyAdminResetReq;
+      document.getElementById('notifyStudentResetDec').checked = !!settings.notifyStudentResetDec;
+    }
+  } catch (err) {
+    console.error("Error loading email automations: ", err);
+  }
+}
+
+async function saveEmailAutomations() {
+  const adminEmail = document.getElementById('adminEmail').value.trim();
+  const notifyAdminResetReq = document.getElementById('notifyAdminResetReq').checked;
+  const notifyStudentResetDec = document.getElementById('notifyStudentResetDec').checked;
+
+  try {
+    // Save to Firestore using admin API endpoint (we'll need to add this if it doesn't exist, or use direct DB if authorized)
+    // Actually, in evaluators.html, we can use the db object directly since admin is logged in
+    await db.collection('settings').doc('email_automations').set({
+      adminEmail,
+      notifyAdminResetReq,
+      notifyStudentResetDec
+    }, { merge: true });
+    toast('Email automations saved successfully!');
+  } catch(err) {
+    toast(`Error saving automations: ${err.message}`);
+  }
+}
+
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.href = '../login.html';
@@ -1747,6 +1816,7 @@ auth.onAuthStateChanged(async (user) => {
   currentToken = null;
   await loadExams();
   await loadMandatoryFields();
+  await loadEmailAutomations();
 });
 </script>
 </body>

@@ -459,6 +459,27 @@ router.put('/settings/mandatory-fields', async (req, res) => {
   }
 });
 
+// Fetch email automations configuration
+router.get('/settings/email_automations', async (req, res) => {
+  try {
+    const doc = await db.collection('settings').doc('email_automations').get();
+    res.json({ settings: doc.exists ? doc.data() : {} });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_load_failed', message: e.message });
+  }
+});
+
+// Update email automations configuration
+router.put('/settings/email_automations', async (req, res) => {
+  const payload = ensurePlainObject(req.body);
+  try {
+    await db.collection('settings').doc('email_automations').set(payload, { merge: true });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_save_failed', message: e.message });
+  }
+});
+
 // Broadcast announcement via email
 router.post('/broadcast-announcement', async (req, res) => {
   const { title, message, target } = req.body || {};

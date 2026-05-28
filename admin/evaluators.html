@@ -1776,13 +1776,11 @@ function hideStudentProfileModal() {
 
 async function loadEmailAutomations() {
   try {
-    const doc = await db.collection('settings').doc('email_automations').get();
-    if (doc.exists) {
-      const settings = doc.data();
-      document.getElementById('adminEmail').value = settings.adminEmail || '';
-      document.getElementById('notifyAdminResetReq').checked = !!settings.notifyAdminResetReq;
-      document.getElementById('notifyStudentResetDec').checked = !!settings.notifyStudentResetDec;
-    }
+    const data = await apiJson('/api/admin/settings/email_automations').catch(() => ({}));
+    const settings = data.settings || {};
+    document.getElementById('adminEmail').value = settings.adminEmail || '';
+    document.getElementById('notifyAdminResetReq').checked = !!settings.notifyAdminResetReq;
+    document.getElementById('notifyStudentResetDec').checked = !!settings.notifyStudentResetDec;
   } catch (err) {
     console.error("Error loading email automations: ", err);
   }
@@ -1794,13 +1792,14 @@ async function saveEmailAutomations() {
   const notifyStudentResetDec = document.getElementById('notifyStudentResetDec').checked;
 
   try {
-    // Save to Firestore using admin API endpoint (we'll need to add this if it doesn't exist, or use direct DB if authorized)
-    // Actually, in evaluators.html, we can use the db object directly since admin is logged in
-    await db.collection('settings').doc('email_automations').set({
-      adminEmail,
-      notifyAdminResetReq,
-      notifyStudentResetDec
-    }, { merge: true });
+    await apiJson('/api/admin/settings/email_automations', {
+      method: 'PUT',
+      body: {
+        adminEmail,
+        notifyAdminResetReq,
+        notifyStudentResetDec
+      }
+    });
     toast('Email automations saved successfully!');
   } catch(err) {
     toast(`Error saving automations: ${err.message}`);

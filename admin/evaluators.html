@@ -701,6 +701,10 @@ function renderExamRows(exams) {
   for (const exam of exams) {
     const row = document.createElement('div');
     row.className = 'exam-row';
+    const recalcHtml = exam.needsRecalculation 
+      ? `<button class="btn-ghost btn-sm" data-action="recalc" style="color:#F59E0B; border-color:rgba(245,158,11,0.3);" title="Answers/Ranks changed. Recalculate scores for all submissions."><i class="fas fa-rotate"></i> Recalculate</button>`
+      : `<button class="btn-ghost btn-sm" disabled style="opacity:0.5;" title="All submissions are up to date"><i class="fas fa-rotate"></i> Recalculate</button>`;
+
     row.innerHTML = `
       <div>
         <div style="font-weight:700; font-size:14px;"></div>
@@ -709,12 +713,18 @@ function renderExamRows(exams) {
       <div style="display:flex; gap:8px; align-items:center;">
         <span class="badge ${exam.ready ? 'badge-success' : 'badge-warning'}">${exam.ready ? 'Ready' : 'Setup'}</span>
         <span class="badge ${exam.active ? 'badge-success' : 'badge-warning'}">${exam.active ? 'Active' : 'Inactive'}</span>
+        ${recalcHtml}
         <button class="btn-ghost btn-sm" data-action="keys"><i class="fas fa-key"></i> Keys</button>
         <button class="btn-ghost btn-sm" data-action="toggle" title="${exam.active ? 'Deactivate' : 'Activate after all answer keys are complete'}"><i class="fas fa-${exam.active ? 'eye-slash' : 'eye'}"></i></button>
       </div>
     `;
     row.children[0].children[0].textContent = exam.name;
     row.children[0].children[1].textContent = exam.id;
+    
+    if (exam.needsRecalculation) {
+      row.querySelector('[data-action="recalc"]').addEventListener('click', (e) => recalculateExam(exam.id, exam.name, e.currentTarget));
+    }
+    
     row.querySelector('[data-action="keys"]').addEventListener('click', () => openKeyEditor(exam.id, exam.name));
     row.querySelector('[data-action="toggle"]').addEventListener('click', () => toggleExamActive(exam.id, !exam.active));
     rows.appendChild(row);
@@ -725,6 +735,26 @@ function renderExamRows(exams) {
   exams.forEach((exam) => rankSelect.appendChild(new Option(exam.name, exam.id)));
   if (exams.some((exam) => exam.id === previousRankExam)) {
     rankSelect.value = previousRankExam;
+  }
+}
+
+async function recalculateExam(examId, examName, btn) {
+  if (!confirm(`Are you sure you want to recalculate all submissions for ${examName}?\nThis will re-score every student's answers against the latest answer key and rank tables.`)) {
+    return;
+  }
+  
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recalculating...';
+  btn.disabled = true;
+  
+  try {
+    const res = await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}/recalculate`, { method: 'POST' });
+    toast(res.recalculated !== undefined ? `Successfully recalculated ${res.recalculated} submissions.` : res.message || 'Recalculation complete.');
+    await fetchExams(); // Refresh to hide the button
+  } catch (error) {
+    toast(`Error recalculating: ${error.message}`);
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
   }
 }
 

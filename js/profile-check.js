@@ -69,9 +69,7 @@
     if (document.getElementById(BANNER_ID)) return;
     injectCSS();
 
-    // figure out relative path to profile.html
-    const depth = window.location.pathname.replace(/\/$/, '').split('/').filter(Boolean).length;
-    const prefix = depth >= 2 ? '../' : (depth === 1 ? '' : '');
+    // use absolute path for student profile
 
     const b = document.createElement('div');
     b.id = BANNER_ID;
@@ -83,7 +81,7 @@
           Required fields missing: <span style="font-weight:400">${missing.join(', ')}</span>
         </span>
       </div>
-      <a class="pc-link" href="${prefix}profile.html">Complete Now</a>
+      <a class="pc-link" href="/student/profile.html">Complete Now</a>
       <button class="pc-close"
         onclick="document.getElementById('${BANNER_ID}').remove();document.body.classList.remove('pc-offset');"
         title="Dismiss">✕</button>

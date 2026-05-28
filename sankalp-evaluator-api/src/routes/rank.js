@@ -10,18 +10,22 @@ router.get('/:examId', verifyToken, async (req, res) => {
   try {
     const mine = await db.collection('submissions').doc(`${uid}_${examId}`).get();
     if (!mine.exists) return res.status(404).json({ error: 'no_submission' });
-    const myTotal = mine.data().scores?.total ?? 0;
+    const myTotal = mine.data().scores?.total ?? mine.data().scores?.engineering ?? 0;
 
-    const examFilter = db.collection('submissions').where('examId', '==', examId);
+    // Fetch all submissions for this exam and compute rank in JS
+    // (avoids Firestore composite index requirement for count + inequality on nested field)
+    const allSnap = await db.collection('submissions').where('examId', '==', examId).get();
+    const totals = allSnap.docs.map(doc => {
+      const s = doc.data().scores || {};
+      return s.total ?? s.engineering ?? 0;
+    });
 
-    const [higherSnap, totalSnap] = await Promise.all([
-      examFilter.where('scores.total', '>', myTotal).count().get(),
-      examFilter.count().get(),
-    ]);
+    const higher = totals.filter(t => t > myTotal).length;
+    const total  = totals.length;
 
     res.json({
-      yourRank: higherSnap.data().count + 1,
-      totalParticipants: totalSnap.data().count,
+      yourRank: higher + 1,
+      totalParticipants: total,
       yourTotal: myTotal,
     });
   } catch (e) {

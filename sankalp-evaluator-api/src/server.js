@@ -38,6 +38,31 @@ app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {
   }
 });
 
+// Student profile update — uses Admin SDK to bypass Firestore client-side permission rules
+app.put('/api/profile', verifyToken, async (req, res) => {
+  const uid = req.user.uid;
+  const { firstName, lastName, phone, wbjeeYear, gender, caste, tfw, bio } = req.body || {};
+  const update = {};
+  if (firstName !== undefined) update.firstName = String(firstName).trim();
+  if (lastName  !== undefined) update.lastName  = String(lastName).trim();
+  if (firstName !== undefined || lastName !== undefined) {
+    update.name = `${String(firstName || '').trim()} ${String(lastName || '').trim()}`.trim();
+  }
+  if (phone     !== undefined) update.phone     = String(phone).trim();
+  if (wbjeeYear !== undefined) update.wbjeeYear = String(wbjeeYear).trim();
+  if (gender    !== undefined) update.gender    = String(gender).trim();
+  if (caste     !== undefined) update.caste     = String(caste).trim();
+  if (tfw       !== undefined) update.tfw       = String(tfw).trim();
+  if (bio       !== undefined) update.bio       = String(bio).trim();
+  if (!Object.keys(update).length) return res.status(400).json({ error: 'no_fields' });
+  try {
+    await db.collection('users').doc(uid).set(update, { merge: true });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'profile_save_failed', message: e.message });
+  }
+});
+
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {
   console.log(`sankalp-evaluator-api listening on :${port}`);

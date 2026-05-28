@@ -10,15 +10,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="../js/firebase-config.js?v=1.0.3"></script>
-  <script src="../js/profile-check.js"></script>
+  <script src="../js/firebase-config.js?v=1.0.4"></script>
   <style>
     .badge-card { display:flex; align-items:center; gap:12px; background:rgba(30,41,59,0.5); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:14px 16px; }
     .badge-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-    .notification { position: fixed; bottom: 24px; right: 24px; padding: 14px 22px; border-radius: 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); animation: slideUp 0.3s ease; }
-    .notification.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34D399; }
-    .notification.info { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #60A5FA; }
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .notif { position:fixed; bottom:24px; right:24px; padding:14px 22px; border-radius:12px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; z-index:999999; box-shadow:0 10px 30px rgba(0,0,0,0.5); animation:slideUp 0.3s ease; }
+    .notif.success { background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34D399; }
+    .notif.error   { background:rgba(239,68,68,0.15);  border:1px solid rgba(239,68,68,0.4);  color:#F87171; }
+    @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+    /* Mandatory warning banner */
+    #mandatoryBanner {
+      display:none;
+      background:rgba(201,78,31,0.12);
+      border:1.5px solid rgba(201,78,31,0.5);
+      border-radius:12px;
+      padding:16px 20px;
+      margin-bottom:24px;
+      color:#C94E1F;
+      font-size:13px;
+      line-height:1.6;
+    }
+    #mandatoryBanner strong { color:#fff; }
+    .req-star { color:#C94E1F; font-weight:700; margin-left:2px; }
+    .field-required { border-color: rgba(201,78,31,0.6) !important; }
   </style>
 </head>
 <body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
@@ -38,6 +53,7 @@
   </div>
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home" style="width:18px"></i> Dashboard</a>
     <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
     <a href="profile.html" class="sidebar-link active"><i class="fas fa-user" style="width:18px"></i> Profile</a>
@@ -49,6 +65,18 @@
   <div style="margin-bottom:28px">
     <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">My Profile</h1>
     <p style="color:#475569;font-size:14px;margin-top:4px">Manage your account and track your journey</p>
+  </div>
+
+  <!-- Mandatory fields warning banner -->
+  <div id="mandatoryBanner">
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <i class="fas fa-exclamation-triangle" style="font-size:18px;margin-top:2px;flex-shrink:0;"></i>
+      <div>
+        <strong>Complete your profile!</strong> The following fields are required by the admin:
+        <span id="mandatoryList" style="font-weight:600;"> — </span><br>
+        <span style="font-size:12px;color:#94A3B8;">These are marked with <span class="req-star">✱</span> below. Please fill them and save.</span>
+      </div>
+    </div>
   </div>
 
   <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start" id="profileGrid">
@@ -87,7 +115,7 @@
       <!-- Badges -->
       <div class="glass-card p-6">
         <h3 style="font-size:14px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Badges Earned</h3>
-        <div style="display:flex;flex-direction:column;gap:8px" id="badgeList">
+        <div style="display:flex;flex-direction:column;gap:8px">
           <div class="badge-card">
             <div class="badge-icon" style="background:rgba(245,158,11,0.15)">🌱</div>
             <div><div style="font-size:13px;font-weight:600">First Step</div><div style="font-size:11px;color:#475569">Completed registration</div></div>
@@ -100,27 +128,22 @@
             <div class="badge-icon" style="background:rgba(16,185,129,0.1)">📚</div>
             <div><div style="font-size:13px;font-weight:600;color:#475569">Scholar</div><div style="font-size:11px;color:#334155">Complete 10 modules</div></div>
           </div>
-          <div class="badge-card" style="opacity:0.4">
-            <div class="badge-icon" style="background:rgba(239,68,68,0.1)">🏆</div>
-            <div><div style="font-size:13px;font-weight:600;color:#475569">Mock Master</div><div style="font-size:11px;color:#334155">Score 90%+ on a test</div></div>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- Right: Edit Profile + Settings -->
+    <!-- Right: Edit Profile -->
     <div>
-      <!-- Edit Profile -->
       <div class="glass-card p-8 mb-6">
         <h2 style="font-size:17px;font-weight:700;margin-bottom:20px">Edit Profile</h2>
         <form onsubmit="saveProfile(event)">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
             <div>
-              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">First Name</label>
+              <label id="lbl-firstName" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">First Name</label>
               <input type="text" id="editFirstName" class="input-field" placeholder="Arjun">
             </div>
             <div>
-              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Last Name</label>
+              <label id="lbl-lastName" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Last Name</label>
               <input type="text" id="editLastName" class="input-field" placeholder="Das">
             </div>
           </div>
@@ -131,11 +154,11 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
             <div>
-              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Phone Number</label>
+              <label id="lbl-phone" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Phone Number</label>
               <input type="tel" id="editPhone" class="input-field" placeholder="+91 98765 43210">
             </div>
             <div>
-              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">WBJEE Year</label>
+              <label id="lbl-wbjeeYear" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">WBJEE Year</label>
               <select id="editYear" class="input-field" style="appearance:none">
                 <option value="2025">WBJEE 2025</option>
                 <option value="2026" selected>WBJEE 2026</option>
@@ -145,7 +168,7 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
             <div>
-              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Gender</label>
+              <label id="lbl-gender" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Gender</label>
               <select id="editGender" class="input-field" style="appearance:none">
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
@@ -154,7 +177,7 @@
               </select>
             </div>
             <div>
-              <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Caste / Category</label>
+              <label id="lbl-caste" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Caste / Category</label>
               <select id="editCaste" class="input-field" style="appearance:none">
                 <option value="">Select Category</option>
                 <option value="General">General</option>
@@ -167,7 +190,7 @@
             </div>
           </div>
           <div style="margin-bottom:14px">
-            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">TFW (Tuition Fee Waiver) Status</label>
+            <label id="lbl-tfw" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">TFW (Tuition Fee Waiver) Status</label>
             <select id="editTfw" class="input-field" style="appearance:none">
               <option value="">Select TFW Status</option>
               <option value="No">No (General Selection)</option>
@@ -178,7 +201,7 @@
             <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">About yourself (optional)</label>
             <textarea id="editBio" class="input-field" rows="3" placeholder="Share a little about your preparation journey..." style="resize:none;line-height:1.6"></textarea>
           </div>
-          <button type="submit" class="btn-primary" style="padding:12px 28px"><i class="fas fa-save"></i> Save Changes</button>
+          <button type="submit" id="saveBtn" class="btn-primary" style="padding:12px 28px"><i class="fas fa-save"></i> Save Changes</button>
         </form>
       </div>
 
@@ -245,46 +268,145 @@
 </main>
 
 <script>
-  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  const API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
   function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
 
+  function showNotif(msg, type='success') {
+    const el = document.createElement('div');
+    el.className = `notif ${type}`;
+    el.innerHTML = `<i class="fas fa-${type==='success'?'check':'times'}-circle"></i> ${msg}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // ── Mandatory fields check ────────────────────────────────────────────────
+  const FIELD_MAP = {
+    name: 'Full Name', phone: 'Phone Number', gender: 'Gender',
+    caste: 'Caste / Category', tfw: 'TFW Status', wbjeeYear: 'WBJEE Year'
+  };
+  const INPUT_MAP = {
+    name: ['editFirstName','editLastName'], phone: ['editPhone'],
+    gender: ['editGender'], caste: ['editCaste'],
+    tfw: ['editTfw'], wbjeeYear: ['editYear']
+  };
+
+  async function checkMandatory(user, profileData) {
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`${API}/api/settings/mandatory-fields`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const { settings } = await res.json();
+      const missing = [];
+
+      // Check each mandatory field
+      Object.keys(settings).forEach(field => {
+        if (!settings[field]) return;
+        let isEmpty = false;
+        if (field === 'name') {
+          isEmpty = !profileData.firstName?.trim() && !profileData.name?.trim();
+        } else {
+          isEmpty = !profileData[field] || !String(profileData[field]).trim();
+        }
+        if (isEmpty) missing.push(FIELD_MAP[field] || field);
+
+        // Mark required label with star
+        const lblId = `lbl-${field === 'name' ? 'firstName' : field}`;
+        const lbl = document.getElementById(lblId);
+        if (lbl && !lbl.querySelector('.req-star')) {
+          lbl.insertAdjacentHTML('beforeend', '<span class="req-star"> ✱</span>');
+        }
+        // Also mark last name if name is required
+        if (field === 'name') {
+          const lbl2 = document.getElementById('lbl-lastName');
+          if (lbl2 && !lbl2.querySelector('.req-star'))
+            lbl2.insertAdjacentHTML('beforeend', '<span class="req-star"> ✱</span>');
+        }
+        // Mark the input field visually if empty
+        if (isEmpty && INPUT_MAP[field]) {
+          INPUT_MAP[field].forEach(id => {
+            const inp = document.getElementById(id);
+            if (inp) inp.classList.add('field-required');
+          });
+        }
+      });
+
+      if (missing.length) {
+        const banner = document.getElementById('mandatoryBanner');
+        document.getElementById('mandatoryList').textContent = missing.join(', ');
+        banner.style.display = 'block';
+      }
+    } catch(e) {
+      console.warn('[profile] mandatory check error:', e.message);
+    }
+  }
+
+  // ── Save profile via backend API ─────────────────────────────────────────
   async function saveProfile(e) {
     e.preventDefault();
+    const btn = document.getElementById('saveBtn');
     const user = auth.currentUser;
     if (!user) return;
+
     const firstName = document.getElementById('editFirstName').value.trim();
-    const lastName = document.getElementById('editLastName').value.trim();
-    const phone = document.getElementById('editPhone').value.trim();
-    const year = document.getElementById('editYear').value;
-    const gender = document.getElementById('editGender').value;
-    const caste = document.getElementById('editCaste').value;
-    const tfw = document.getElementById('editTfw').value;
-    const bio = document.getElementById('editBio').value.trim();
+    const lastName  = document.getElementById('editLastName').value.trim();
+    const phone     = document.getElementById('editPhone').value.trim();
+    const year      = document.getElementById('editYear').value;
+    const gender    = document.getElementById('editGender').value;
+    const caste     = document.getElementById('editCaste').value;
+    const tfw       = document.getElementById('editTfw').value;
+    const bio       = document.getElementById('editBio').value.trim();
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+    btn.disabled = true;
+
     try {
-      await user.updateProfile({ displayName: `${firstName} ${lastName}` });
-      await db.collection('users').doc(user.uid).set({ 
-        firstName, 
-        lastName, 
-        name: `${firstName} ${lastName}`, 
-        phone, 
-        wbjeeYear: year, 
-        gender,
-        caste,
-        tfw,
-        bio 
-      }, { merge: true });
-      const el = document.createElement('div');
-      el.className = 'notification success';
-      el.innerHTML = '<i class="fas fa-check"></i> Profile saved successfully!';
-      document.body.appendChild(el);
+      // 1. Update Firebase Auth display name
+      await user.updateProfile({ displayName: `${firstName} ${lastName}`.trim() });
+
+      // 2. Save to Firestore via secure backend (bypasses permission rules)
+      const token = await user.getIdToken();
+      const res = await fetch(`${API}/api/profile`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, phone, wbjeeYear: year, gender, caste, tfw, bio })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Server error ${res.status}`);
+      }
+
+      // Update avatar
+      if (firstName) {
+        document.getElementById('profileAvatar').textContent = firstName[0].toUpperCase();
+        document.getElementById('profileName').textContent = `${firstName} ${lastName}`.trim();
+      }
+
+      showNotif('Profile saved successfully!');
+
+      // Re-run mandatory check with updated data
       setTimeout(() => {
-        el.remove();
-        window.location.reload();
-      }, 1500);
+        // Remove old marks
+        document.querySelectorAll('.req-star').forEach(s => s.remove());
+        document.querySelectorAll('.field-required').forEach(el => el.classList.remove('field-required'));
+        document.getElementById('mandatoryBanner').style.display = 'none';
+        checkMandatory(user, { firstName, lastName, phone, wbjeeYear: year, gender, caste, tfw });
+      }, 500);
+
     } catch(err) {
       console.error(err);
-      alert('Failed to save profile: ' + err.message);
+      showNotif('Failed to save: ' + err.message, 'error');
     }
+
+    btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+    btn.disabled = false;
   }
 
   async function changePassword() {
@@ -292,50 +414,65 @@
     if (!user || !user.email) return;
     try {
       await auth.sendPasswordResetEmail(user.email);
-      const el = document.createElement('div');
-      el.className = 'notification info';
-      el.innerHTML = '<i class="fas fa-envelope"></i> Password reset email sent!';
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 3500);
-    } catch(err) {}
+      showNotif('Password reset email sent!', 'success');
+    } catch(err) { showNotif(err.message, 'error'); }
   }
 
   if (window.innerWidth <= 768) {
     document.getElementById('profileGrid').style.gridTemplateColumns = '1fr';
   }
 
+  // ── Auth gate + load profile ─────────────────────────────────────────────
   auth.onAuthStateChanged(async (user) => {
     if (!user) { window.location.href = '../login.html'; return; }
-    const name = user.displayName || 'Student';
-    const firstName = name.split(' ')[0];
-    document.getElementById('profileAvatar').textContent = firstName[0].toUpperCase();
-    document.getElementById('profileName').textContent = name;
+
+    const name = user.displayName || '';
+    const nameParts = name.split(' ');
+    document.getElementById('profileAvatar').textContent = name ? name[0].toUpperCase() : '?';
+    document.getElementById('profileName').textContent = name || 'Student';
     document.getElementById('profileEmail').textContent = user.email;
     document.getElementById('editEmail').value = user.email;
-    const nameParts = name.split(' ');
     document.getElementById('editFirstName').value = nameParts[0] || '';
     document.getElementById('editLastName').value = nameParts.slice(1).join(' ') || '';
+
     try {
       const doc = await db.collection('users').doc(user.uid).get();
       if (doc.exists) {
         const data = doc.data();
-        if (data.phone) document.getElementById('editPhone').value = data.phone;
-        if (data.wbjeeYear) document.getElementById('editYear').value = data.wbjeeYear;
-        if (data.gender) document.getElementById('editGender').value = data.gender;
-        if (data.caste) document.getElementById('editCaste').value = data.caste;
-        if (data.tfw) document.getElementById('editTfw').value = data.tfw;
-        if (data.bio) document.getElementById('editBio').value = data.bio;
-        document.getElementById('statXP').textContent = data.xp || 0;
-        document.getElementById('statStreak').textContent = `${data.streak || 0} days`;
+        if (data.firstName) document.getElementById('editFirstName').value = data.firstName;
+        if (data.lastName)  document.getElementById('editLastName').value  = data.lastName;
+        if (data.phone)     document.getElementById('editPhone').value     = data.phone;
+        if (data.wbjeeYear) document.getElementById('editYear').value      = data.wbjeeYear;
+        if (data.gender)    document.getElementById('editGender').value    = data.gender;
+        if (data.caste)     document.getElementById('editCaste').value     = data.caste;
+        if (data.tfw)       document.getElementById('editTfw').value       = data.tfw;
+        if (data.bio)       document.getElementById('editBio').value       = data.bio;
+
+        // Stats
+        document.getElementById('statXP').textContent      = data.xp || 0;
+        document.getElementById('statStreak').textContent  = `${data.streak || 0} days`;
         document.getElementById('statModules').textContent = (data.completedModules || []).length;
-        document.getElementById('statTests').textContent = (data.testsTaken || 0);
+        document.getElementById('statTests').textContent   = data.testsTaken || 0;
+
+        // Level
         const xp = data.xp || 0;
-        const levels = [{n:'Beginner 🌱',max:100},{n:'Explorer 🔥',max:300},{n:'Scholar 📚',max:600},{n:'Expert ⚡',max:1000},{n:'Master 🏆',max:Infinity}];
+        const levels = [
+          {n:'Beginner 🌱',max:100},{n:'Explorer 🔥',max:300},
+          {n:'Scholar 📚',max:600},{n:'Expert ⚡',max:1000},{n:'Master 🏆',max:Infinity}
+        ];
         let level = levels[0];
         for (const l of levels) { if (xp < l.max) { level = l; break; } }
         document.getElementById('profileLevel').textContent = level.n;
+
+        // Run mandatory field check with actual profile data
+        await checkMandatory(user, data);
+      } else {
+        // New user — run mandatory check with empty profile
+        await checkMandatory(user, {});
       }
-    } catch(e) {}
+    } catch(e) {
+      console.error(e);
+    }
   });
 </script>
 </body>

@@ -103,9 +103,13 @@
   function getMissing(settings, profile) {
     const missing = [];
     
-    // Always force name check regardless of admin settings if name is Unknown Student
+    // Always force name check regardless of admin settings if name is Unknown Student or invalid
     const nameVal = String(profile.name || profile.firstName || '').trim().toLowerCase();
-    if (nameVal === 'unknown student' || nameVal === '') {
+    
+    // A valid name must have at least 2 alphabet letters and cannot be "unknown student"
+    const hasEnoughLetters = /[a-z].*[a-z]/i.test(nameVal);
+    
+    if (nameVal === 'unknown student' || nameVal === '' || !hasEnoughLetters) {
       missing.push(FIELD_LABELS['name']);
     }
 

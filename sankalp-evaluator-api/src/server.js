@@ -47,6 +47,9 @@ app.put('/api/profile', verifyToken, async (req, res) => {
   if (lastName  !== undefined) update.lastName  = String(lastName).trim();
   if (firstName !== undefined || lastName !== undefined) {
     update.name = `${String(firstName || '').trim()} ${String(lastName || '').trim()}`.trim();
+    if (update.name && !/[a-z].*[a-z]/i.test(update.name)) {
+      return res.status(400).json({ error: 'Name must contain at least 2 alphabet characters.' });
+    }
   }
   if (email !== undefined && email !== '') update.email = String(email).trim();
   if (phone     !== undefined) update.phone     = String(phone).trim();

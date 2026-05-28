@@ -363,6 +363,14 @@
     const tfw       = document.getElementById('editTfw').value;
     const bio       = document.getElementById('editBio').value.trim();
 
+    const fullEnteredName = `${firstName} ${lastName}`.trim().toLowerCase();
+    if (fullEnteredName && !/[a-z].*[a-z]/i.test(fullEnteredName)) {
+      showNotif('Please enter a valid real name (at least 2 letters required).', 'error');
+      btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+      btn.disabled = false;
+      return;
+    }
+
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
     btn.disabled = true;
 

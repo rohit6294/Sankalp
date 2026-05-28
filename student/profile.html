@@ -149,7 +149,7 @@
           <div style="margin-bottom:14px">
             <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Email Address</label>
             <input type="email" id="editEmail" class="input-field" disabled style="opacity:0.5;cursor:not-allowed">
-            <p style="font-size:11px;color:#334155;margin-top:4px">Email cannot be changed</p>
+            <p id="emailNotice" style="font-size:11px;color:#334155;margin-top:4px">Email cannot be changed if signed in with Google</p>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
             <div>
@@ -355,6 +355,7 @@
 
     const firstName = document.getElementById('editFirstName').value.trim();
     const lastName  = document.getElementById('editLastName').value.trim();
+    const email     = document.getElementById('editEmail').value.trim();
     const phone     = document.getElementById('editPhone').value.trim();
     const year      = document.getElementById('editYear').value;
     const gender    = document.getElementById('editGender').value;
@@ -374,7 +375,7 @@
       const res = await fetch(`${API}/api/profile`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, phone, wbjeeYear: year, gender, caste, tfw, bio })
+        body: JSON.stringify({ firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw, bio })
       });
 
       if (!res.ok) {
@@ -396,7 +397,7 @@
         document.querySelectorAll('.req-star').forEach(s => s.remove());
         document.querySelectorAll('.field-required').forEach(el => el.classList.remove('field-required'));
         document.getElementById('mandatoryBanner').style.display = 'none';
-        checkMandatory(user, { firstName, lastName, phone, wbjeeYear: year, gender, caste, tfw });
+        checkMandatory(user, { firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw });
       }, 500);
 
     } catch(err) {
@@ -429,8 +430,18 @@
     const nameParts = name.split(' ');
     document.getElementById('profileAvatar').textContent = name ? name[0].toUpperCase() : '?';
     document.getElementById('profileName').textContent = name || 'Student';
-    document.getElementById('profileEmail').textContent = user.email;
-    document.getElementById('editEmail').value = user.email;
+    document.getElementById('profileEmail').textContent = user.email || 'No email provided';
+    
+    const emailField = document.getElementById('editEmail');
+    if (!user.email) {
+      emailField.disabled = false;
+      emailField.style.opacity = '1';
+      emailField.style.cursor = 'text';
+      document.getElementById('emailNotice').textContent = "Please add your email address";
+    } else {
+      emailField.value = user.email;
+    }
+    
     document.getElementById('editFirstName').value = nameParts[0] || '';
     document.getElementById('editLastName').value = nameParts.slice(1).join(' ') || '';
 
@@ -438,6 +449,10 @@
       const doc = await db.collection('users').doc(user.uid).get();
       if (doc.exists) {
         const data = doc.data();
+        if (data.email) {
+          emailField.value = data.email;
+          document.getElementById('profileEmail').textContent = data.email;
+        }
         if (data.firstName) document.getElementById('editFirstName').value = data.firstName;
         if (data.lastName)  document.getElementById('editLastName').value  = data.lastName;
         if (data.phone)     document.getElementById('editPhone').value     = data.phone;

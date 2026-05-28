@@ -41,13 +41,14 @@ app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {
 // Student profile update — uses Admin SDK to bypass Firestore client-side permission rules
 app.put('/api/profile', verifyToken, async (req, res) => {
   const uid = req.user.uid;
-  const { firstName, lastName, phone, wbjeeYear, gender, caste, tfw, bio } = req.body || {};
+  const { firstName, lastName, email, phone, wbjeeYear, gender, caste, tfw, bio } = req.body || {};
   const update = {};
   if (firstName !== undefined) update.firstName = String(firstName).trim();
   if (lastName  !== undefined) update.lastName  = String(lastName).trim();
   if (firstName !== undefined || lastName !== undefined) {
     update.name = `${String(firstName || '').trim()} ${String(lastName || '').trim()}`.trim();
   }
+  if (email !== undefined && email !== '') update.email = String(email).trim();
   if (phone     !== undefined) update.phone     = String(phone).trim();
   if (wbjeeYear !== undefined) update.wbjeeYear = String(wbjeeYear).trim();
   if (gender    !== undefined) update.gender    = String(gender).trim();

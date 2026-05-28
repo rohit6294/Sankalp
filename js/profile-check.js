@@ -18,6 +18,7 @@
 
   const FIELD_LABELS = {
     name:      'Full Name',
+    email:     'Email Address',
     phone:     'Phone Number',
     gender:    'Gender',
     caste:     'Caste / Category',
@@ -101,14 +102,17 @@
   /* ── compute missing fields ────────────────────────────────────────── */
   function getMissing(settings, profile) {
     const missing = [];
+    
+    // Always force name check regardless of admin settings if name is Unknown Student
+    const nameVal = String(profile.name || profile.firstName || '').trim().toLowerCase();
+    if (nameVal === 'unknown student' || nameVal === '') {
+      missing.push(FIELD_LABELS['name']);
+    }
+
     Object.keys(FIELD_LABELS).forEach(field => {
+      if (field === 'name') return; // Handled above
       if (!settings[field]) return; // not mandatory
-      let val;
-      if (field === 'name') {
-        val = profile.name || profile.firstName || '';
-      } else {
-        val = profile[field] || '';
-      }
+      const val = profile[field] || '';
       if (!String(val).trim()) missing.push(FIELD_LABELS[field]);
     });
     return missing;

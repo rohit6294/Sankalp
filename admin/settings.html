@@ -162,6 +162,14 @@
           </div>
 
           <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Email Address</div><div style="font-size:12px;color:#475569">Student email address is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_email" onchange="saveMandatoryField('email', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
             <div><div style="font-size:14px;font-weight:600">Phone Number</div><div style="font-size:12px;color:#475569">10-digit mobile number is required</div></div>
             <label class="toggle">
               <input type="checkbox" id="m_phone" onchange="saveMandatoryField('phone', this.checked)">

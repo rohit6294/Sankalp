@@ -1113,6 +1113,20 @@ select.input-field {
   color: var(--paper);
 }
 
+.navbar .menu-toggle {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  z-index: 10;
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: none !important;
+  padding: 6px !important;
+  font-size: 20px !important;
+  margin: 0 !important;
+  display: none;
+}
+
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -1130,6 +1144,15 @@ select.input-field {
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
+  .hide-mobile { display: none !important; }
+  .masthead-inner {
+    flex-wrap: nowrap !important;
+    font-size: 9px !important;
+    gap: 8px !important;
+  }
+  .navbar .menu-toggle {
+    display: flex !important;
+  }
   .main-content {
     margin-left: 0 !important;
     padding: 72px 16px 24px !important;

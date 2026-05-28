@@ -321,9 +321,10 @@
 
   async function saveMandatoryField(field, val) {
     try {
-      await db.collection('settings').doc('mandatory_fields').set({
-        [field]: val
-      }, { merge: true });
+      await apiJson('/api/admin/settings/mandatory-fields', {
+        method: 'PUT',
+        body: { [field]: val }
+      });
       toast(`Mandatory field "${field}" ${val ? 'enabled' : 'disabled'}!`);
     } catch(err) {
       toast(`Error saving setting: ${err.message}`, 'error');
@@ -350,11 +351,14 @@
     const notifyStudentResetDec = document.getElementById('notifyStudentResetDec').checked;
 
     try {
-      await db.collection('settings').doc('email_automations').set({
-        adminEmail,
-        notifyAdminResetReq,
-        notifyStudentResetDec
-      }, { merge: true });
+      await apiJson('/api/admin/settings/email_automations', {
+        method: 'PUT',
+        body: {
+          adminEmail,
+          notifyAdminResetReq,
+          notifyStudentResetDec
+        }
+      });
       toast('Email automations saved!');
     } catch(err) {
       toast(`Error saving automations: ${err.message}`, 'error');

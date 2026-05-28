@@ -261,7 +261,7 @@
     const bio = document.getElementById('editBio').value.trim();
     try {
       await user.updateProfile({ displayName: `${firstName} ${lastName}` });
-      await db.collection('users').doc(user.uid).update({ 
+      await db.collection('users').doc(user.uid).set({ 
         firstName, 
         lastName, 
         name: `${firstName} ${lastName}`, 
@@ -271,14 +271,18 @@
         caste,
         tfw,
         bio 
-      });
+      }, { merge: true });
       const el = document.createElement('div');
       el.className = 'notification success';
       el.innerHTML = '<i class="fas fa-check"></i> Profile saved successfully!';
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 3000);
+      setTimeout(() => {
+        el.remove();
+        window.location.reload();
+      }, 1500);
     } catch(err) {
       console.error(err);
+      alert('Failed to save profile: ' + err.message);
     }
   }
 

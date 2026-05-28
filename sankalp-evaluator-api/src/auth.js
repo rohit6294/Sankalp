@@ -6,12 +6,14 @@ const DEFAULT_ADMIN_EMAILS = [
 ];
 
 function adminEmailSet() {
-  return new Set(
-    (process.env.ADMIN_EMAILS || DEFAULT_ADMIN_EMAILS.join(','))
-      .split(',')
+  const emails = new Set(DEFAULT_ADMIN_EMAILS.map((email) => email.trim().toLowerCase()));
+  if (process.env.ADMIN_EMAILS) {
+    process.env.ADMIN_EMAILS.split(',')
       .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
+      .filter(Boolean)
+      .forEach((email) => emails.add(email));
+  }
+  return emails;
 }
 
 async function verifyToken(req, res, next) {

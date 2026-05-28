@@ -433,6 +433,7 @@ function renderGrid() {
   const sub = state.tab;
   const grid = document.getElementById('answerGrid');
   grid.innerHTML = '';
+  let lastCat = 0;
   const start = START[sub];
   const end = END[sub];
   for (let q = start; q <= end; q++) {

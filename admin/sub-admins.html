@@ -155,6 +155,7 @@ const FALLBACK_SECTIONS = [
   { key:'content', label:'Content', editable:true },
   { key:'tests', label:'Tests', editable:true },
   { key:'evaluators', label:'Evaluators', editable:true },
+  { key:'collegePredictor', label:'College Predictor', editable:true },
   { key:'bookings', label:'Bookings', editable:true },
   { key:'announcements', label:'Announcements', editable:true },
   { key:'payments', label:'Payments', editable:false, extras:['transactions'] },
@@ -230,7 +231,7 @@ function renderPermissionRows() {
       <div class="perm-row" data-perm-row="${section.key}">
         <div>
           <div class="perm-title">${escapeHtml(section.label)}</div>
-          <div class="perm-note">${section.key === 'payments' ? 'Payments page and optional transaction log.' : 'Controls page visibility and write actions.'}</div>
+          <div class="perm-note">${section.key === 'payments' ? 'Payments page and optional transaction log.' : section.key === 'collegePredictor' ? 'View predictor results; edit controls data upload and paywall.' : 'Controls page visibility and write actions.'}</div>
         </div>
         <label class="toggle-cell">
           <input type="checkbox" data-section="${section.key}" data-action="view" onchange="syncPermissionRow('${section.key}')">

@@ -21,6 +21,7 @@
     content: 'content.html',
     tests: 'tests.html',
     evaluators: 'evaluators.html',
+    collegePredictor: 'evaluators.html',
     bookings: 'bookings.html',
     announcements: 'announcements.html',
     payments: 'payments.html',
@@ -35,6 +36,7 @@
     'content',
     'tests',
     'evaluators',
+    'collegePredictor',
     'bookings',
     'announcements',
     'payments',
@@ -91,7 +93,7 @@
   function sectionForLink(link) {
     if (!link) return null;
     if (link.id === 'sidebarStudentListBtn') return 'students';
-    if (link.id === 'sidebarCollegePredictorBtn') return 'evaluators';
+    if (link.id === 'sidebarCollegePredictorBtn') return 'collegePredictor';
     const file = normalizeHref(link.getAttribute('href'));
     return PAGE_SECTIONS[file] || null;
   }
@@ -117,6 +119,18 @@
       if (can(section, 'view')) return SECTION_PAGES[section];
     }
     return '../login.html';
+  }
+
+  function canViewCurrentPage(currentSection) {
+    if (!currentSection) return true;
+    if (currentSection === 'subAdmins') return state.profile?.isSuperAdmin === true;
+    if (pageFileName() === 'evaluators.html') {
+      return can('evaluators', 'view')
+        || can('students', 'view')
+        || can('collegePredictor', 'view')
+        || can('settings', 'view');
+    }
+    return can(currentSection, 'view');
   }
 
   function apiBase() {
@@ -301,6 +315,7 @@
   }
 
   function applyReadOnlyMode() {
+    if (pageFileName() === 'evaluators.html') return;
     const section = state.currentSection;
     if (!section || can(section, 'edit')) return;
     document.body.dataset.adminReadonly = 'true';
@@ -345,7 +360,17 @@
       document.getElementById('btnPredictorPurchases')?.classList.add('sankalp-admin-hidden');
       document.getElementById('predictorPurchasesView')?.classList.add('sankalp-admin-hidden');
     }
-    if (!can('settings', 'view')) {
+    if (!can('collegePredictor', 'edit')) {
+      document.getElementById('btnPredictorImport')?.classList.add('sankalp-admin-hidden');
+      document.getElementById('predictorImportView')?.classList.add('sankalp-admin-hidden');
+      document.getElementById('btnPredictorPaywall')?.classList.add('sankalp-admin-hidden');
+      document.getElementById('predictorPaywallView')?.classList.add('sankalp-admin-hidden');
+    }
+    if (!can('collegePredictor', 'view')) {
+      document.getElementById('btnPredictorTool')?.classList.add('sankalp-admin-hidden');
+      document.getElementById('predictorToolView')?.classList.add('sankalp-admin-hidden');
+    }
+    if (!can('settings', 'view') && !can('collegePredictor', 'edit')) {
       document.getElementById('btnPredictorPaywall')?.classList.add('sankalp-admin-hidden');
       document.getElementById('predictorPaywallView')?.classList.add('sankalp-admin-hidden');
     }
@@ -391,8 +416,7 @@
       state.sections = payload.sections || [];
 
       const currentSection = state.currentSection;
-      const currentAllowed = !currentSection
-        || (currentSection === 'subAdmins' ? state.profile?.isSuperAdmin === true : can(currentSection, 'view'));
+      const currentAllowed = canViewCurrentPage(currentSection);
 
       if (!currentAllowed) {
         showAccessDenied('This account does not have permission to view this admin section.', firstAllowedPage());

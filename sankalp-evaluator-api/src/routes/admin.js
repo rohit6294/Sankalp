@@ -524,7 +524,7 @@ router.put('/settings/mandatory-fields', requirePermission('settings', 'edit'), 
 });
 
 // Fetch college predictor settings
-router.get('/predictor/settings', requirePermission('settings', 'view'), async (req, res) => {
+router.get('/predictor/settings', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('college_predictor').get();
     res.json({ settings: doc.exists ? doc.data() : {} });
@@ -534,7 +534,7 @@ router.get('/predictor/settings', requirePermission('settings', 'view'), async (
 });
 
 // Update college predictor settings
-router.put('/predictor/settings', requirePermission('settings', 'edit'), async (req, res) => {
+router.put('/predictor/settings', requirePermission('collegePredictor', 'edit'), async (req, res) => {
   const payload = ensurePlainObject(req.body);
   try {
     await db.collection('settings').doc('college_predictor').set(payload, { merge: true });
@@ -747,7 +747,7 @@ router.get('/test-email', requirePermission('settings', 'edit'), async (req, res
 });
 
 // ── College Predictor Cutoff Excel Upload (Requires Admin) ─────────────────────
-router.post('/predictor/upload', requirePermission('evaluators', 'edit'), upload.single('file'), async (req, res) => {
+router.post('/predictor/upload', requirePermission('collegePredictor', 'edit'), upload.single('file'), async (req, res) => {
   const year = Number(req.body.year);
   if (!year || isNaN(year)) {
     return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year.' });
@@ -920,7 +920,7 @@ router.post('/predictor/upload', requirePermission('evaluators', 'edit'), upload
 });
 
 // ── Get College Predictor Database Status (Requires Admin) ────────────────────
-router.get('/predictor/status', requirePermission('evaluators', 'view'), async (req, res) => {
+router.get('/predictor/status', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
@@ -965,7 +965,7 @@ router.get('/predictor/status', requirePermission('evaluators', 'view'), async (
 });
 
 // ── Clear College Predictor Database (Requires Admin) ─────────────────────────
-router.post('/predictor/clear', requirePermission('evaluators', 'edit'), async (req, res) => {
+router.post('/predictor/clear', requirePermission('collegePredictor', 'edit'), async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
@@ -992,7 +992,7 @@ router.post('/predictor/clear', requirePermission('evaluators', 'edit'), async (
 });
 
 // ── Get Unique Caste Categories (Admin Alias) ─────────────────────────────────
-router.get('/predictor/categories', requirePermission('evaluators', 'view'), async (req, res) => {
+router.get('/predictor/categories', requirePermission('collegePredictor', 'view'), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1008,7 +1008,7 @@ router.get('/predictor/categories', requirePermission('evaluators', 'view'), asy
 });
 
 // ── Get Unique Seat Types (Admin Alias) ───────────────────────────────────────
-router.get('/predictor/seat-types', requirePermission('evaluators', 'view'), async (req, res) => {
+router.get('/predictor/seat-types', requirePermission('collegePredictor', 'view'), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1024,7 +1024,7 @@ router.get('/predictor/seat-types', requirePermission('evaluators', 'view'), asy
 });
 
 // ── Get Unique Quotas (Admin Alias) ───────────────────────────────────────────
-router.get('/predictor/quotas', requirePermission('evaluators', 'view'), async (req, res) => {
+router.get('/predictor/quotas', requirePermission('collegePredictor', 'view'), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1040,7 +1040,7 @@ router.get('/predictor/quotas', requirePermission('evaluators', 'view'), async (
 });
 
 // ── Admin Prediction Query Route ──────────────────────────────────────────────
-router.get('/predictor/predict', requirePermission('evaluators', 'view'), async (req, res) => {
+router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {
     const { rank, category, courseType, collegeType, seatType, quota } = req.query;
     const R = Number(rank);

@@ -1288,6 +1288,65 @@ function handleAccessError(error) {
   return false;
 }
 
+function adminCan(section, action = 'view') {
+  return !window.SankalpAdminGuard || window.SankalpAdminGuard.can(section, action);
+}
+
+function permissionForMainTab(tab) {
+  if (tab === 'studentList') return { section: 'students', action: 'view' };
+  if (tab === 'collegePredictor') return { section: 'collegePredictor', action: 'view' };
+  if (tab === 'settings') return { section: 'settings', action: 'view' };
+  return { section: 'evaluators', action: 'view' };
+}
+
+function canOpenMainTab(tab) {
+  const permission = permissionForMainTab(tab);
+  return adminCan(permission.section, permission.action);
+}
+
+function firstAllowedMainTab() {
+  if (adminCan('evaluators', 'view')) return 'exams';
+  if (adminCan('students', 'view')) return 'studentList';
+  if (adminCan('collegePredictor', 'view')) return 'collegePredictor';
+  if (adminCan('settings', 'view')) return 'settings';
+  return null;
+}
+
+function setHidden(selector, hidden) {
+  document.querySelectorAll(selector).forEach((node) => {
+    node.classList.toggle('sankalp-admin-hidden', hidden);
+  });
+}
+
+function setDisabled(selector, disabled) {
+  document.querySelectorAll(selector).forEach((node) => {
+    node.disabled = disabled;
+    node.classList.toggle('sankalp-readonly-disabled', disabled);
+    if (disabled) node.setAttribute('aria-disabled', 'true');
+    else node.removeAttribute('aria-disabled');
+  });
+}
+
+function applyEvaluatorPermissions() {
+  setHidden('.sidebar-link[href="evaluators.html"]', !adminCan('evaluators', 'view'));
+  setHidden('#sidebarStudentListBtn', !adminCan('students', 'view'));
+  setHidden('#sidebarCollegePredictorBtn', !adminCan('collegePredictor', 'view'));
+  setHidden('[data-tab="exams"], [data-tab="rank"], [data-tab="submissions"]', !adminCan('evaluators', 'view'));
+  setHidden('[data-tab="settings"]', !adminCan('settings', 'view'));
+
+  setHidden('[onclick="showCreateExam()"]', !adminCan('evaluators', 'edit'));
+  setDisabled('#saveKeyBtn, #saveRankBtn', !adminCan('evaluators', 'edit'));
+  setHidden('[data-action="recalc"], [data-action="toggle"]', !adminCan('evaluators', 'edit'));
+  setHidden('#appResetBtn, #rejResetBtn', !adminCan('evaluators', 'edit'));
+
+  setHidden('#btnPredictorImport', !adminCan('collegePredictor', 'edit'));
+  setHidden('#btnPredictorPaywall', !adminCan('collegePredictor', 'edit'));
+  setHidden('#btnPredictorPurchases', !adminCan('payments', 'transactions'));
+  setDisabled('#file2024, #file2025, #predFeatureToggle, #predPaywallToggle, #predPaywallPrice, #savePredictorSettingsBtn', !adminCan('collegePredictor', 'edit'));
+
+  setDisabled('#m_name, #m_email, #m_phone, #m_gender, #m_caste, #m_tfw, #m_wbjeeYear, #m_homeState, #adminEmail, #notifyAdminResetReq, #notifyStudentResetDec', !adminCan('settings', 'edit'));
+}
+
 function setExamRowsMessage(message) {
   const rows = document.getElementById('examRows');
   rows.innerHTML = '';
@@ -1321,6 +1380,13 @@ function resetKeyEditorState() {
 }
 
 function switchMainTab(tab, btn) {
+  if (!canOpenMainTab(tab)) {
+    toast('This account does not have permission to view that section.');
+    const fallback = firstAllowedMainTab();
+    if (fallback && fallback !== tab) switchMainTab(fallback);
+    return;
+  }
+
   // Handle sidebar vs tab-bar distinction
   const isStudentList = tab === 'studentList';
   const isCollegePredictor = tab === 'collegePredictor';
@@ -1332,9 +1398,10 @@ function switchMainTab(tab, btn) {
   } else if (isCollegePredictor) {
     document.getElementById('sidebarCollegePredictorBtn').classList.add('active');
   } else {
-    document.querySelector('.sidebar-link[href="evaluators.html"]').classList.add('active');
+    document.querySelector('.sidebar-link[href="evaluators.html"]')?.classList.add('active');
     document.querySelectorAll('[data-tab]').forEach((node) => node.classList.remove('active'));
-    btn.classList.add('active');
+    const tabButton = btn || document.querySelector(`[data-tab="${tab}"]`);
+    tabButton?.classList.add('active');
   }
 
   // Show/hide the evaluator header, tabs, and tab panels
@@ -1354,9 +1421,12 @@ function switchMainTab(tab, btn) {
   if (tab === 'submissions') loadSubmissions();
   if (isStudentList && !slStudentsLoaded) loadStudentList();
   if (isCollegePredictor) loadPredictorDashboard();
+  applyEvaluatorPermissions();
 }
 
 async function loadMandatoryFields() {
+  if (!adminCan('settings', 'view')) return;
+
   try {
     const data = await apiJson('/api/admin/settings/mandatory-fields');
     const settings = data.settings || {};
@@ -1374,6 +1444,12 @@ async function loadMandatoryFields() {
 }
 
 async function saveMandatoryField(field, val) {
+  if (!adminCan('settings', 'edit')) {
+    toast('Settings edit permission is required.');
+    document.getElementById(`m_${field}`).checked = !val;
+    return;
+  }
+
   try {
     await apiJson('/api/admin/settings/mandatory-fields', {
       method: 'PUT',
@@ -1387,6 +1463,10 @@ async function saveMandatoryField(field, val) {
 }
 
 function showCreateExam() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
   document.getElementById('createExamModal').style.display = 'flex';
 }
 
@@ -1395,6 +1475,11 @@ function hideCreateExam() {
 }
 
 async function createExam() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const id = document.getElementById('newExamId').value.trim();
   const name = document.getElementById('newExamName').value.trim();
   if (!id || !name) {
@@ -1468,9 +1553,15 @@ function renderExamRows(exams) {
   if (exams.some((exam) => exam.id === previousRankExam)) {
     rankSelect.value = previousRankExam;
   }
+  applyEvaluatorPermissions();
 }
 
 async function recalculateExam(examId, examName, btn) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   if (!confirm(`Are you sure you want to recalculate all submissions for ${examName}?\nThis will re-score every student's answers against the latest answer key and rank tables.`)) {
     return;
   }
@@ -1491,6 +1582,8 @@ async function recalculateExam(examId, examName, btn) {
 }
 
 async function loadExams() {
+  if (!adminCan('evaluators', 'view')) return;
+
   try {
     const { exams } = await apiJson('/api/admin/exams');
     if (!exams.length) {
@@ -1511,6 +1604,11 @@ async function loadExams() {
 }
 
 async function toggleExamActive(examId, active) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   try {
     await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}`, {
       method: 'PATCH',
@@ -1627,6 +1725,11 @@ function renderKeyGrid() {
 }
 
 function toggleKeyOpt(subject, qNo, letter, category) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const docId = `${currentPaper}_${currentSet}`;
   if (!keyData[docId]) {
     keyData[docId] = currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} };
@@ -1650,6 +1753,11 @@ function toggleKeyOpt(subject, qNo, letter, category) {
 }
 
 async function saveAnswerKey() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const docId = `${currentPaper}_${currentSet}`;
   if (!selectedExamId || !keyData[docId]) {
     toast('No data to save');
@@ -1680,6 +1788,11 @@ async function saveAnswerKey() {
 }
 
 function importJson() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   document.getElementById('importSetLabel').textContent = `Set ${currentSet} - ${selectedExamId}`;
   document.getElementById('importJsonText').value = '';
   document.getElementById('importModal').style.display = 'flex';
@@ -1792,19 +1905,40 @@ function renderRankRows() {
       <input type="number" value="${row.rankMax}" onchange="rankRows[${index}].rankMax=+this.value" placeholder="999">
       <button class="btn-ghost" onclick="removeRankRow(${index})" style="padding:8px; font-size:12px; color:var(--rust);"><i class="fas fa-trash"></i></button>
     </div>`).join('');
+  if (!adminCan('evaluators', 'edit')) {
+    rowsNode.querySelectorAll('input, button').forEach((node) => {
+      node.disabled = true;
+      node.classList.add('sankalp-readonly-disabled');
+    });
+  }
 }
 
 function addRankRow() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   rankRows.push({ marksMin: 0, marksMax: 0, rankMin: 0, rankMax: 0 });
   renderRankRows();
 }
 
 function removeRankRow(index) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   rankRows.splice(index, 1);
   renderRankRows();
 }
 
 async function saveRankTable() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const examId = document.getElementById('rankExamSelect').value;
   if (!examId) {
     toast('Select an exam first');
@@ -1858,6 +1992,8 @@ async function populateSubmissionsExamSelect() {
 }
 
 async function loadSubmissions() {
+  if (!adminCan('evaluators', 'view')) return;
+
   const tableBody = document.getElementById('submissionsTableBody');
   tableBody.innerHTML = `
     <tr>
@@ -2308,6 +2444,11 @@ async function renderModalAnswers() {
 // ── Reset Requests (Admin) ────────────────────────────────────────────────
 
 function reviewResetRequest(subId, studentName, reason) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const old = document.getElementById('adminResetReqOverlay');
   if (old) old.remove();
 
@@ -2344,9 +2485,15 @@ function reviewResetRequest(subId, studentName, reason) {
     </div>
   `;
   document.body.appendChild(overlay);
+  applyEvaluatorPermissions();
 }
 
 async function approveResetReq(subId, studentName) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const btn = document.getElementById('appResetBtn');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
   btn.disabled = true;
@@ -2366,6 +2513,11 @@ async function approveResetReq(subId, studentName) {
 }
 
 async function rejectResetReq(subId) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   const btn = document.getElementById('rejResetBtn');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
   btn.disabled = true;
@@ -2385,6 +2537,11 @@ async function rejectResetReq(subId) {
 }
 
 async function resetSubmission(subId, studentName) {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   if (!confirm(`Are you absolutely sure you want to reset the submission for ${studentName || 'this student'}?\nThis will permanently delete their OMR response and score sheet so they can submit again.`)) {
     return;
   }
@@ -2401,6 +2558,11 @@ async function resetSubmission(subId, studentName) {
 }
 
 async function resetSubmissionFromModal() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+
   if (!currentModalSub) return;
   const sub = currentModalSub;
   if (confirm(`Are you absolutely sure you want to reset the submission for ${sub.studentName}?\nThis will permanently delete their OMR response and score sheet so they can submit again.`)) {
@@ -2497,6 +2659,8 @@ function hideStudentProfileModal() {
 }
 
 async function loadEmailAutomations() {
+  if (!adminCan('settings', 'view')) return;
+
   try {
     const data = await apiJson('/api/admin/settings/email_automations').catch(() => ({}));
     const settings = data.settings || {};
@@ -2509,6 +2673,11 @@ async function loadEmailAutomations() {
 }
 
 async function saveEmailAutomations() {
+  if (!adminCan('settings', 'edit')) {
+    toast('Settings edit permission is required.');
+    return;
+  }
+
   const adminEmail = document.getElementById('adminEmail').value.trim();
   const notifyAdminResetReq = document.getElementById('notifyAdminResetReq').checked;
   const notifyStudentResetDec = document.getElementById('notifyStudentResetDec').checked;
@@ -2529,6 +2698,11 @@ async function saveEmailAutomations() {
 }
 
 async function testEmailConfig() {
+    if (!adminCan('settings', 'edit')) {
+      toast('Settings edit permission is required.');
+      return;
+    }
+
     toast('Sending test email...', 'info');
     try {
       const res = await apiJson('/api/admin/test-email');
@@ -2554,6 +2728,8 @@ function slFmtDate(ts) {
 }
 
 async function loadStudentList() {
+  if (!adminCan('students', 'view')) return;
+
   try {
     const data = await apiJson('/api/admin/students');
     slAllStudents = data.students || [];
@@ -2731,12 +2907,16 @@ let predictorSubView = 'tool';
 let predictorStats = {};
 
 function changePredictorSubView(view) {
-  if (view === 'purchases' && window.SankalpAdminGuard && !window.SankalpAdminGuard.can('payments', 'transactions')) {
-    toast('Transaction log permission is not enabled for this account.');
+  if (view === 'tool' && !adminCan('collegePredictor', 'view')) {
+    toast('College Predictor view permission is not enabled for this account.');
+    return;
+  }
+  if ((view === 'import' || view === 'paywall') && !adminCan('collegePredictor', 'edit')) {
+    toast('College Predictor edit permission is required for this tab.');
     view = 'tool';
   }
-  if (view === 'paywall' && window.SankalpAdminGuard && !window.SankalpAdminGuard.can('settings', 'view')) {
-    toast('Settings permission is required to view paywall controls.');
+  if (view === 'purchases' && window.SankalpAdminGuard && !window.SankalpAdminGuard.can('payments', 'transactions')) {
+    toast('Transaction log permission is not enabled for this account.');
     view = 'tool';
   }
 
@@ -2777,6 +2957,11 @@ function applyPredictorPaywallSettings(settings = {}) {
 }
 
 async function savePredictorPaywallSettings() {
+  if (!adminCan('collegePredictor', 'edit')) {
+    toast('College Predictor edit permission is required.');
+    return;
+  }
+
   const enabled = document.getElementById('predFeatureToggle').checked;
   const requiresPayment = document.getElementById('predPaywallToggle').checked;
   const price = document.getElementById('predPaywallPrice').value;
@@ -2913,10 +3098,16 @@ function escapeHTML(str) {
 
 
 function triggerExcelSelect(year) {
+  if (!adminCan('collegePredictor', 'edit')) {
+    toast('College Predictor edit permission is required.');
+    return;
+  }
   document.getElementById(`file${year}`).click();
 }
 
 async function loadPredictorDashboard() {
+  if (!adminCan('collegePredictor', 'view')) return;
+
   try {
     // 1. Fetch dynamic categories dropdown
     const dataCat = await apiJson('/api/admin/predictor/categories');
@@ -3016,6 +3207,11 @@ async function loadPredictorStatus() {
 }
 
 async function uploadCutoffExcel(year) {
+  if (!adminCan('collegePredictor', 'edit')) {
+    toast('College Predictor edit permission is required.');
+    return;
+  }
+
   const fileInput = document.getElementById(`file${year}`);
   const file = fileInput.files[0];
   if (!file) return;
@@ -3065,6 +3261,11 @@ async function uploadCutoffExcel(year) {
 }
 
 async function clearCutoffs() {
+  if (!adminCan('collegePredictor', 'edit')) {
+    toast('College Predictor edit permission is required.');
+    return;
+  }
+
   if (!confirm('Are you absolutely sure you want to clear ALL cutoff records from the SQLite database? This cannot be undone.')) return;
 
   try {
@@ -3077,6 +3278,11 @@ async function clearCutoffs() {
 }
 
 async function runCollegePrediction() {
+  if (!adminCan('collegePredictor', 'view')) {
+    toast('College Predictor view permission is required.');
+    return;
+  }
+
   const rank = document.getElementById('predRank').value;
   const category = document.getElementById('predCategory').value;
   const courseType = document.getElementById('predCourse').value;
@@ -3234,9 +3440,24 @@ auth.onAuthStateChanged(async (user) => {
   }
   currentUser = user;
   currentToken = null;
-  await loadExams();
-  await loadMandatoryFields();
-  await loadEmailAutomations();
+  if (window.SankalpAdminGuard?.ready) {
+    await window.SankalpAdminGuard.ready.catch(() => {});
+  }
+
+  applyEvaluatorPermissions();
+  const initialTab = firstAllowedMainTab();
+  if (initialTab) {
+    switchMainTab(initialTab);
+  }
+
+  if (adminCan('evaluators', 'view')) {
+    await loadExams();
+  }
+  if (adminCan('settings', 'view')) {
+    await loadMandatoryFields();
+    await loadEmailAutomations();
+  }
+  applyEvaluatorPermissions();
 });
 </script>
 </body>

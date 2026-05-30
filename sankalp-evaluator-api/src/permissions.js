@@ -4,6 +4,7 @@ const ADMIN_SECTIONS = [
   { key: 'content', label: 'Content', editable: true },
   { key: 'tests', label: 'Tests', editable: true },
   { key: 'evaluators', label: 'Evaluators', editable: true },
+  { key: 'collegePredictor', label: 'College Predictor', editable: true },
   { key: 'bookings', label: 'Bookings', editable: true },
   { key: 'announcements', label: 'Announcements', editable: true },
   { key: 'payments', label: 'Payments', editable: false, extras: ['transactions'] },

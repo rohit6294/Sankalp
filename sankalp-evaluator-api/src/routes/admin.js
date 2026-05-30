@@ -917,4 +917,73 @@ router.post('/predictor/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+// ── Get College Predictor Database Status (Requires Admin) ────────────────────
+router.get('/predictor/status', async (req, res) => {
+  try {
+    const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+    const sqliteDb = new sqlite3.Database(dbPath);
+
+    const stats = {
+      2024: { records: 0, colleges: 0 },
+      2025: { records: 0, colleges: 0 }
+    };
+
+    sqliteDb.all('SELECT year, COUNT(*) as count, COUNT(DISTINCT institute) as colleges FROM cutoffs GROUP BY year', [], (err, rows) => {
+      if (err) {
+        sqliteDb.close();
+        return res.status(500).json({ error: 'status_failed', message: err.message });
+      }
+
+      if (rows) {
+        rows.forEach(r => {
+          if (stats[r.year]) {
+            stats[r.year].records = r.count;
+            stats[r.year].colleges = r.colleges;
+          }
+        });
+      }
+
+      sqliteDb.get('SELECT COUNT(DISTINCT category) as catCount FROM cutoffs', [], (errCat, catRow) => {
+        sqliteDb.close();
+        if (errCat) {
+          return res.status(500).json({ error: 'status_failed', message: errCat.message });
+        }
+
+        res.json({
+          stats,
+          uniqueCategories: catRow ? catRow.catCount : 0
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'status_failed', message: err.message });
+  }
+});
+
+// ── Clear College Predictor Database (Requires Admin) ─────────────────────────
+router.post('/predictor/clear', async (req, res) => {
+  try {
+    const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+    const sqliteDb = new sqlite3.Database(dbPath);
+
+    sqliteDb.run('DELETE FROM cutoffs', [], (err) => {
+      sqliteDb.close();
+      if (err) {
+        return res.status(500).json({ error: 'clear_failed', message: err.message });
+      }
+
+      // Bust settings/predictor caches to reflect changes immediately
+      bustSettingsCache();
+
+      res.json({
+        ok: true,
+        message: 'SQLite database cleared successfully.'
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'clear_failed', message: err.message });
+  }
+});
+
 module.exports = router;
+

@@ -1179,6 +1179,37 @@ router.get('/predictor/predict', async (req, res) => {
   }
 });
 
+// ── Get All Students List (Requires Admin) ────────────────────────────────────
+router.get('/students', async (req, res) => {
+  try {
+    const userSnap = await db.collection('users').get();
+    const students = [];
+    
+    userSnap.forEach((doc) => {
+      const data = doc.data() || {};
+      const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
+      
+      students.push({
+        id: doc.id,
+        name: fullName,
+        email: data.email || '—',
+        phone: data.phone || '—',
+        gender: data.gender || '—',
+        caste: data.caste || '—',
+        tfw: data.tfw || '—',
+        wbjeeYear: data.wbjeeYear || '—',
+        createdAt: data.createdAt || null
+      });
+    });
+
+    res.json({ students });
+  } catch (err) {
+    console.error('Failed to load students:', err);
+    res.status(500).json({ error: 'students_load_failed', message: err.message });
+  }
+});
+
 module.exports = router;
+
 
 

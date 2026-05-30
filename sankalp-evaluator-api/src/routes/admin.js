@@ -991,5 +991,194 @@ router.post('/predictor/clear', async (req, res) => {
   }
 });
 
+// ── Get Unique Caste Categories (Admin Alias) ─────────────────────────────────
+router.get('/predictor/categories', async (req, res) => {
+  const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+  const sqliteDb = new sqlite3.Database(dbPath);
+  sqliteDb.configure("busyTimeout", 10000);
+
+  sqliteDb.all('SELECT DISTINCT category FROM cutoffs ORDER BY category ASC', [], (err, rows) => {
+    sqliteDb.close();
+    if (err) {
+      return res.status(500).json({ error: 'categories_load_failed', message: err.message });
+    }
+    const categories = rows.map(r => r.category).filter(Boolean);
+    res.json({ categories });
+  });
+});
+
+// ── Get Unique Seat Types (Admin Alias) ───────────────────────────────────────
+router.get('/predictor/seat-types', async (req, res) => {
+  const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+  const sqliteDb = new sqlite3.Database(dbPath);
+  sqliteDb.configure("busyTimeout", 10000);
+
+  sqliteDb.all('SELECT DISTINCT seat_type FROM cutoffs ORDER BY seat_type ASC', [], (err, rows) => {
+    sqliteDb.close();
+    if (err) {
+      return res.status(500).json({ error: 'seat_types_load_failed', message: err.message });
+    }
+    const seatTypes = rows.map(r => r.seat_type).filter(Boolean);
+    res.json({ seatTypes });
+  });
+});
+
+// ── Get Unique Quotas (Admin Alias) ───────────────────────────────────────────
+router.get('/predictor/quotas', async (req, res) => {
+  const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+  const sqliteDb = new sqlite3.Database(dbPath);
+  sqliteDb.configure("busyTimeout", 10000);
+
+  sqliteDb.all('SELECT DISTINCT quota FROM cutoffs ORDER BY quota ASC', [], (err, rows) => {
+    sqliteDb.close();
+    if (err) {
+      return res.status(500).json({ error: 'quotas_load_failed', message: err.message });
+    }
+    const quotas = rows.map(r => r.quota).filter(Boolean);
+    res.json({ quotas });
+  });
+});
+
+// ── Admin Prediction Query Route ──────────────────────────────────────────────
+router.get('/predictor/predict', async (req, res) => {
+  try {
+    const { rank, category, courseType, collegeType, seatType, quota } = req.query;
+    const R = Number(rank);
+    if (isNaN(R) || R <= 0) {
+      return res.status(400).json({ error: 'invalid_rank', message: 'Please enter a valid positive rank number.' });
+    }
+    if (!category) {
+      return res.status(400).json({ error: 'missing_category', message: 'Please specify a reservation category.' });
+    }
+
+    const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+    const sqliteDb = new sqlite3.Database(dbPath);
+    sqliteDb.configure("busyTimeout", 10000);
+
+    sqliteDb.all(`
+      SELECT institute, program, stream, college_type, seat_type, quota,
+             COALESCE(MAX(CASE WHEN year = 2025 AND round = 2 THEN closing_rank END),
+                      MAX(CASE WHEN year = 2025 AND round = 1 THEN closing_rank END),
+                      MAX(CASE WHEN year = 2025 THEN closing_rank END)) AS closing_rank_2025,
+             COALESCE(MAX(CASE WHEN year = 2024 AND round = 2 THEN closing_rank END),
+                      MAX(CASE WHEN year = 2024 AND round = 1 THEN closing_rank END),
+                      MAX(CASE WHEN year = 2024 THEN closing_rank END)) AS closing_rank_2024
+      FROM cutoffs
+      WHERE category = ?
+      GROUP BY institute, program, seat_type, quota
+    `, [category], (err, rows) => {
+      sqliteDb.close();
+      if (err) {
+        return res.status(500).json({ error: 'prediction_failed', message: err.message });
+      }
+
+      const results = [];
+      let totalMatches = 0;
+      let highCount = 0;
+      let mediumCount = 0;
+      let lowCount = 0;
+
+      for (const row of rows) {
+        const c2025 = row.closing_rank_2025;
+        const c2024 = row.closing_rank_2024;
+        const latest_cutoff = c2025 !== null && c2025 !== undefined ? c2025 : c2024;
+
+        if (!latest_cutoff) continue;
+
+        // Apply filters
+        // Course Type: B.Tech, B.Pharm, All
+        if (courseType && courseType !== 'All') {
+          const isPharm = String(row.stream).toLowerCase().includes('pharma') || String(row.program).toLowerCase().includes('pharma');
+          if (courseType === 'B.Pharm' && !isPharm) continue;
+          if (courseType === 'B.Tech' && isPharm) continue;
+        }
+
+        // College Type Filters: GovtGroup, PrivateGroup, specific types, All
+        if (collegeType && collegeType !== 'All') {
+          const isGovtType = [
+            'University/University Department',
+            'State Government Engineering College',
+            'State Government Pharmacy College',
+            'Central Government Engineering College'
+          ].includes(row.college_type);
+          
+          const isPrivateType = [
+            'Private University',
+            'Private Engineering College',
+            'Stand Alone Private Pharmacy College'
+          ].includes(row.college_type);
+          
+          if (collegeType === 'GovtGroup' && !isGovtType) continue;
+          else if (collegeType === 'PrivateGroup' && !isPrivateType) continue;
+          else if (collegeType !== 'GovtGroup' && collegeType !== 'PrivateGroup' && row.college_type !== collegeType) continue;
+        }
+
+        // Seat Type Filter: Specific, or All
+        if (seatType && seatType !== 'All') {
+          if (row.seat_type !== seatType) continue;
+        }
+
+        // Quota Filter: Specific, or All
+        if (quota && quota !== 'All') {
+          if (row.quota !== quota) continue;
+        }
+
+        // Probability prediction logic:
+        let chance = '';
+        let chanceSort = 0;
+        
+        if (R <= latest_cutoff) {
+          chance = 'High';
+          chanceSort = 1;
+          highCount++;
+        } else if (R <= latest_cutoff * 1.10) {
+          chance = 'Medium';
+          chanceSort = 2;
+          mediumCount++;
+        } else if (R <= latest_cutoff * 1.25) {
+          chance = 'Low';
+          chanceSort = 3;
+          lowCount++;
+        } else {
+          continue; // Exclude if too high
+        }
+
+        totalMatches++;
+
+        results.push({
+          institute: row.institute,
+          program: row.program,
+          stream: row.stream,
+          collegeType: row.college_type,
+          seatType: row.seat_type,
+          quota: row.quota,
+          closingRank2025: c2025 || '—',
+          closingRank2024: c2024 || '—',
+          latestCutoff: latest_cutoff,
+          chance,
+          chanceSort
+        });
+      }
+
+      // Sort purely by latest closing rank ascending (closest rank shows first)
+      results.sort((a, b) => a.latestCutoff - b.latestCutoff);
+
+      res.json({
+        ok: true,
+        stats: {
+          totalMatches,
+          highCount,
+          mediumCount,
+          lowCount
+        },
+        results
+      });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'prediction_failed', message: e.message });
+  }
+});
+
 module.exports = router;
+
 

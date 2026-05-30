@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../js/firebase-config.js"></script>
+  <script src="../js/admin-guard.js"></script>
   <style>
     .tab-btn { padding: 12px 24px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--font-sans); border-radius: 4px 4px 0 0; transition: all 0.15s ease; }
     .tab-btn.active { background: var(--ink); color: var(--paper); }
@@ -2729,6 +2730,15 @@ let predictorSubView = 'tool';
 let predictorStats = {};
 
 function changePredictorSubView(view) {
+  if (view === 'purchases' && window.SankalpAdminGuard && !window.SankalpAdminGuard.can('payments', 'transactions')) {
+    toast('Transaction log permission is not enabled for this account.');
+    view = 'tool';
+  }
+  if (view === 'paywall' && window.SankalpAdminGuard && !window.SankalpAdminGuard.can('settings', 'view')) {
+    toast('Settings permission is required to view paywall controls.');
+    view = 'tool';
+  }
+
   predictorSubView = view;
   document.getElementById('btnPredictorTool').classList.toggle('active', view === 'tool');
   document.getElementById('btnPredictorImport').classList.toggle('active', view === 'import');
@@ -2807,6 +2817,20 @@ async function savePredictorPaywallSettings() {
 
 async function loadPredictorPurchases() {
   const tbody = document.getElementById('tblPredPurchasesRows');
+  if (window.SankalpAdminGuard && !window.SankalpAdminGuard.can('payments', 'transactions')) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="padding:48px; text-align:center; color:#F59E0B;">
+          <i class="fas fa-lock" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+          Transaction log permission is not enabled for this account.
+        </td>
+      </tr>
+    `;
+    document.getElementById('lblPredRevenue').textContent = 'Hidden';
+    document.getElementById('lblPredStudents').textContent = 'Hidden';
+    return;
+  }
+
   tbody.innerHTML = `
     <tr>
       <td colspan="5" style="padding:48px; text-align:center; color:var(--ink-mute);">

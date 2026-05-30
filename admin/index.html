@@ -11,6 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../js/firebase-config.js"></script>
+  <script src="../js/admin-guard.js"></script>
   <style>
     .admin-sidebar { width:240px; min-height:100vh; background:rgba(10,14,26,0.98); border-right:1px solid rgba(255,255,255,0.05); position:fixed; left:0; top:0; z-index:50; transition:transform 0.3s; }
     .admin-main { margin-left:240px; min-height:100vh; background:var(--darker); }
@@ -285,6 +286,21 @@
 
   // Load real students from Firebase
   async function loadStudents() {
+    if (window.SankalpAdminGuard && !window.SankalpAdminGuard.can('students', 'view')) {
+      document.getElementById('studentsBody').innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center;padding:32px;color:#FBBF24">
+            <i class="fas fa-lock" style="display:block;font-size:24px;margin-bottom:8px"></i>
+            Student details are hidden for this admin account.
+          </td>
+        </tr>
+      `;
+      document.getElementById('statStudents').textContent = 'Hidden';
+      document.getElementById('statActive').textContent = 'Hidden';
+      document.getElementById('statTests').textContent = 'Hidden';
+      return;
+    }
+
     try {
       const snap = await db.collection('users').where('role','==','student').orderBy('createdAt','desc').limit(20).get();
       if (!snap.empty) {
@@ -306,14 +322,7 @@
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) { window.location.href = '../login.html'; return; }
-    try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists && doc.data().role !== 'admin') {
-        window.location.href = '../student/evaluate.html';
-        return;
-      }
-    } catch(e) {}
-    window.location.replace('evaluators.html');
+    await loadStudents();
   });
 </script>
 </body>

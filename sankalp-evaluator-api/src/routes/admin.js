@@ -1,6 +1,8 @@
 const express = require('express');
 const { admin, db } = require('../firebase');
-const { requireAdmin, verifyToken } = require('../auth');
+const { requireAdmin, verifyToken, requirePermission } = require('../auth');
+const { ADMIN_SECTIONS } = require('../permissions');
+const { classifyCollegeType } = require('../college-types');
 const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
@@ -53,6 +55,13 @@ const VALID_RANK_TYPES = new Set(['engineering', 'bpharma']);
 const VALID_OPTIONS = new Set(['A', 'B', 'C', 'D']);
 
 router.use(verifyToken, requireAdmin);
+
+router.get('/me', (req, res) => {
+  res.json({
+    admin: req.adminProfile,
+    sections: ADMIN_SECTIONS,
+  });
+});
 
 function normalizeTimestamp(value) {
   return value && typeof value.toMillis === 'function' ? value.toMillis() : null;
@@ -147,7 +156,7 @@ function validateRankRows(rows) {
   return cleaned.sort((a, b) => a.marksMin - b.marksMin);
 }
 
-router.get('/exams', async (_req, res) => {
+router.get('/exams', requirePermission('evaluators', 'view'), async (_req, res) => {
   try {
     const snap = await db.collection('exams').get();
     const exams = sortExams(
@@ -170,7 +179,7 @@ router.get('/exams', async (_req, res) => {
   }
 });
 
-router.post('/exams', async (req, res) => {
+router.post('/exams', requirePermission('evaluators', 'edit'), async (req, res) => {
   const id = String(req.body?.id || '').trim();
   const name = String(req.body?.name || '').trim();
   if (!id || !name) {
@@ -197,7 +206,7 @@ router.post('/exams', async (req, res) => {
   }
 });
 
-router.patch('/exams/:examId', async (req, res) => {
+router.patch('/exams/:examId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const updates = {};
   if (typeof req.body?.active === 'boolean') updates.active = req.body.active;
   if (typeof req.body?.name === 'string' && req.body.name.trim()) updates.name = req.body.name.trim();
@@ -226,7 +235,7 @@ router.patch('/exams/:examId', async (req, res) => {
   }
 });
 
-router.get('/exams/:examId/answer-keys/:paper/:setId', async (req, res) => {
+router.get('/exams/:examId/answer-keys/:paper/:setId', requirePermission('evaluators', 'view'), async (req, res) => {
   const { examId, paper, setId } = req.params;
   if (!VALID_PAPERS.has(paper) || !VALID_SETS.has(setId)) {
     return res.status(400).json({ error: 'invalid_answer_key_ref' });
@@ -244,7 +253,7 @@ router.get('/exams/:examId/answer-keys/:paper/:setId', async (req, res) => {
   }
 });
 
-router.put('/exams/:examId/answer-keys/:paper/:setId', async (req, res) => {
+router.put('/exams/:examId/answer-keys/:paper/:setId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { examId, paper, setId } = req.params;
   if (!VALID_PAPERS.has(paper) || !VALID_SETS.has(setId)) {
     return res.status(400).json({ error: 'invalid_answer_key_ref' });
@@ -273,7 +282,7 @@ router.put('/exams/:examId/answer-keys/:paper/:setId', async (req, res) => {
   }
 });
 
-router.get('/exams/:examId/rank-table/:type', async (req, res) => {
+router.get('/exams/:examId/rank-table/:type', requirePermission('evaluators', 'view'), async (req, res) => {
   const { examId, type } = req.params;
   if (!VALID_RANK_TYPES.has(type)) {
     return res.status(400).json({ error: 'invalid_rank_type' });
@@ -288,7 +297,7 @@ router.get('/exams/:examId/rank-table/:type', async (req, res) => {
   }
 });
 
-router.put('/exams/:examId/rank-table/:type', async (req, res) => {
+router.put('/exams/:examId/rank-table/:type', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { examId, type } = req.params;
   if (!VALID_RANK_TYPES.has(type)) {
     return res.status(400).json({ error: 'invalid_rank_type' });
@@ -313,7 +322,7 @@ router.put('/exams/:examId/rank-table/:type', async (req, res) => {
 });
 
 // Recalculate all submissions for an exam
-router.post('/exams/:examId/recalculate', async (req, res) => {
+router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { examId } = req.params;
 
   try {
@@ -395,7 +404,7 @@ router.post('/exams/:examId/recalculate', async (req, res) => {
 });
 
 // Get all student submissions with joined user profile details
-router.get('/submissions', async (req, res) => {
+router.get('/submissions', requirePermission('evaluators', 'view'), async (req, res) => {
   const { examId } = req.query;
   try {
     let query = db.collection('submissions');
@@ -479,7 +488,7 @@ router.get('/submissions', async (req, res) => {
 });
 
 // Delete a submission (Reset attempt)
-router.delete('/submissions/:subId', async (req, res) => {
+router.delete('/submissions/:subId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { subId } = req.params;
   try {
     await db.collection('submissions').doc(subId).delete();
@@ -490,7 +499,7 @@ router.delete('/submissions/:subId', async (req, res) => {
 });
 
 // Fetch mandatory fields configuration (Admin SDK secure backend route)
-router.get('/settings/mandatory-fields', async (req, res) => {
+router.get('/settings/mandatory-fields', requirePermission('settings', 'view'), async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('mandatory_fields').get();
     res.json({ settings: doc.exists ? doc.data() : {} });
@@ -500,7 +509,7 @@ router.get('/settings/mandatory-fields', async (req, res) => {
 });
 
 // Update mandatory fields configuration (Admin SDK secure backend route)
-router.put('/settings/mandatory-fields', async (req, res) => {
+router.put('/settings/mandatory-fields', requirePermission('settings', 'edit'), async (req, res) => {
   const payload = ensurePlainObject(req.body);
   try {
     await db.collection('settings').doc('mandatory_fields').set(payload, { merge: true });
@@ -515,7 +524,7 @@ router.put('/settings/mandatory-fields', async (req, res) => {
 });
 
 // Fetch college predictor settings
-router.get('/predictor/settings', async (req, res) => {
+router.get('/predictor/settings', requirePermission('settings', 'view'), async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('college_predictor').get();
     res.json({ settings: doc.exists ? doc.data() : {} });
@@ -525,7 +534,7 @@ router.get('/predictor/settings', async (req, res) => {
 });
 
 // Update college predictor settings
-router.put('/predictor/settings', async (req, res) => {
+router.put('/predictor/settings', requirePermission('settings', 'edit'), async (req, res) => {
   const payload = ensurePlainObject(req.body);
   try {
     await db.collection('settings').doc('college_predictor').set(payload, { merge: true });
@@ -540,7 +549,7 @@ router.put('/predictor/settings', async (req, res) => {
 });
 
 // Fetch all transactions/purchases
-router.get('/payments/purchases', async (req, res) => {
+router.get('/payments/purchases', requirePermission('payments', 'transactions'), async (req, res) => {
   try {
     const snap = await db.collection('purchases').orderBy('purchasedAt', 'desc').get();
     const purchases = [];
@@ -559,7 +568,7 @@ router.get('/payments/purchases', async (req, res) => {
 });
 
 // Fetch email automations configuration
-router.get('/settings/email_automations', async (req, res) => {
+router.get('/settings/email_automations', requirePermission('settings', 'view'), async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('email_automations').get();
     res.json({ settings: doc.exists ? doc.data() : {} });
@@ -569,7 +578,7 @@ router.get('/settings/email_automations', async (req, res) => {
 });
 
 // Update email automations configuration
-router.put('/settings/email_automations', async (req, res) => {
+router.put('/settings/email_automations', requirePermission('settings', 'edit'), async (req, res) => {
   const payload = ensurePlainObject(req.body);
   try {
     await db.collection('settings').doc('email_automations').set(payload, { merge: true });
@@ -580,7 +589,7 @@ router.put('/settings/email_automations', async (req, res) => {
 });
 
 // Broadcast announcement via email
-router.post('/broadcast-announcement', async (req, res) => {
+router.post('/broadcast-announcement', requirePermission('announcements', 'edit'), async (req, res) => {
   const { title, message, target } = req.body || {};
   if (!title || !message) return res.status(400).json({ error: 'missing_fields' });
 
@@ -624,7 +633,7 @@ router.post('/broadcast-announcement', async (req, res) => {
 // ── Reset Request Management (Admin) ─────────────────────────────────────
 
 // Get all pending reset requests
-router.get('/reset-requests', async (_req, res) => {
+router.get('/reset-requests', requirePermission('evaluators', 'view'), async (_req, res) => {
   try {
     const snap = await db.collection('resetRequests').where('status', '==', 'pending').get();
     const requests = {};
@@ -645,7 +654,7 @@ router.get('/reset-requests', async (_req, res) => {
 });
 
 // Approve reset: delete submission + mark request as approved
-router.post('/reset-approve/:subId', async (req, res) => {
+router.post('/reset-approve/:subId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { subId } = req.params;
   try {
     // Delete the submission
@@ -683,7 +692,7 @@ router.post('/reset-approve/:subId', async (req, res) => {
 });
 
 // Reject reset request
-router.post('/reset-reject/:subId', async (req, res) => {
+router.post('/reset-reject/:subId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { subId } = req.params;
   try {
     const reqRef = db.collection('resetRequests').doc(subId);
@@ -719,7 +728,7 @@ router.post('/reset-reject/:subId', async (req, res) => {
 
 // ── Test Email Route ──────────────────────────────────────────
 
-router.get('/test-email', async (req, res) => {
+router.get('/test-email', requirePermission('settings', 'edit'), async (req, res) => {
   try {
     const result = await sendEmail({
       to: req.user.email || 'rohitgupta6294@gmail.com',
@@ -738,7 +747,7 @@ router.get('/test-email', async (req, res) => {
 });
 
 // ── College Predictor Cutoff Excel Upload (Requires Admin) ─────────────────────
-router.post('/predictor/upload', upload.single('file'), async (req, res) => {
+router.post('/predictor/upload', requirePermission('evaluators', 'edit'), upload.single('file'), async (req, res) => {
   const year = Number(req.body.year);
   if (!year || isNaN(year)) {
     return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year.' });
@@ -832,16 +841,7 @@ router.post('/predictor/upload', upload.single('file'), async (req, res) => {
       // College Type (calculate if not present)
       let college_type = String(findValue(row, ['college_type', 'college type', 'institute_type', 'institute type'], '')).trim();
       if (!college_type) {
-        const instL = institute.toLowerCase();
-        if (instL.includes('university') || instL.includes('jadavpur') || instL.includes('calcutta') || instL.includes('kalyani university')) {
-          college_type = 'University/University Department';
-        } else if (instL.includes('government') || instL.includes('govt') || instL.includes('jalpaiguri government') || instL.includes('kalyani government') || instL.includes('ghani khan')) {
-          college_type = 'State Government Engineering College';
-        } else if (instL.includes('pharmacy') && (instL.includes('government') || instL.includes('govt'))) {
-          college_type = 'State Government Pharmacy College';
-        } else {
-          college_type = 'Private Engineering College';
-        }
+        college_type = classifyCollegeType(institute, program);
       }
 
       cleanedRecords.push({
@@ -920,7 +920,7 @@ router.post('/predictor/upload', upload.single('file'), async (req, res) => {
 });
 
 // ── Get College Predictor Database Status (Requires Admin) ────────────────────
-router.get('/predictor/status', async (req, res) => {
+router.get('/predictor/status', requirePermission('evaluators', 'view'), async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
@@ -965,7 +965,7 @@ router.get('/predictor/status', async (req, res) => {
 });
 
 // ── Clear College Predictor Database (Requires Admin) ─────────────────────────
-router.post('/predictor/clear', async (req, res) => {
+router.post('/predictor/clear', requirePermission('evaluators', 'edit'), async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
@@ -992,7 +992,7 @@ router.post('/predictor/clear', async (req, res) => {
 });
 
 // ── Get Unique Caste Categories (Admin Alias) ─────────────────────────────────
-router.get('/predictor/categories', async (req, res) => {
+router.get('/predictor/categories', requirePermission('evaluators', 'view'), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1008,7 +1008,7 @@ router.get('/predictor/categories', async (req, res) => {
 });
 
 // ── Get Unique Seat Types (Admin Alias) ───────────────────────────────────────
-router.get('/predictor/seat-types', async (req, res) => {
+router.get('/predictor/seat-types', requirePermission('evaluators', 'view'), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1024,7 +1024,7 @@ router.get('/predictor/seat-types', async (req, res) => {
 });
 
 // ── Get Unique Quotas (Admin Alias) ───────────────────────────────────────────
-router.get('/predictor/quotas', async (req, res) => {
+router.get('/predictor/quotas', requirePermission('evaluators', 'view'), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1040,7 +1040,7 @@ router.get('/predictor/quotas', async (req, res) => {
 });
 
 // ── Admin Prediction Query Route ──────────────────────────────────────────────
-router.get('/predictor/predict', async (req, res) => {
+router.get('/predictor/predict', requirePermission('evaluators', 'view'), async (req, res) => {
   try {
     const { rank, category, courseType, collegeType, seatType, quota } = req.query;
     const R = Number(rank);
@@ -1180,7 +1180,7 @@ router.get('/predictor/predict', async (req, res) => {
 });
 
 // ── Get All Students List (Requires Admin) ────────────────────────────────────
-router.get('/students', async (req, res) => {
+router.get('/students', requirePermission('students', 'view'), async (req, res) => {
   try {
     const userSnap = await db.collection('users').get();
     const students = [];

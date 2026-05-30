@@ -2,61 +2,166 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Users ────────────────────────────────────────────────────────────────
-    // Students can read their own profile; backend (Admin SDK) handles writes
-    // but we also allow direct client writes so profile.html direct-save works
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function superAdminEmail() {
+      return signedIn()
+        && request.auth.token.email in [
+          'rohitgupta6294@gmail.com',
+          'rahulgupta6294@gmail.com'
+        ];
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && (
+          superAdminEmail()
+          || request.auth.token.admin == true
+          || request.auth.token.role == 'admin'
+        );
+    }
+
+    function hasPermission(section, action) {
+      return superAdminEmail()
+        || (
+          isAdmin()
+          && request.auth.token.permissions[section][action] == true
+        );
+    }
+
+    function canView(section) {
+      return hasPermission(section, 'view');
+    }
+
+    function canEdit(section) {
+      return canView(section) && hasPermission(section, 'edit');
+    }
+
+    function safeSelfProfileWrite() {
+      return !request.resource.data.keys().hasAny(['isSubAdmin', 'permissions'])
+        && (!('role' in request.resource.data) || request.resource.data.role == 'student' || superAdminEmail());
+    }
+
+    function publicSettingsDoc(doc) {
+      return doc in ['mandatory_fields', 'college_predictor'];
+    }
+
     match /users/{userId} {
-      allow read:  if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if signedIn()
+        && (
+          request.auth.uid == userId
+          || canView('students')
+          || superAdminEmail()
+        );
+
+      allow create: if signedIn()
+        && (
+          (request.auth.uid == userId && safeSelfProfileWrite())
+          || superAdminEmail()
+        );
+
+      allow update: if signedIn()
+        && (
+          (request.auth.uid == userId && safeSelfProfileWrite())
+          || superAdminEmail()
+          || (canEdit('students') && resource.data.role != 'admin' && request.resource.data.role != 'admin')
+        );
+
+      allow delete: if signedIn()
+        && (
+          superAdminEmail()
+          || (canEdit('students') && resource.data.role != 'admin')
+        );
     }
 
-    // ── Settings ─────────────────────────────────────────────────────────────
-    // Any logged-in student can READ settings (needed for mandatory field check)
-    // Only backend Admin SDK can write
     match /settings/{doc} {
-      allow read:  if request.auth != null;
+      allow read: if signedIn()
+        && (
+          publicSettingsDoc(doc)
+          || canView('settings')
+        );
       allow write: if false;
     }
 
-    // ── Submissions ───────────────────────────────────────────────────────────
-    // Students can only read their own submission; writes go via backend
-    match /submissions/{subId} {
-      allow read:  if request.auth != null
-                   && resource != null
-                   && resource.data.userId == request.auth.uid;
-      allow write: if false;
+    match /courses/{id} {
+      allow read: if signedIn();
+      allow write: if canEdit('content');
     }
 
-    // ── Exams ─────────────────────────────────────────────────────────────────
-    // Any logged-in user can read active exams (needed for evaluate page)
-    match /exams/{examId} {
-      allow read:  if request.auth != null;
-      allow write: if false;
-      // Answer keys are public-readable for logged-in users
-      match /answerKeys/{keyId} {
-        allow read:  if request.auth != null;
-        allow write: if false;
-      }
-      match /rankTable/{tableId} {
-        allow read:  if request.auth != null;
-        allow write: if false;
-      }
+    match /modules/{id} {
+      allow read: if signedIn();
+      allow write: if canEdit('content');
     }
 
-    // ── Announcements ─────────────────────────────────────────────────────────
+    match /notes/{id} {
+      allow read: if signedIn();
+      allow write: if canEdit('content');
+    }
+
+    match /pyq/{id} {
+      allow read: if signedIn();
+      allow write: if canEdit('content');
+    }
+
     match /announcements/{id} {
-      allow read:  if request.auth != null;
+      allow read: if signedIn();
+      allow write: if canEdit('announcements');
+    }
+
+    match /bookings/{id} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || canView('bookings')
+        );
+      allow create: if signedIn()
+        && (
+          request.resource.data.userId == request.auth.uid
+          || canEdit('bookings')
+        );
+      allow update, delete: if canEdit('bookings');
+    }
+
+    match /submissions/{subId} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || canView('evaluators')
+        );
       allow write: if false;
     }
 
-    // ── Bookings ──────────────────────────────────────────────────────────────
-    match /bookings/{id} {
-      allow read:  if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow write:  if false;
+    match /exams/{examId} {
+      allow read: if signedIn();
+      allow write: if false;
+
+      match /answerKeys/{keyId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      match /rankTable/{tableId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
     }
 
-    // ── Everything else: deny ─────────────────────────────────────────────────
+    match /purchases/{id} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || hasPermission('payments', 'transactions')
+        );
+      allow write: if false;
+    }
+
+    match /resetRequests/{id} {
+      allow read: if canView('evaluators');
+      allow write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

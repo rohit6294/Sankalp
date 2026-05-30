@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
-const { classifyCollegeType } = require('../src/college-types');
+const { classifyCollegeType, resolveCollegeType } = require('../src/college-types');
 
 test('classifyCollegeType: keeps known government engineering colleges in the government bucket', () => {
   assert.equal(
@@ -30,6 +30,28 @@ test('classifyCollegeType: separates private universities from government univer
 
   assert.equal(
     classifyCollegeType('SCHOOL OF PHARMACY, TECHNO INDIA UNIVERSITY, SALT LAKE', 'Pharmacy'),
+    'Private University',
+  );
+
+  assert.equal(
+    classifyCollegeType('BRAINWARE UNIVERSITY', 'Computer Science & Engineering'),
+    'Private University',
+  );
+
+  assert.equal(
+    classifyCollegeType('THE NEOTIA UNIVERSITY', 'Computer Science & Engineering'),
+    'Private University',
+  );
+});
+
+test('resolveCollegeType: overrides stale supplied labels for known private universities', () => {
+  assert.equal(
+    resolveCollegeType('BRAINWARE UNIVERSITY', 'Computer Science & Engineering', 'University/University Department'),
+    'Private University',
+  );
+
+  assert.equal(
+    resolveCollegeType('THE NEOTIA UNIVERSITY', 'Computer Science & Engineering', 'University/University Department'),
     'Private University',
   );
 });

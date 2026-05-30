@@ -2,7 +2,7 @@ const express = require('express');
 const { admin, db } = require('../firebase');
 const { requireAdmin, verifyToken, requirePermission } = require('../auth');
 const { ADMIN_SECTIONS } = require('../permissions');
-const { classifyCollegeType } = require('../college-types');
+const { resolveCollegeType } = require('../college-types');
 const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
@@ -838,11 +838,8 @@ router.post('/predictor/upload', requirePermission('collegePredictor', 'edit'), 
       // Quota (default to Home State)
       const quota = String(findValue(row, ['quota', 'state'], 'Home State')).trim();
 
-      // College Type (calculate if not present)
-      let college_type = String(findValue(row, ['college_type', 'college type', 'institute_type', 'institute type'], '')).trim();
-      if (!college_type) {
-        college_type = classifyCollegeType(institute, program);
-      }
+      const suppliedCollegeType = String(findValue(row, ['college_type', 'college type', 'institute_type', 'institute type'], '')).trim();
+      const college_type = resolveCollegeType(institute, program, suppliedCollegeType);
 
       cleanedRecords.push({
         year,

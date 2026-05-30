@@ -23,6 +23,7 @@ const STATE_GOVERNMENT_PHARMACY_COLLEGES = [
 
 const PRIVATE_UNIVERSITIES = [
   'adamas university',
+  'brainware university',
   'university of engineering and management kolkata',
   'institute of engineering and management kolkata under university of engineering and management kolkata',
   'jis university',
@@ -30,6 +31,8 @@ const PRIVATE_UNIVERSITIES = [
   'seacom skills university',
   'sister nivedita university',
   'swami vivekananda university',
+  'the neotia university',
+  'neotia university',
   'techno india university salt lake',
 ];
 
@@ -121,6 +124,14 @@ function isKnownStandalonePrivatePharmacyCollege(institute) {
   return isKnownCollege(institute, STANDALONE_PRIVATE_PHARMACY_COLLEGES);
 }
 
+function hasKnownCollegeTypeOverride(institute) {
+  return isKnownCentralGovernmentEngineeringCollege(institute)
+    || isKnownStateGovernmentEngineeringCollege(institute)
+    || isKnownStateGovernmentPharmacyCollege(institute)
+    || isKnownPrivateUniversity(institute)
+    || isKnownStandalonePrivatePharmacyCollege(institute);
+}
+
 function classifyCollegeType(institute, program = '') {
   const normalized = normalizeInstituteName(institute);
   const programText = normalizeInstituteName(program);
@@ -170,6 +181,16 @@ function classifyCollegeType(institute, program = '') {
   return 'Private Engineering College';
 }
 
+function resolveCollegeType(institute, program = '', suppliedType = '') {
+  const computedType = classifyCollegeType(institute, program);
+  if (hasKnownCollegeTypeOverride(institute)) {
+    return computedType;
+  }
+
+  const cleanSuppliedType = String(suppliedType || '').trim();
+  return cleanSuppliedType || computedType;
+}
+
 module.exports = {
   CENTRAL_GOVERNMENT_ENGINEERING_COLLEGES,
   PRIVATE_UNIVERSITIES,
@@ -177,6 +198,7 @@ module.exports = {
   STATE_GOVERNMENT_ENGINEERING_COLLEGES,
   STATE_GOVERNMENT_PHARMACY_COLLEGES,
   classifyCollegeType,
+  resolveCollegeType,
   isKnownCentralGovernmentEngineeringCollege,
   isKnownPrivateUniversity,
   isKnownStateGovernmentPharmacyCollege,

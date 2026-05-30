@@ -5,10 +5,16 @@ const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
 const { defaultRankRows, predictRank } = require('../scoring/ranking');
+const multer = require('multer');
+const XLSX = require('xlsx');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
 const router = express.Router();
 const { sendEmail } = require('../mailer');
 const { bustSettingsCache } = require('./predictor');
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 let _usersCache = null;
 let _usersCacheAt = 0;
@@ -728,6 +734,186 @@ router.get('/test-email', async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: 'email_failed', message: err.message });
+  }
+});
+
+// ── College Predictor Cutoff Excel Upload (Requires Admin) ─────────────────────
+router.post('/predictor/upload', upload.single('file'), async (req, res) => {
+  const year = Number(req.body.year);
+  if (!year || isNaN(year)) {
+    return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year.' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: 'missing_file', message: 'Please upload an Excel file.' });
+  }
+
+  try {
+    // Read the Excel workbook from buffer
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(sheet);
+
+    if (!rawRows || !rawRows.length) {
+      return res.status(400).json({ error: 'empty_file', message: 'The uploaded Excel sheet contains no rows.' });
+    }
+
+    // Connect to SQLite database
+    const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+    const sqliteDb = new sqlite3.Database(dbPath);
+
+    // Read column mapping by cleaning keys
+    const firstRow = rawRows[0];
+    const keyMap = {};
+    Object.keys(firstRow).forEach(key => {
+      const clean = String(key)
+        .replace(/_▲▼/g, '')
+        .replace(/_Γû▓Γû╝/g, '')
+        .trim();
+      keyMap[key] = clean;
+    });
+
+    const mappedRows = rawRows.map(row => {
+      const mapped = {};
+      Object.keys(row).forEach(key => {
+        mapped[keyMap[key] || key] = row[key];
+      });
+      return mapped;
+    });
+
+    // Helper to find column case-insensitively
+    function findValue(row, subStrKeywords, defaultVal = '') {
+      const foundKey = Object.keys(row).find(k => {
+        const kLower = k.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, '');
+        return subStrKeywords.some(kw => kLower.includes(kw.toLowerCase().replace(/\s+/g, '')));
+      });
+      return foundKey !== undefined ? row[foundKey] : defaultVal;
+    }
+
+    const cleanedRecords = [];
+
+    mappedRows.forEach((row) => {
+      const institute = String(findValue(row, ['institute', 'college', 'school', 'inst'], '')).trim();
+      const program = String(findValue(row, ['program', 'branch', 'course', 'prog'], '')).trim();
+      
+      if (!institute || !program) return; // skip header or invalid rows
+
+      const category = String(findValue(row, ['category', 'caste', 'reservation'], 'Open')).trim();
+      const opening_rank = parseInt(findValue(row, ['opening', 'op'], 0), 10) || 0;
+      const closing_rank = parseInt(findValue(row, ['closing', 'cl'], 0), 10) || 0;
+
+      if (closing_rank <= 0) return; // skip rows without a valid closing rank
+
+      // Round (default to 2 if not present)
+      let roundVal = findValue(row, ['round', 'phase'], '');
+      let roundNum = 2;
+      if (roundVal) {
+        const match = String(roundVal).match(/\d+/);
+        if (match) roundNum = parseInt(match[0], 10);
+      }
+
+      // Stream (default to B.E/B.Tech or B.Pharm)
+      let stream = String(findValue(row, ['stream', 'degree'], '')).trim();
+      if (!stream) {
+        const isPharm = program.toLowerCase().includes('pharma') || program.toLowerCase().includes('pharmacy');
+        stream = isPharm 
+          ? 'B.Pharm' 
+          : 'B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)';
+      }
+
+      // Seat Type (default to WBJEE Seats)
+      const seat_type = String(findValue(row, ['seat_type', 'seat type', 'type'], 'WBJEE Seats')).trim();
+
+      // Quota (default to Home State)
+      const quota = String(findValue(row, ['quota', 'state'], 'Home State')).trim();
+
+      // College Type (calculate if not present)
+      let college_type = String(findValue(row, ['college_type', 'college type', 'institute_type', 'institute type'], '')).trim();
+      if (!college_type) {
+        const instL = institute.toLowerCase();
+        if (instL.includes('university') || instL.includes('jadavpur') || instL.includes('calcutta') || instL.includes('kalyani university')) {
+          college_type = 'University/University Department';
+        } else if (instL.includes('government') || instL.includes('jalpaiguri government') || instL.includes('kalyani government') || instL.includes('ghani khan')) {
+          college_type = 'State Government Engineering College';
+        } else if (instL.includes('pharmacy') && instL.includes('government')) {
+          college_type = 'State Government Pharmacy College';
+        } else {
+          college_type = 'Private Engineering College';
+        }
+      }
+
+      cleanedRecords.push({
+        year,
+        round: roundNum,
+        institute,
+        program,
+        category,
+        opening_rank: opening_rank || closing_rank,
+        closing_rank,
+        stream,
+        seat_type,
+        quota,
+        college_type
+      });
+    });
+
+    if (!cleanedRecords.length) {
+      sqliteDb.close();
+      return res.status(400).json({ error: 'no_valid_rows', message: 'No valid WBJEE cutoff records could be extracted from the Excel sheet. Check column headers.' });
+    }
+
+    // Perform database operations in a transaction
+    sqliteDb.serialize(() => {
+      sqliteDb.run('BEGIN TRANSACTION');
+
+      // Delete existing records for the academic year
+      const deleteStmt = sqliteDb.prepare('DELETE FROM cutoffs WHERE year = ?');
+      deleteStmt.run(year);
+      deleteStmt.finalize();
+
+      // Prepare insert statement
+      const insertStmt = sqliteDb.prepare(`
+        INSERT INTO cutoffs (year, round, institute, program, category, opening_rank, closing_rank, stream, seat_type, quota, college_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      cleanedRecords.forEach(rec => {
+        insertStmt.run(
+          rec.year,
+          rec.round,
+          rec.institute,
+          rec.program,
+          rec.category,
+          rec.opening_rank,
+          rec.closing_rank,
+          rec.stream,
+          rec.seat_type,
+          rec.quota,
+          rec.college_type
+        );
+      });
+
+      insertStmt.finalize();
+
+      sqliteDb.run('COMMIT', (commitErr) => {
+        sqliteDb.close();
+        if (commitErr) {
+          return res.status(500).json({ error: 'db_commit_failed', message: commitErr.message });
+        }
+
+        // Bust settings/predictor caches to reflect changes immediately
+        bustSettingsCache();
+
+        res.json({
+          ok: true,
+          message: `Successfully imported ${cleanedRecords.length} cutoff records for WBJEE ${year} into the SQL database.`
+        });
+      });
+    });
+
+  } catch (err) {
+    console.error('Cutoff Excel import failed:', err);
+    res.status(500).json({ error: 'import_failed', message: err.message });
   }
 });
 

@@ -835,9 +835,9 @@ router.post('/predictor/upload', upload.single('file'), async (req, res) => {
         const instL = institute.toLowerCase();
         if (instL.includes('university') || instL.includes('jadavpur') || instL.includes('calcutta') || instL.includes('kalyani university')) {
           college_type = 'University/University Department';
-        } else if (instL.includes('government') || instL.includes('jalpaiguri government') || instL.includes('kalyani government') || instL.includes('ghani khan')) {
+        } else if (instL.includes('government') || instL.includes('govt') || instL.includes('jalpaiguri government') || instL.includes('kalyani government') || instL.includes('ghani khan')) {
           college_type = 'State Government Engineering College';
-        } else if (instL.includes('pharmacy') && instL.includes('government')) {
+        } else if (instL.includes('pharmacy') && (instL.includes('government') || instL.includes('govt'))) {
           college_type = 'State Government Pharmacy College';
         } else {
           college_type = 'Private Engineering College';

@@ -271,6 +271,12 @@
          </tbody>
        </table>
      </div>
+
+     <!-- Pagination -->
+     <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; flex-wrap:wrap; gap:10px;">
+       <div style="font-size:13px; color:var(--ink-mute);" id="subPagerInfo">—</div>
+       <div style="display:flex; align-items:center; gap:4px;" id="subPagerBtns"></div>
+     </div>
   </div>
 
   <div id="tabSettings" style="display:none; border:1px solid var(--ink); background:var(--paper-soft); padding:24px;">
@@ -1203,6 +1209,9 @@ let currentToken = null;
 
 let allSubmissions = [];
 let filteredSubmissions = [];
+let subPage = 1;
+const SUB_PAGE_SIZE = 15;
+
 let allUsersMap = {};
 let currentModalSub = null;
 let currentModalPaper = 'math';
@@ -1948,9 +1957,17 @@ function filterAndRenderSubmissions() {
   // Calculate & Update Stats overview on the fly for filtered list
   updateSubmissionsStats(filteredSubmissions);
 
-  // Render
+  // Render with Pagination
+  subPage = 1;
+  subRenderPage();
+}
+
+function subRenderPage() {
+  const start = (subPage - 1) * SUB_PAGE_SIZE;
+  const pageItems = filteredSubmissions.slice(start, start + SUB_PAGE_SIZE);
   const tableBody = document.getElementById('submissionsTableBody');
-  if (!filteredSubmissions.length) {
+
+  if (!pageItems.length) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="12" style="text-align:center; padding:48px; color:var(--ink-mute);">
@@ -1959,6 +1976,8 @@ function filterAndRenderSubmissions() {
         </td>
       </tr>
     `;
+    document.getElementById('subPagerInfo').textContent = 'No results';
+    document.getElementById('subPagerBtns').innerHTML = '';
     return;
   }
 
@@ -1976,8 +1995,8 @@ function filterAndRenderSubmissions() {
     return (name || '?').substring(0, 2).toUpperCase();
   };
 
-  tableBody.innerHTML = filteredSubmissions.map((sub, index) => {
-    const rankNo = index + 1;
+  tableBody.innerHTML = pageItems.map((sub, index) => {
+    const rankNo = start + index + 1;
     const name = sub.studentName || 'Unknown Student';
     const email = sub.studentEmail || '—';
     const examName = sub.examName || sub.examId || 'WBJEE';
@@ -2050,6 +2069,27 @@ function filterAndRenderSubmissions() {
       </tr>
     `;
   }).join('');
+
+  // Pager UI
+  const total = filteredSubmissions.length;
+  const totalPages = Math.ceil(total / SUB_PAGE_SIZE);
+  document.getElementById('subPagerInfo').textContent = `Showing ${start + 1}–${Math.min(start + SUB_PAGE_SIZE, total)} of ${total} submissions`;
+
+  let btns = `<button class="btn-ghost btn-sm" onclick="subGoPage(${subPage - 1})" ${subPage === 1 ? 'disabled' : ''} style="width:30px;height:30px;padding:0;justify-content:center;"><i class="fas fa-chevron-left"></i></button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === subPage) btns += `<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:12px;font-weight:700;background:var(--ink);color:var(--paper);border-radius:4px;">${i}</span>`;
+    else if (i === 1 || i === totalPages || Math.abs(i - subPage) <= 1) btns += `<button class="btn-ghost btn-sm" onclick="subGoPage(${i})" style="width:30px;height:30px;padding:0;justify-content:center;font-size:12px;">${i}</button>`;
+    else if (Math.abs(i - subPage) === 2) btns += '<span style="padding:0 2px;color:var(--ink-mute);">…</span>';
+  }
+  btns += `<button class="btn-ghost btn-sm" onclick="subGoPage(${subPage + 1})" ${subPage === totalPages ? 'disabled' : ''} style="width:30px;height:30px;padding:0;justify-content:center;"><i class="fas fa-chevron-right"></i></button>`;
+  document.getElementById('subPagerBtns').innerHTML = btns;
+}
+
+function subGoPage(p) {
+  const total = Math.ceil(filteredSubmissions.length / SUB_PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  subPage = p;
+  subRenderPage();
 }
 
 function normalizeStudentAnswer(ans) {

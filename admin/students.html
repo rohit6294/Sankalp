@@ -57,6 +57,16 @@
     .badge-suspended{background:rgba(239,68,68,0.15);color:#F87171}
     .badge-admin{background:rgba(245,158,11,0.15);color:#FBBF24}
     .badge-student{background:rgba(79,70,229,0.15);color:#818CF8}
+    .predictor-cell{display:flex;align-items:center;gap:8px;min-width:116px}
+    .predictor-toggle{position:relative;display:inline-flex;width:42px;height:22px;flex:0 0 42px}
+    .predictor-toggle input{opacity:0;width:0;height:0}
+    .predictor-toggle span{position:absolute;cursor:pointer;inset:0;background:rgba(100,116,139,0.35);border:1px solid rgba(148,163,184,0.3);border-radius:999px;transition:all 0.2s}
+    .predictor-toggle span:before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:#CBD5E1;border-radius:50%;transition:all 0.2s}
+    .predictor-toggle input:checked+span{background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.55)}
+    .predictor-toggle input:checked+span:before{transform:translateX(20px);background:#34D399}
+    .predictor-toggle input:disabled+span{opacity:.45;cursor:not-allowed}
+    .predictor-access-label{font-size:11px;font-weight:700;color:#64748B;white-space:nowrap}
+    .predictor-access-label.unlocked{color:#34D399}
     .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
     .toast{position:fixed;bottom:24px;right:24px;background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 20px;font-size:13px;font-weight:500;z-index:200;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s}
     .toast.show{transform:translateY(0);opacity:1}
@@ -180,11 +190,12 @@
         <th>XP / Level</th>
         <th>Streak</th>
         <th>Modules</th>
+        <th>Predictor</th>
         <th>Status</th>
         <th>Actions</th>
       </tr></thead>
       <tbody id="studentsBody">
-        <tr><td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading students…</div></td></tr>
+        <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading students...</div></td></tr>
       </tbody>
     </table>
   </div>
@@ -345,6 +356,27 @@ function fmtDate(ts){
 
 function calcLevel(xp){ return Math.max(1,Math.floor(Math.sqrt((xp||0)/100))+1); }
 
+function canGrantPredictorAccess(){
+  return !window.SankalpAdminGuard
+    || (window.SankalpAdminGuard.can('students','edit') && window.SankalpAdminGuard.can('collegePredictor','edit'));
+}
+
+async function adminApiJson(path, options = {}){
+  if(!currentAdmin) throw new Error('Admin session not ready');
+  const API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+  let token = await currentAdmin.getIdToken();
+  const headers = { Authorization:`Bearer ${token}`, ...(options.headers || {}) };
+  if(options.body !== undefined && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  let response = await fetch(`${API}${path}`, { ...options, headers });
+  if(response.status === 401){
+    token = await currentAdmin.getIdToken(true);
+    response = await fetch(`${API}${path}`, { ...options, headers:{ ...headers, Authorization:`Bearer ${token}` } });
+  }
+  const payload = await response.json().catch(() => ({}));
+  if(!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  return payload;
+}
+
 async function loadStudents(){
   try{
     const snap = await db.collection('users').get();
@@ -401,7 +433,7 @@ function renderPage(){
   const tbody = document.getElementById('studentsBody');
 
   if(!pageItems.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-user-slash"></i><div style="font-size:15px;font-weight:600;color:#475569">No students found</div><div style="font-size:12px;margin-top:4px">Try adjusting your filters</div></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-user-slash"></i><div style="font-size:15px;font-weight:600;color:#475569">No students found</div><div style="font-size:12px;margin-top:4px">Try adjusting your filters</div></div></td></tr>`;
     document.getElementById('pagerInfo').textContent='No results';
     document.getElementById('pagerBtns').innerHTML='';
     return;
@@ -419,6 +451,9 @@ function renderPage(){
     const role=s.role||'student';
     const bg=getAvatarColor(name);
     const init=getInitials(name);
+    const predictorUnlocked=s.predictorUnlocked===true;
+    const canTogglePredictor=canGrantPredictorAccess() && role!=='admin' && !String(s.id).startsWith('demo');
+    const predictorTitle=canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission';
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px">
         <div class="avatar" style="background:${bg}">${init}</div>
@@ -434,6 +469,15 @@ function renderPage(){
       </td>
       <td><div style="display:flex;align-items:center;gap:5px"><span style="font-size:14px">${streak>0?'🔥':'—'}</span><span style="font-weight:600;color:${streak>0?'#FBBF24':'#475569'}">${streak>0?streak+' days':0}</span></div></td>
       <td style="font-weight:600;color:#818CF8">${modules}</td>
+      <td>
+        <div class="predictor-cell">
+          <label class="predictor-toggle" title="${predictorTitle}">
+            <input type="checkbox" ${predictorUnlocked?'checked':''} ${canTogglePredictor?'':'disabled'} onchange="togglePredictorAccess('${s.id}', this.checked, this)">
+            <span></span>
+          </label>
+          <span class="predictor-access-label ${predictorUnlocked?'unlocked':''}">${predictorUnlocked?'Free':'Locked'}</span>
+        </div>
+      </td>
       <td><span class="badge ${status==='active'?'badge-active':'badge-suspended'}">${status}</span>
         ${role==='admin'?'<span class="badge badge-admin" style="margin-left:4px">admin</span>':''}</td>
       <td><div style="display:flex;gap:5px;flex-wrap:wrap">
@@ -468,6 +512,34 @@ function goPage(p){
   currentPage=p; renderPage();
 }
 
+async function togglePredictorAccess(id, unlocked, input){
+  if(!canGrantPredictorAccess()){
+    if(input) input.checked = !unlocked;
+    showToast('Students edit + College Predictor edit permission required.', true);
+    return;
+  }
+
+  const student = allStudents.find(x=>x.id===id);
+  const previous = student?.predictorUnlocked === true;
+  if(input) input.disabled = true;
+
+  try{
+    const result = await adminApiJson(`/api/admin/students/${encodeURIComponent(id)}/predictor-access`, {
+      method:'PATCH',
+      body:JSON.stringify({ unlocked })
+    });
+    const idx = allStudents.findIndex(x=>x.id===id);
+    if(idx>=0) allStudents[idx] = { ...allStudents[idx], predictorUnlocked: result.predictorUnlocked === true };
+    const name = student?.name || student?.displayName || 'Student';
+    showToast(result.predictorUnlocked ? `Predictor unlocked for ${name}` : `Predictor locked for ${name}`);
+    renderPage();
+  }catch(err){
+    if(input) input.checked = previous;
+    showToast('Error: '+err.message, true);
+    renderPage();
+  }
+}
+
 function viewStudent(id){
   const s=allStudents.find(x=>x.id===id); if(!s) return;
   const name=s.name||s.displayName||'Unknown';
@@ -485,6 +557,7 @@ function viewStudent(id){
     ['Level', 'Level '+level],
     ['Streak', (s.streak||0)+' days'],
     ['Modules Completed', s.modulesCompleted||0],
+    ['College Predictor', s.predictorUnlocked === true ? 'Free access' : 'Payment required'],
     ['Status', s.status||'active'],
     ['Joined', fmtDate(s.joinedAt||s.createdAt)],
   ];
@@ -609,11 +682,11 @@ async function deleteStudent(id){
 }
 
 function exportCSV(){
-  const headers=['Name','Email','Phone','WBJEE Year','XP','Level','Streak','Modules','Status','Role'];
+  const headers=['Name','Email','Phone','WBJEE Year','XP','Level','Streak','Modules','Predictor Access','Status','Role'];
   const rows=filteredStudents.map(s=>[
     s.name||s.displayName||'',s.email||'',s.phone||'',
     s.wbjeeYear||'',s.xp||0,s.level||calcLevel(s.xp||0),
-    s.streak||0,s.modulesCompleted||0,s.status||'active',s.role||'student'
+    s.streak||0,s.modulesCompleted||0,s.predictorUnlocked===true?'Free':'Payment Required',s.status||'active',s.role||'student'
   ]);
   const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');

@@ -1195,6 +1195,10 @@ router.get('/students', requirePermission('students', 'view'), async (req, res) 
         caste: data.caste || '—',
         tfw: data.tfw || '—',
         wbjeeYear: data.wbjeeYear || '—',
+        homeState: data.homeState || '—',
+        role: data.role || 'student',
+        status: data.status || 'active',
+        predictorUnlocked: data.predictorUnlocked === true,
         createdAt: data.createdAt || null
       });
     });
@@ -1205,6 +1209,54 @@ router.get('/students', requirePermission('students', 'view'), async (req, res) 
     res.status(500).json({ error: 'students_load_failed', message: err.message });
   }
 });
+
+router.patch(
+  '/students/:userId/predictor-access',
+  requirePermission('students', 'edit'),
+  requirePermission('collegePredictor', 'edit'),
+  async (req, res) => {
+    try {
+      const userId = String(req.params.userId || '').trim();
+      const unlocked = req.body?.unlocked === true;
+
+      if (!userId) {
+        return res.status(400).json({ error: 'missing_user_id', message: 'Student id is required.' });
+      }
+
+      const userRef = db.collection('users').doc(userId);
+      const snap = await userRef.get();
+      if (!snap.exists) {
+        return res.status(404).json({ error: 'student_not_found', message: 'Student account was not found.' });
+      }
+
+      const data = snap.data() || {};
+      if (data.role === 'admin' || data.isSubAdmin === true) {
+        return res.status(400).json({
+          error: 'not_student_account',
+          message: 'Predictor access can only be toggled for student accounts.',
+        });
+      }
+
+      const update = {
+        predictorUnlocked: unlocked,
+        predictorUnlockedUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        predictorUnlockedUpdatedBy: req.user.email || req.user.uid || 'admin',
+      };
+
+      if (unlocked) {
+        update.predictorUnlockedAt = admin.firestore.FieldValue.serverTimestamp();
+      } else {
+        update.predictorUnlockedAt = admin.firestore.FieldValue.delete();
+      }
+
+      await userRef.update(update);
+      res.json({ ok: true, userId, predictorUnlocked: unlocked });
+    } catch (err) {
+      console.error('Failed to update predictor access:', err);
+      res.status(500).json({ error: 'predictor_access_update_failed', message: err.message });
+    }
+  }
+);
 
 module.exports = router;
 

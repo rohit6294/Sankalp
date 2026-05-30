@@ -464,12 +464,13 @@
             <th>Category</th>
             <th>TFW</th>
             <th>Home State</th>
+            <th style="width:120px;">Predictor</th>
             <th>Joined</th>
             <th style="width:80px; text-align:center;">Details</th>
           </tr>
         </thead>
         <tbody id="slTableBody">
-          <tr><td colspan="10" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Loading students...</td></tr>
+          <tr><td colspan="11" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Loading students...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1290,6 +1291,10 @@ function handleAccessError(error) {
 
 function adminCan(section, action = 'view') {
   return !window.SankalpAdminGuard || window.SankalpAdminGuard.can(section, action);
+}
+
+function canGrantStudentPredictorAccess() {
+  return adminCan('students', 'edit') && adminCan('collegePredictor', 'edit');
 }
 
 function permissionForMainTab(tab) {
@@ -2786,7 +2791,7 @@ function slRenderPage() {
   const tbody = document.getElementById('slTableBody');
 
   if (!pageItems.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-user-slash" style="margin-right:8px;"></i>No students found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-user-slash" style="margin-right:8px;"></i>No students found</td></tr>';
     document.getElementById('slPagerInfo').textContent = 'No results';
     document.getElementById('slPagerBtns').innerHTML = '';
     return;
@@ -2804,6 +2809,9 @@ function slRenderPage() {
     const joined = slFmtDate(s.createdAt);
     const bg = slAvatarColor(name);
     const init = slInitials(name);
+    const predictorUnlocked = s.predictorUnlocked === true;
+    const canTogglePredictor = canGrantStudentPredictorAccess() && (s.role || 'student') !== 'admin';
+    const predictorTitle = canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission';
     return `<tr>
       <td style="font-family:var(--font-mono); font-size:12px; color:var(--ink-mute); font-weight:700;">${start + i + 1}</td>
       <td>
@@ -2821,6 +2829,15 @@ function slRenderPage() {
       <td style="font-size:12px; color:var(--ink-soft);">${caste}</td>
       <td style="font-size:12px; color:var(--ink-soft);">${tfw}</td>
       <td style="font-size:12px; color:var(--ink-soft);">${homeState}</td>
+      <td>
+        <div style="display:flex; align-items:center; gap:8px; min-width:108px;">
+          <label class="toggle-switch" title="${predictorTitle}" style="${canTogglePredictor?'':'opacity:.5;'}">
+            <input type="checkbox" ${predictorUnlocked?'checked':''} ${canTogglePredictor?'':'disabled'} onchange="slTogglePredictorAccess('${s.id}', this.checked, this)">
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:11px; font-weight:800; color:${predictorUnlocked?'#1A6B3C':'var(--ink-mute)'};">${predictorUnlocked?'Free':'Locked'}</span>
+        </div>
+      </td>
       <td style="font-size:12px; color:var(--ink-mute);">${joined}</td>
       <td style="text-align:center;"><button class="btn-ghost btn-sm" onclick="slViewStudent('${s.id}')" style="font-size:11px;"><i class="fas fa-eye" style="margin-right:4px;"></i>View</button></td>
     </tr>`;
@@ -2848,6 +2865,34 @@ function slGoPage(p) {
   slRenderPage();
 }
 
+async function slTogglePredictorAccess(id, unlocked, input) {
+  if (!canGrantStudentPredictorAccess()) {
+    if (input) input.checked = !unlocked;
+    toast('Students edit + College Predictor edit permission required.');
+    return;
+  }
+
+  const student = slAllStudents.find(x => x.id === id);
+  const previous = student?.predictorUnlocked === true;
+  if (input) input.disabled = true;
+
+  try {
+    const result = await apiJson(`/api/admin/students/${encodeURIComponent(id)}/predictor-access`, {
+      method: 'PATCH',
+      body: JSON.stringify({ unlocked }),
+    });
+    const idx = slAllStudents.findIndex(x => x.id === id);
+    if (idx >= 0) slAllStudents[idx] = { ...slAllStudents[idx], predictorUnlocked: result.predictorUnlocked === true };
+    const name = student?.name || student?.displayName || 'Student';
+    toast(result.predictorUnlocked ? `Predictor unlocked for ${name}` : `Predictor locked for ${name}`);
+    slRenderPage();
+  } catch (err) {
+    if (input) input.checked = previous;
+    toast(err.message || 'Unable to update predictor access.');
+    slRenderPage();
+  }
+}
+
 function slViewStudent(id) {
   const s = slAllStudents.find(x => x.id === id);
   if (!s) return;
@@ -2866,6 +2911,7 @@ function slViewStudent(id) {
     ['TFW Status', s.tfw || '—'],
     ['Home State Status', s.homeState || '—'],
     ['WBJEE Target Year', s.wbjeeYear ? 'WBJEE ' + s.wbjeeYear : '—'],
+    ['College Predictor', s.predictorUnlocked === true ? 'Free access' : 'Payment required'],
     ['Role', s.role || 'student'],
     ['Bio', s.bio || '—'],
     ['Status', s.status || 'active'],
@@ -2888,11 +2934,11 @@ document.getElementById('slDetailModal')?.addEventListener('click', function(e) 
 });
 
 function exportStudentListCSV() {
-  const headers = ['Name','Email','Phone','WBJEE Year','Gender','Category','TFW','Home State','Role','Status','Bio'];
+  const headers = ['Name','Email','Phone','WBJEE Year','Gender','Category','TFW','Home State','Predictor Access','Role','Status','Bio'];
   const rows = slFiltered.map(s => [
     s.name||s.displayName||'', s.email||'', s.phone||'',
     s.wbjeeYear||'', s.gender||'', s.caste||'',
-    s.tfw||'', s.homeState||'', s.role||'student', s.status||'active', s.bio||''
+    s.tfw||'', s.homeState||'', s.predictorUnlocked===true?'Free':'Payment Required', s.role||'student', s.status||'active', s.bio||''
   ]);
   const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');

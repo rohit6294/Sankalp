@@ -26,6 +26,31 @@ app.use(express.json({ limit: '256kb' }));
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
+app.get('/api/debug-routes', (_req, res) => {
+  const routes = [];
+  function print(path, layer) {
+    if (layer.route) {
+      layer.route.stack.forEach(print.bind(null, path + (layer.route.path || '')));
+    } else if (layer.name === 'router' && layer.handle.stack) {
+      let routerPath = path;
+      if (layer.regexp.toString().includes('admin')) routerPath += '/api/admin';
+      else if (layer.regexp.toString().includes('predictor')) routerPath += '/api/predictor';
+      else if (layer.regexp.toString().includes('exams')) routerPath += '/api/exams';
+      else if (layer.regexp.toString().includes('submit')) routerPath += '/api/submit';
+      else if (layer.regexp.toString().includes('result')) routerPath += '/api/result';
+      else if (layer.regexp.toString().includes('rank')) routerPath += '/api/rank';
+      else if (layer.regexp.toString().includes('payment')) routerPath += '/api/payment';
+      
+      layer.handle.stack.forEach(print.bind(null, routerPath));
+    } else if (layer.method) {
+      routes.push(`${layer.method.toUpperCase()} ${path}`);
+    }
+  }
+  app._router.stack.forEach(print.bind(null, ''));
+  res.json({ routes });
+});
+
+
 app.use('/api/exams', examsRouter);
 app.use('/api/submit', submitRouter);
 app.use('/api/result', resultRouter);

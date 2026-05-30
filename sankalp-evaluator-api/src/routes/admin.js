@@ -761,6 +761,8 @@ router.post('/predictor/upload', upload.single('file'), async (req, res) => {
     // Connect to SQLite database
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
+    sqliteDb.configure("busyTimeout", 10000); // 10 seconds busy timeout to avoid SQLITE_BUSY
+
 
     // Read column mapping by cleaning keys
     const firstRow = rawRows[0];
@@ -922,6 +924,8 @@ router.get('/predictor/status', async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
+    sqliteDb.configure("busyTimeout", 10000); // 10 seconds busy timeout to avoid SQLITE_BUSY
+
 
     const stats = {
       2024: { records: 0, colleges: 0 },
@@ -965,6 +969,8 @@ router.post('/predictor/clear', async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
+    sqliteDb.configure("busyTimeout", 10000); // 10 seconds busy timeout to avoid SQLITE_BUSY
+
 
     sqliteDb.run('DELETE FROM cutoffs', [], (err) => {
       sqliteDb.close();

@@ -40,6 +40,8 @@ const sqliteDb = new sqlite3.Database(dbPath, (err) => {
     console.log('Connected to SQLite cutoffs database inside predictor.js');
   }
 });
+sqliteDb.configure("busyTimeout", 10000); // 10 seconds busy timeout to avoid SQLITE_BUSY
+
 
 // Helper to check if a user is an admin or evaluator
 function isAdminEmail(email) {

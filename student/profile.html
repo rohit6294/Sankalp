@@ -470,6 +470,14 @@
       const doc = await db.collection('users').doc(user.uid).get();
       if (doc.exists) {
         const data = doc.data();
+
+        // Proactively update the sessionStorage profile cache so other pages are instantly in-sync!
+        const profileCacheKey = `__sankalp_profile_${user.uid}__`;
+        sessionStorage.setItem(profileCacheKey, JSON.stringify({
+          value: data,
+          timestamp: Date.now()
+        }));
+
         if (data.email) {
           emailField.value = data.email;
           document.getElementById('profileEmail').textContent = data.email;

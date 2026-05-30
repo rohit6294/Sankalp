@@ -13,8 +13,12 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = typeof firebase.storage === 'function' ? firebase.storage() : null;
 
-// Evaluator API base URL (update after deploying to Render)
-window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
+// Evaluator API base URL (detect localhost vs production)
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  window.EVALUATOR_API = 'http://localhost:3000';
+} else {
+  window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
+}
 
 // ===== Global Profile Validation Checker for Student Portal =====
 (function() {
@@ -131,6 +135,19 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         `;
       }
 
+      if (missingFieldKeys.includes('homeState')) {
+        fieldsHtml += `
+          <div style="margin-bottom: 14px;">
+            <label style="display:block; font-size:12px; font-weight:600; color:#94A3B8; margin-bottom:6px">Home State Status *</label>
+            <select id="lock-homeState" class="input-field" style="width:100%; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #E2E8F0; font-size: 13px;" required>
+              <option value="">Select Home State Status</option>
+              <option value="Yes">Yes (West Bengal Resident / Domicile)</option>
+              <option value="No">No (Other State / All India)</option>
+            </select>
+          </div>
+        `;
+      }
+
       if (missingFieldKeys.includes('wbjeeYear')) {
         fieldsHtml += `
           <div style="margin-bottom: 20px;">
@@ -203,6 +220,9 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
         }
         if (missingFieldKeys.includes('tfw')) {
           updateData.tfw = document.getElementById('lock-tfw').value;
+        }
+        if (missingFieldKeys.includes('homeState')) {
+          updateData.homeState = document.getElementById('lock-homeState').value;
         }
         
         try {
@@ -317,12 +337,17 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
           missingFields.push('TFW Status');
           missingFieldKeys.push('tfw');
         }
+        if (mandatoryFields.homeState && (!userData.homeState || !userData.homeState.trim())) {
+          missingFields.push('Home State Status');
+          missingFieldKeys.push('homeState');
+        }
 
         if (missingFields.length > 0) {
           // Execute after document body is available
           const runBlock = () => {
             if (isProfilePage) {
-              showProfileWarningBanner(missingFields);
+              // Do not show the duplicate banner here since profile.html has its own beautiful built-in mandatory banner
+              return;
             } else {
               showProfileLockOverlay(missingFields, missingFieldKeys, user.uid, user.displayName);
             }

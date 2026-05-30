@@ -296,6 +296,9 @@
   function run() {
     if (typeof auth === 'undefined' || typeof db === 'undefined') return;
 
+    // Do not show the warning banner on the profile page itself to avoid redundant alerts and stale views
+    if (window.location.pathname.endsWith('profile.html')) return;
+
     auth.onAuthStateChanged(async user => {
       if (!user) return;
 

@@ -14,12 +14,104 @@
   <script src="../js/firebase-config.js?v=1.0.3"></script>
   <script src="../js/profile-check.js"></script>
   <style>
-    .result-hero { background: var(--ink); color: var(--paper); padding: 48px 32px; border: 1px solid var(--ink); }
-    .score-cell { padding: 28px 20px; text-align: center; border-right: 1px solid var(--rule); }
-    .score-cell:last-child { border-right: none; }
-    .score-cell.ink-bg { border-right-color: rgba(234,219,192,0.15); }
-    .score-num { font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; line-height: 1; }
-    .score-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 8px; }
+    /* Modern, gorgeous dashboard styles */
+    .result-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+      color: #FFFFFF;
+      padding: 40px 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .result-hero::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(10, 116, 245, 0.15) 0%, transparent 70%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .result-hero * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .score-card {
+      background: var(--paper-soft);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+    .score-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -3px rgba(10, 116, 245, 0.08);
+      border-color: rgba(10, 116, 245, 0.25);
+    }
+    .score-card.dark {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+    .score-card.dark:hover {
+      border-color: rgba(10, 116, 245, 0.4);
+      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.2);
+    }
+
+    .score-num {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .score-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .rank-card {
+      background: var(--paper-soft);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 16px;
+      padding: 28px 24px;
+      text-align: center;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+    .rank-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -4px rgba(10, 116, 245, 0.08);
+      border-color: rgba(10, 116, 245, 0.25);
+    }
+    .rank-big {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-top: 8px;
+    }
+
+    .analytics-card {
+      background: var(--paper-soft);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+
     .analytics-ring { 
       width: 140px; 
       height: 140px; 
@@ -33,7 +125,7 @@
       content: '';
       position: absolute;
       inset: 12px;
-      background: var(--paper-soft);
+      background: var(--paper);
       border-radius: 50%;
       z-index: 1;
     }
@@ -63,75 +155,85 @@
       color: var(--ink-mute);
       line-height: 1;
     }
-    .breakdown-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
-    .breakdown-row:last-child { border-bottom: none; }
-    .rank-card { padding: 32px; text-align: center; }
-    .rank-big { font-family: var(--font-display); font-size: 3.5rem; font-weight: 900; line-height: 1; }
-    @media (max-width: 768px) {
-      .score-grid { grid-template-columns: repeat(2, 1fr) !important; }
-      .rank-grid { grid-template-columns: 1fr !important; }
-      .analytics-grid { grid-template-columns: 1fr !important; }
-      .score-num { font-size: 2rem; }
-      .rank-big { font-size: 2.5rem; }
+
+    .breakdown-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-soft);
     }
-    .progress-bar { background: rgba(255, 255, 255, 0.06); border-radius: 100px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 100px; transition: width 0.4s ease; }
+    .breakdown-row:last-child {
+      border-bottom: none;
+    }
+
+    .progress-bar {
+      background: rgba(15, 23, 42, 0.06);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.4s ease;
+    }
+
+    /* Modern tab buttons switcher pill style */
+    .tabs-pill-container {
+      display: inline-flex;
+      background: #F1F5F9;
+      padding: 4px;
+      border-radius: 12px;
+      gap: 2px;
+      width: fit-content;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      color: var(--ink-mute);
+      border: none;
+      padding: 8px 16px;
+      font-size: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-btn:hover {
+      color: var(--ink);
+      background: rgba(15, 23, 42, 0.04);
+    }
+    .tab-btn.active {
+      background: #FFFFFF;
+      color: var(--ink);
+      box-shadow: 0 2px 8px -1px rgba(15, 23, 42, 0.08);
+    }
 
     @media print {
       body { background: white; color: black; }
       .sidebar, .menu-toggle, .sidebar-overlay, .pdf-btn { display: none !important; }
       main.main-content { margin: 0 !important; padding: 0 !important; max-width: 100% !important; width: 100% !important; }
       
-      /* Make hero section printer-friendly */
       .result-hero { background: white !important; color: black !important; border: 2px solid black !important; padding: 24px !important; }
       .result-hero .eyebrow { color: #555 !important; }
       .result-hero h1, .result-hero p, .result-hero span { color: black !important; }
       
-      /* Fix dark backgrounds in score grid */
-      .score-cell.ink-bg { background: white !important; color: black !important; border-left: 1px solid #ddd !important; }
-      .score-cell.ink-bg .score-num { color: black !important; }
-      .score-cell.ink-bg .score-label { color: #555 !important; }
+      .score-card { background: white !important; border: 1px solid #ddd !important; }
+      .score-card.dark { background: white !important; color: black !important; border: 1px solid #ddd !important; }
+      .score-card.dark .score-num, .score-card.dark .score-label { color: black !important; }
       
-      /* Fix analytics ring */
       .analytics-ring { background: #eee !important; }
       .analytics-ring::before { background: white !important; }
       
-      /* Ensure borders print properly */
       * { border-color: #ccc !important; }
-      .result-hero { border-color: black !important; }
       
-      /* Avoid page breaks inside cards */
-      .score-grid, .rank-grid, .analytics-grid > div, .category-card {
+      .score-card, .rank-card, .analytics-card, .category-card {
         break-inside: avoid;
         page-break-inside: avoid;
-      }
-      
-      /* Force background printing for browsers that support it */
-      /* Detailed Answers & Responses Tabs */
-      .tab-btn {
-        font-family: var(--font-display);
-        font-weight: 700;
-        color: var(--ink-soft);
-        background: var(--paper-deep);
-        border: 1px solid var(--ink);
-        border-right: none;
-        padding: 10px 18px;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .tab-btn:last-child {
-        border-right: 1px solid var(--ink);
-      }
-      .tab-btn:hover {
-        background: var(--paper-soft);
-        color: var(--ink);
-      }
-      .tab-btn.active {
-        background: var(--ink);
-        color: var(--paper);
       }
     }
   </style>
@@ -186,61 +288,61 @@
     </div>
 
     <!-- Subject Scores -->
-    <div class="score-grid" style="display:grid; grid-template-columns:repeat(5, 1fr); border:1px solid var(--ink); border-top:none;">
-      <div class="score-cell" style="background:var(--paper-soft);">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      <div class="score-card">
         <div class="score-num" style="color:var(--rust);" id="mathScore">—</div>
         <div class="score-label" style="color:var(--ink-mute);">Math</div>
       </div>
-      <div class="score-cell" style="background:var(--paper);">
+      <div class="score-card">
         <div class="score-num" style="color:var(--forest);" id="physicsScore">—</div>
         <div class="score-label" style="color:var(--ink-mute);">Physics</div>
       </div>
-      <div class="score-cell" style="background:var(--paper-soft);">
+      <div class="score-card">
         <div class="score-num" style="color:var(--rust);" id="chemistryScore">—</div>
         <div class="score-label" style="color:var(--ink-mute);">Chemistry</div>
       </div>
-      <div class="score-cell ink-bg" style="background:var(--ink); color:var(--paper); border-right:1px solid rgba(234,219,192,0.15);">
+      <div class="score-card dark">
         <div class="score-num" id="engScore">—</div>
-        <div class="score-label" style="color:rgba(234,219,192,0.6);">Engg Total</div>
+        <div class="score-label">Engg Total</div>
       </div>
-      <div class="score-cell ink-bg" style="background:var(--ink); color:var(--paper);">
+      <div class="score-card dark col-span-2 md:col-span-1 lg:col-span-1">
         <div class="score-num" style="color:var(--rust);" id="bphScore">—</div>
-        <div class="score-label" style="color:rgba(234,219,192,0.6);">B-Pharm Total</div>
+        <div class="score-label">B-Pharm Total</div>
       </div>
     </div>
 
     <!-- Rank Cards -->
-    <div class="rank-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); border:1px solid var(--ink); border-top:none; margin-bottom:24px;">
-      <div class="rank-card" style="border-right:1px solid var(--ink); background:var(--paper-soft);">
-        <div class="eyebrow" style="margin-bottom:12px;">Expected Engineering Rank</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="rank-card">
+        <div class="eyebrow" style="margin-bottom:8px;">Expected Engineering Rank</div>
         <div class="rank-big" style="color:var(--rust);" id="expectedEngRank">—</div>
-        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="expectedEngRankNote">Based on GMR cutoff data</div>
+        <div style="margin-top:8px; font-size:11px; color:var(--ink-mute);" id="expectedEngRankNote">Based on GMR cutoff data</div>
       </div>
-      <div class="rank-card" style="border-right:1px solid var(--ink); background:var(--paper);">
-        <div class="eyebrow" style="margin-bottom:12px;">Expected B-Pharma Rank</div>
+      <div class="rank-card">
+        <div class="eyebrow" style="margin-bottom:8px;">Expected B-Pharma Rank</div>
         <div class="rank-big" style="color:var(--rust);" id="expectedBphRank">—</div>
-        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="expectedBphRankNote">Based on PMR cutoff data</div>
+        <div style="margin-top:8px; font-size:11px; color:var(--ink-mute);" id="expectedBphRankNote">Based on PMR cutoff data</div>
       </div>
-      <div class="rank-card" style="background:var(--paper-soft);">
-        <div class="eyebrow" style="margin-bottom:12px;">Community Rank (Engg)</div>
+      <div class="rank-card">
+        <div class="eyebrow" style="margin-bottom:8px;">Community Rank (Engg)</div>
         <div class="rank-big" style="color:var(--forest);" id="communityRank">—</div>
-        <div style="margin-top:8px; font-size:12px; color:var(--ink-mute); font-family:var(--font-sans);" id="communityRankNote">Loading...</div>
+        <div style="margin-top:8px; font-size:11px; color:var(--ink-mute);" id="communityRankNote">Loading...</div>
       </div>
     </div>
 
     <!-- Category & Special Ranks (shown dynamically) -->
-    <div id="categoryRanksSection" style="display:none; border:1px solid var(--ink); border-top:none; background:var(--paper-soft); padding:24px; margin-bottom:24px;">
+    <div id="categoryRanksSection" style="display:none; border:1px solid rgba(15, 23, 42, 0.08); border-radius:16px; background:var(--paper-soft); padding:24px; margin-bottom:24px; box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.03);">
       <div class="eyebrow" style="margin-bottom:16px; color:var(--rust);">Category & Special Ranks</div>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;" id="categoryRanksGrid">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="categoryRanksGrid">
         <!-- Injected dynamically -->
       </div>
     </div>
 
     <!-- Analytics + Per-subject Breakdown -->
-    <div class="analytics-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
       <!-- Accuracy Ring + Counts -->
-      <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
+      <div class="analytics-card">
         <div class="eyebrow" style="margin-bottom:20px;">Performance Analytics</div>
         <div class="analytics-ring" id="accuracyRing" style="margin-bottom:20px;">
           <div class="analytics-content">
@@ -250,49 +352,51 @@
         </div>
         <div>
           <div class="breakdown-row">
-            <span><span style="display:inline-block; width:10px; height:10px; background:var(--forest); margin-right:8px;"></span>Correct</span>
+            <span><span style="display:inline-block; width:10px; height:10px; background:var(--forest); margin-right:8px; border-radius:2px;"></span>Correct</span>
             <span style="font-family:var(--font-mono); font-weight:700;" id="totalCorrect">0</span>
           </div>
           <div class="breakdown-row">
-            <span><span style="display:inline-block; width:10px; height:10px; background:#1D4ED8; margin-right:8px;"></span>Partial</span>
+            <span><span style="display:inline-block; width:10px; height:10px; background:#1D4ED8; margin-right:8px; border-radius:2px;"></span>Partial</span>
             <span style="font-family:var(--font-mono); font-weight:700;" id="totalPartial">0</span>
           </div>
           <div class="breakdown-row">
-            <span><span style="display:inline-block; width:10px; height:10px; background:var(--rust); margin-right:8px;"></span>Wrong</span>
+            <span><span style="display:inline-block; width:10px; height:10px; background:var(--rust); margin-right:8px; border-radius:2px;"></span>Wrong</span>
             <span style="font-family:var(--font-mono); font-weight:700;" id="totalWrong">0</span>
           </div>
           <div class="breakdown-row">
-            <span><span style="display:inline-block; width:10px; height:10px; background:var(--rule); margin-right:8px;"></span>Skipped</span>
+            <span><span style="display:inline-block; width:10px; height:10px; background:var(--rule-strong); margin-right:8px; border-radius:2px;"></span>Skipped</span>
             <span style="font-family:var(--font-mono); font-weight:700;" id="totalSkipped">0</span>
           </div>
         </div>
       </div>
 
       <!-- Per-Subject Breakdown -->
-      <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
+      <div class="analytics-card">
         <div class="eyebrow" style="margin-bottom:20px;">Subject-wise Breakdown</div>
         <div id="subjectBreakdown">
           <!-- Filled by JS -->
         </div>
       </div>
+    </div> <!-- CLOSED ANALYTICS-GRID SAFELY -->
+
     <!-- Detailed Answers & Responses -->
-    <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft); margin-bottom:24px;">
+    <div style="border:1px solid rgba(15, 23, 42, 0.08); padding:28px; background:var(--paper-soft); border-radius:16px; margin-bottom:24px; box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.03);">
       <div class="eyebrow" style="margin-bottom:14px; color:var(--rust);">OMR Response Sheet Details</div>
-      <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none; flex-wrap:wrap; margin-bottom:0;">
-        <button class="tab-btn active" id="paperMathBtn" onclick="switchPaper('math')" style="font-size:11px; padding:10px 16px;">Math Responses</button>
-        <button class="tab-btn" id="paperPhysBtn" onclick="switchPaper('physics')" style="font-size:11px; padding:10px 16px;">Physics Responses</button>
-        <button class="tab-btn" id="paperChemBtn" onclick="switchPaper('chemistry')" style="font-size:11px; padding:10px 16px;">Chemistry Responses</button>
+      <div class="tabs-pill-container">
+        <button class="tab-btn active" id="paperMathBtn" onclick="switchPaper('math')">Math Responses</button>
+        <button class="tab-btn" id="paperPhysBtn" onclick="switchPaper('physics')">Physics Responses</button>
+        <button class="tab-btn" id="paperChemBtn" onclick="switchPaper('chemistry')">Chemistry Responses</button>
       </div>
-      <div style="border:1px solid var(--ink); max-height:350px; overflow-y:auto; background:var(--paper); padding:16px; min-height:150px;" id="answersGrid">
+      <div style="border:1px solid rgba(15, 23, 42, 0.08); border-radius:12px; max-height:350px; overflow-y:auto; background:var(--paper); padding:16px; min-height:150px;" id="answersGrid">
         <!-- Rendered dynamically by JS -->
       </div>
     </div>
 
     <!-- Actions -->
-    <div style="display:flex; gap:12px; flex-wrap:wrap;">
-      <a href="evaluate.html" class="btn-ghost btn-sm"><i class="fas fa-redo"></i> Evaluate Another Exam</a>
-      <a href="evaluate.html" class="btn-rust btn-sm"><i class="fas fa-home"></i> Back to Evaluator</a>
-      <button class="btn-ink btn-sm" onclick="shareResult()"><i class="fas fa-share-alt"></i> Share Result</button>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; align-items:center;">
+      <a href="evaluate.html" class="btn-ghost btn-sm" style="height:40px; display:inline-flex; align-items:center; justify-content:center;"><i class="fas fa-redo"></i> Evaluate Another Exam</a>
+      <a href="evaluate.html" class="btn-rust btn-sm" style="height:40px; display:inline-flex; align-items:center; justify-content:center;"><i class="fas fa-home"></i> Back to Evaluator</a>
+      <button class="btn-ink btn-sm" onclick="shareResult()" style="height:40px; display:inline-flex; align-items:center; justify-content:center;"><i class="fas fa-share-alt"></i> Share Result</button>
     </div>
   </div>
 

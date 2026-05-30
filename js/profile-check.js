@@ -23,8 +23,37 @@
     gender:    'Gender',
     caste:     'Caste / Category',
     tfw:       'TFW Status',
+    homeState: 'Home State Status',
     wbjeeYear: 'WBJEE Target Year',
   };
+
+  const CACHE_TTL_MS = 60000; // 60 seconds
+
+  function getCachedItem(key) {
+    try {
+      const dataStr = sessionStorage.getItem(key);
+      if (!dataStr) return null;
+      const cached = JSON.parse(dataStr);
+      if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        return cached.value;
+      }
+      sessionStorage.removeItem(key);
+    } catch (e) {
+      console.warn('Failed to parse cache for key:', key, e);
+    }
+    return null;
+  }
+
+  function setCachedItem(key, value) {
+    try {
+      sessionStorage.setItem(key, JSON.stringify({
+        value,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.warn('Failed to set cache for key:', key, e);
+    }
+  }
 
   /* ── inject banner CSS once ────────────────────────────────────────── */
   function injectCSS() {
@@ -100,13 +129,13 @@
   /* ── compute missing fields ────────────────────────────────────────── */
   function getMissing(settings, profile) {
     const missing = [];
-    
+
     // Always force name check regardless of admin settings if name is Unknown Student or invalid
     const nameVal = String(profile.name || profile.firstName || '').trim().toLowerCase();
-    
+
     // A valid name must have at least 2 alphabet letters and cannot be "unknown student"
     const hasEnoughLetters = /[a-z].*[a-z]/i.test(nameVal);
-    
+
     if (nameVal === 'unknown student' || nameVal === '' || !hasEnoughLetters) {
       missing.push(FIELD_LABELS['name']);
     }
@@ -122,13 +151,25 @@
 
   /* ── primary: read from Firestore directly ─────────────────────────── */
   async function checkViaFirestore(user) {
-    const [settingsSnap, profileSnap] = await Promise.all([
-      db.collection('settings').doc('mandatory_fields').get(),
-      db.collection('users').doc(user.uid).get(),
-    ]);
-    const settings = settingsSnap.exists ? settingsSnap.data() : {};
+    const mfCacheKey = `__sankalp_mf_${user.uid}__`;
+    const profileCacheKey = `__sankalp_profile_${user.uid}__`;
+
+    let settings = getCachedItem(mfCacheKey);
+    if (!settings) {
+      const settingsSnap = await db.collection('settings').doc('mandatory_fields').get();
+      settings = settingsSnap.exists ? settingsSnap.data() : {};
+      setCachedItem(mfCacheKey, settings);
+    }
+
     if (!Object.values(settings).some(Boolean)) return; // nothing mandatory
-    const profile = profileSnap.exists ? profileSnap.data() : {};
+
+    let profile = getCachedItem(profileCacheKey);
+    if (!profile) {
+      const profileSnap = await db.collection('users').doc(user.uid).get();
+      profile = profileSnap.exists ? profileSnap.data() : {};
+      setCachedItem(profileCacheKey, profile);
+    }
+
     // fallback name from Firebase Auth
     if (!profile.name && !profile.firstName) {
       profile.name = user.displayName || '';
@@ -153,12 +194,114 @@
     if (missing.length) showBanner(missing);
   }
 
+  function hidePredictorLinks() {
+    const links = document.querySelectorAll('a[href*="predictor.html"]');
+    if (links.length > 0) {
+      links.forEach(l => {
+        l.style.display = 'none';
+      });
+      return true;
+    }
+    return false;
+  }
+
+  async function checkPredictorFeature(user) {
+    try {
+      const cpCacheKey = `__sankalp_cp_${user.uid}__`;
+      let settings = getCachedItem(cpCacheKey);
+      if (!settings) {
+        const snap = await db.collection('settings').doc('college_predictor').get();
+        settings = snap.exists ? snap.data() : { enabled: true };
+        setCachedItem(cpCacheKey, settings);
+      }
+      const isEnabled = settings.enabled !== false; // defaults to true
+
+      if (!isEnabled) {
+        // Hide sidebar link on ALL student pages
+        const hidden = hidePredictorLinks();
+        if (!hidden) {
+          document.addEventListener('DOMContentLoaded', hidePredictorLinks);
+          setTimeout(hidePredictorLinks, 100);
+          setTimeout(hidePredictorLinks, 500);
+          setTimeout(hidePredictorLinks, 1000);
+        }
+
+        // If currently on predictor.html, force block screen
+        if (window.location.pathname.endsWith('predictor.html')) {
+          const blockBody = () => {
+            document.body.innerHTML = `
+              <div style="background:#020617; color:#E2E8F0; font-family:'Inter',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center;">
+                <div style="width:72px; height:72px; border-radius:50%; background:rgba(239, 68, 68, 0.1); border:2px solid #EF4444; display:flex; align-items:center; justify-content:center; font-size:32px; color:#EF4444; margin-bottom:20px; box-shadow:0 0 20px rgba(239,68,68,0.2);">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h1 style="font-size:24px; font-weight:800; color:white; margin-bottom:8px; font-family:'Poppins',sans-serif;">Feature Disabled</h1>
+                <p style="color:#94A3B8; font-size:14px; max-width:400px; line-height:1.6; margin-bottom:24px;">The College Predictor tool has been temporarily disabled by the administrator. Please check back later.</p>
+                <a href="dashboard.html" style="background:#EADBC0; color:#C94E1F; padding:10px 24px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none; display:inline-block; font-family:inherit; transition: all 0.2s;">Go to Dashboard</a>
+              </div>
+            `;
+          };
+          if (document.body) {
+            blockBody();
+          } else {
+            document.addEventListener('DOMContentLoaded', blockBody);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[profile-check] Failed checking predictor feature state via Firestore:', e.message);
+      // Fall back to REST API
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${API_BASE}/api/predictor/status`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const statusData = await res.json();
+          if (statusData.enabled === false) {
+            const hidden = hidePredictorLinks();
+            if (!hidden) {
+              document.addEventListener('DOMContentLoaded', hidePredictorLinks);
+              setTimeout(hidePredictorLinks, 100);
+              setTimeout(hidePredictorLinks, 500);
+              setTimeout(hidePredictorLinks, 1000);
+            }
+            if (window.location.pathname.endsWith('predictor.html')) {
+              const blockBody = () => {
+                document.body.innerHTML = `
+                  <div style="background:#020617; color:#E2E8F0; font-family:'Inter',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center;">
+                    <div style="width:72px; height:72px; border-radius:50%; background:rgba(239, 68, 68, 0.1); border:2px solid #EF4444; display:flex; align-items:center; justify-content:center; font-size:32px; color:#EF4444; margin-bottom:20px; box-shadow:0 0 20px rgba(239,68,68,0.2);">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h1 style="font-size:24px; font-weight:800; color:white; margin-bottom:8px; font-family:'Poppins',sans-serif;">Feature Disabled</h1>
+                    <p style="color:#94A3B8; font-size:14px; max-width:400px; line-height:1.6; margin-bottom:24px;">The College Predictor tool has been temporarily disabled by the administrator. Please check back later.</p>
+                    <a href="dashboard.html" style="background:#EADBC0; color:#C94E1F; padding:10px 24px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none; display:inline-block; font-family:inherit; transition: all 0.2s;">Go to Dashboard</a>
+                  </div>
+                `;
+              };
+              if (document.body) {
+                blockBody();
+              } else {
+                document.addEventListener('DOMContentLoaded', blockBody);
+              }
+            }
+          }
+        }
+      } catch (errApi) {
+        console.warn('[profile-check] Failed checking predictor feature state via API fallback:', errApi.message);
+      }
+    }
+  }
+
   /* ── main ──────────────────────────────────────────────────────────── */
   function run() {
     if (typeof auth === 'undefined' || typeof db === 'undefined') return;
 
     auth.onAuthStateChanged(async user => {
       if (!user) return;
+
+      // Proactively run the predictor enable check
+      checkPredictorFeature(user);
+
       try {
         await checkViaFirestore(user);
       } catch (e1) {

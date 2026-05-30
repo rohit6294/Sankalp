@@ -1,7 +1,7 @@
 {
   "name": "sankalp-evaluator-api",
   "version": "0.1.0",
-  "description": "WBJEE response sheet evaluator + rank predictor API for Sankalp Learning",
+  "description": "WBJEE response sheet evaluator + rank predictor API for Sankalp Aspirant",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -16,6 +16,10 @@
     "dotenv": "^17.4.2",
     "express": "^4.19.2",
     "firebase-admin": "^12.6.0",
-    "nodemailer": "^8.0.9"
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.9",
+    "razorpay": "^2.9.6",
+    "sqlite3": "^6.0.1",
+    "xlsx": "^0.18.5"
   }
 }

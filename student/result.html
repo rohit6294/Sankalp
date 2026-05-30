@@ -285,7 +285,7 @@
 
 <script>
 // ===== Config =====
-const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
+const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -356,13 +356,33 @@ function setAccuracyRing(accuracy) {
   document.getElementById('accuracyPct').textContent = accuracy + '%';
 }
 
+async function getCachedUserProfile(user) {
+  const profileCacheKey = `__sankalp_profile_${user.uid}__`;
+  const cachedProfile = sessionStorage.getItem(profileCacheKey);
+  if (cachedProfile) {
+    try {
+      const parsed = JSON.parse(cachedProfile);
+      if (Date.now() - parsed.timestamp < 60000) {
+        return parsed.value;
+      }
+    } catch(e){}
+  }
+  const userDoc = await db.collection('users').doc(user.uid).get();
+  const data = userDoc.exists ? (userDoc.data() || {}) : {};
+  sessionStorage.setItem(profileCacheKey, JSON.stringify({
+    value: data,
+    timestamp: Date.now()
+  }));
+  return data;
+}
+
 async function isAdminUser(user) {
   const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
   const email = (user.email || '').toLowerCase();
   if (adminEmails.includes(email)) return true;
   try {
-    const doc = await db.collection('users').doc(user.uid).get();
-    return doc.exists && doc.data().role === 'admin';
+    const userData = await getCachedUserProfile(user);
+    return userData && userData.role === 'admin';
   } catch {
     return adminEmails.includes(email);
   }
@@ -395,9 +415,8 @@ async function loadResult(user) {
     let caste = 'General';
     let tfw = 'No';
     try {
-      const userDoc = await db.collection('users').doc(user.uid).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
+      const userData = await getCachedUserProfile(user);
+      if (userData) {
         caste = userData.caste || 'General';
         tfw = userData.tfw || 'No';
       }

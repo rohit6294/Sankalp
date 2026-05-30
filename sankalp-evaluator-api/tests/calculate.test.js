@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 
 const { scoreSubject, scoreSubmission, round2, normalizeStudentAnswer } = require('../src/scoring/calculate');
 const { categoryFor } = require('../src/categories');
-const { defaultRankRows, predictRank } = require('../src/scoring/ranking');
+const { defaultRankRows, predictRank, formatRankRange } = require('../src/scoring/ranking');
 const { missingAnswerNumbers } = require('../src/exam-readiness');
 
 test('categoryFor: math ranges', () => {
@@ -176,6 +176,13 @@ test('predictRank: finds the right band', () => {
 test('defaultRankRows: provides engineering and bpharma fallbacks', () => {
   assert.ok(defaultRankRows('engineering').length > 0);
   assert.ok(defaultRankRows('bpharma').length > 0);
+});
+
+test('formatRankRange: formats rank bands without object coercion', () => {
+  assert.equal(formatRankRange({ min: 400, max: 1999 }), '400 - 1,999');
+  assert.equal(formatRankRange({ min: 125, max: 125 }), '125');
+  assert.equal(formatRankRange(94), '94');
+  assert.equal(formatRankRange(null), '');
 });
 
 test('missingAnswerNumbers: detects incomplete keys', () => {

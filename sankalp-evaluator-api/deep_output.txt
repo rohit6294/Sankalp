@@ -1,0 +1,424 @@
+﻿================================================================================
+COMPARISON: Are both files identical?
+================================================================================
+>>> BOTH FILES CONTAIN IDENTICAL DATA (same 3020 rows, same values)
+
+================================================================================
+DEEP ANALYSIS: WBJEE 2025 Opening & Closing Rank Cutoffs
+================================================================================
+
+Total records: 3020
+Institutes: 119
+Programs: 123
+Categories: 11
+
+--------------------------------------------------------------------------------
+TOP 20 INSTITUTES - Lowest Opening Rank (Open Category, Round 1, WBJEE Seats)
+--------------------------------------------------------------------------------
+  Rank      18 -    1915 | Kalyani Goverment Engineering College, Kalyani, Nadia   | Computer Science & Engineering
+  Rank      29 -      67 | Jadavpur University                                     | Computer Science & Engineering
+  Rank      70 -     202 | Jadavpur University                                     | Computer Science & Engineering
+  Rank      80 -     235 | Jadavpur University                                     | Electronics & Tele-Communication Engineering
+  Rank     163 -   26115 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Engineering
+  Rank     215 -     225 | Jadavpur University                                     | Information Technology
+  Rank     226 -     414 | Jadavpur University                                     | Information Technology
+  Rank     234 -   36952 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Engineering (Artificial In
+  Rank     242 -     445 | Jadavpur University                                     | Electronics & Tele-Communication Engineering
+  Rank     279 -   43781 | Guru Nanak Institute of Technology, Panihati, Sodepur   | Computer Science & Engineering
+  Rank     292 -   51413 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Engineering (Data Science)
+  Rank     328 -     342 | Jadavpur University                                     | Instrumentation & Electronics
+  Rank     336 -     671 | Jadavpur University                                     | Mechanical Engineering
+  Rank     343 -     591 | Jadavpur University                                     | Instrumentation & Electronics
+  Rank     377 -   40789 | Jis College of Engineering, Kalyani, Nadia              | Computer Science & Engineering
+  Rank     378 -    5889 | Heritage Institute of Technology, Kolkata               | Computer Science & Engineering (Artificial In
+  Rank     384 -     451 | Jadavpur University                                     | Electrical Engineering
+  Rank     453 -     740 | Jadavpur University                                     | Electrical Engineering
+  Rank     460 -   98017 | Dr.Sudhir Chandra Sur Institute of Technology and Sport | Computer Science & Engineering
+  Rank     463 -   96618 | Jis University, Agarpara                                | Computer Science & Engineering
+
+--------------------------------------------------------------------------------
+TOP 25 CSE CUTOFFS - Open Category, WBJEE Seats, Round 1
+--------------------------------------------------------------------------------
+  OR:      18 CR:    1915 | Kalyani Goverment Engineering College, Kalyani, Nadia   | Computer Science & Engineering
+  OR:      29 CR:      67 | Jadavpur University                                     | Computer Science & Engineering
+  OR:      70 CR:     202 | Jadavpur University                                     | Computer Science & Engineering
+  OR:     163 CR:   26115 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Engineering
+  OR:     234 CR:   36952 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Engineering (Artificial Intelli
+  OR:     279 CR:   43781 | Guru Nanak Institute of Technology, Panihati, Sodepur   | Computer Science & Engineering
+  OR:     292 CR:   51413 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Engineering (Data Science)
+  OR:     377 CR:   40789 | Jis College of Engineering, Kalyani, Nadia              | Computer Science & Engineering
+  OR:     378 CR:    5889 | Heritage Institute of Technology, Kolkata               | Computer Science & Engineering (Artificial Intelli
+  OR:     460 CR:   98017 | Dr.Sudhir Chandra Sur Institute of Technology and Sport | Computer Science & Engineering
+  OR:     463 CR:   96618 | Jis University, Agarpara                                | Computer Science & Engineering
+  OR:     477 CR:     545 | University Of Calcutta                                  | Computer Science & Engineering
+  OR:     586 CR:   11126 | Haldia Institute of Technology, Haldia, Purba Medinipur | Computer Science & Engineering
+  OR:     768 CR:   48870 | Jis College of Engineering, Kalyani, Nadia              | Computer Science & Engineering (Artificial Intelli
+  OR:     814 CR:   18358 | Haldia Institute of Technology, Haldia, Purba Medinipur | Computer Science & Engineering (Data Science)
+  OR:     852 CR:    1147 | University Of Calcutta                                  | Computer Science & Engineering
+  OR:     865 CR:    2578 | Jalpaiguri Goverment Engineering College,Jalpaiguri     | Computer Science & Engineering
+  OR:     947 CR:   45112 | Guru Nanak Institute of Technology, Panihati, Sodepur   | Computer Science & Engineering (Artificial Intelli
+  OR:    1008 CR:   65014 | Guru Nanak Institute of Technology, Panihati, Sodepur   | Computer Science & Engineering (Cyber Security)
+  OR:    1187 CR:    2903 | UNIVERSITY OF KALYANI, KALYANI                          | Computer Science & Engineering
+  OR:    1252 CR:   46437 | Narula Institute of Technology, Agarpara, Kolkata       | Computer Science & Technology
+  OR:    1270 CR:    3737 | Maulana Abul Kalam Azad University of Technology, West  | Computer Science & Engineering
+  OR:    1365 CR:   12600 | Haldia Institute of Technology, Haldia, Purba Medinipur | Computer Science & Engineering (Artificial Intelli
+  OR:    1446 CR:    8693 | Techno Main Salt Lake, Sector-V, Salt Lake              | Computer Science & Engineering
+  OR:    1507 CR:    4216 | Govt. College of Engineering & Ceramic Technology, Kolk | Computer Science & Engineering
+
+--------------------------------------------------------------------------------
+CATEGORY-WISE AVERAGE CLOSING RANK (All Rounds)
+--------------------------------------------------------------------------------
+  OBC - B                | Count:   194 | Avg Open:   14194 | Avg Close:   16218 | Best:    246 | Worst:    96895
+  Tuition Fee Waiver     | Count:   589 | Avg Open:   18765 | Avg Close:   22006 | Best:    232 | Worst:    61659
+  OBC - A                | Count:   196 | Avg Open:   17547 | Avg Close:   22373 | Best:    293 | Worst:   100022
+  SC                     | Count:   240 | Avg Open:   25111 | Avg Close:   30812 | Best:    311 | Worst:   100355
+  EWS                    | Count:   267 | Avg Open:   28401 | Avg Close:   38051 | Best:    238 | Worst:    99842
+  OBC - B (PwD)          | Count:    12 | Avg Open:   43616 | Avg Close:   43616 | Best:  17812 | Worst:    93337
+  Open (PwD)             | Count:    70 | Avg Open:   50333 | Avg Close:   55830 | Best:    888 | Worst:    98500
+  ST                     | Count:   154 | Avg Open:   52888 | Avg Close:   60687 | Best:   3114 | Worst:    98716
+  SC (PwD)               | Count:     9 | Avg Open:   62229 | Avg Close:   62229 | Best:  16414 | Worst:    98616
+  OBC - A (PwD)          | Count:     9 | Avg Open:   64885 | Avg Close:   64885 | Best:  40384 | Worst:    95300
+  Open                   | Count:  1280 | Avg Open:  171577 | Avg Close:  296681 | Best:     18 | Worst:  1469171
+
+--------------------------------------------------------------------------------
+ROUND 1 vs ROUND 2 COMPARISON
+--------------------------------------------------------------------------------
+  Round 1: 1897 entries, Avg Opening: 86080, Avg Closing: 163823
+  Round 2: 1123 entries, Avg Opening: 89507, Avg Closing: 108593
+
+--------------------------------------------------------------------------------
+SEAT TYPE & QUOTA DISTRIBUTION
+--------------------------------------------------------------------------------
+  Seat Types:
+    WBJEE Seats: 2544
+    JEE(Main) Seats: 476
+  Quotas:
+    Home State: 1884
+    All India: 1136
+
+--------------------------------------------------------------------------------
+STREAM DISTRIBUTION
+--------------------------------------------------------------------------------
+  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats): 2865
+  B. Pharma: 153
+  B. Arch  (JEE(Main) Seats): 2
+
+--------------------------------------------------------------------------------
+ALL 119 INSTITUTES (with entry count)
+--------------------------------------------------------------------------------
+    1. ALIPURDUAR GOVERNMENT ENGINEERING AND MANAGEMENT COLLEGE               (54 entries)
+    2. ANAND COLLEGE OF EDUCATION, DEBRA, PASCHIM MEDINIPUR                   (8 entries)
+    3. Abacus Institute of Engineering & Management, Mogra, Hooghly           (23 entries)
+    4. Academy of Technology, Adisaptagram, Hooghly                           (38 entries)
+    5. Adamas University, Barasat                                             (16 entries)
+    6. Aliah University, New Town                                             (10 entries)
+    7. Asansol Engineering College, Asansol, Burdwan                          (38 entries)
+    8. B.P. Poddar Institute of Management & Technology, Kolkata              (19 entries)
+    9. BCDA COLLEGE OF PHARMACY & TECHNOLOGY, CAMPUS-2                        (6 entries)
+   10. BCDA COLLEGE OF PHARMACY & TECHNOLOGY, HRIDAYPUR, MADHYAMGRAM          (7 entries)
+   11. BENGAL COLLEGE OF PHARMACEUTICAL SCIENCE & RESEARCH, DURGAPUR          (7 entries)
+   12. BENGAL COLLEGE OF PHARMACEUTICAL TECHNOLOGY, DUBRAJPUR, BIRBHUM        (4 entries)
+   13. BENGAL SCHOOL OF TECHNOLOGY, SUGANDHA, HOOGHLY                         (14 entries)
+   14. BHARAT TECHNOLOGY, ULUBERIA, HOWRAH                                    (5 entries)
+   15. BIRBHUM PHARMACY SCHOOL, HETAMPUR, BIRBHUM                             (3 entries)
+   16. BRAINWARE UNIVERSITY                                                   (6 entries)
+   17. Bankura Unnayani Institute of Engineering, Bankura                     (22 entries)
+   18. Bengal College of Engineering & Technology, Durgapur                   (21 entries)
+   19. Bengal Institute of Technology & Management, Santiniketan              (13 entries)
+   20. Bidhan Chandra Krishi Viswa Vidyalaya, Mohanpur, Nadia                 (13 entries)
+   21. Birbhum Institute of Engineering & Technology, Suri, Birbhum           (9 entries)
+   22. Budge Budge Institute of Technology, Budge-Budge                       (18 entries)
+   23. CALCUTTA INSTITUTE OF PHARMACEUTICAL TECH. & ALLIED HEALTH SCIENCES, U (7 entries)
+   24. Calcutta Institute of Technology, Uluberia, Howrah                     (25 entries)
+   25. Camellia Institute of Engineering and Technology, Bud Bud, Burdwan     (2 entries)
+   26. Camellia Institute of Technology & Management, Bainchi, Hooghly        (4 entries)
+   27. Camellia Institute of Technology, Badu Road, Madhyamgram               (4 entries)
+   28. Camellia School of Engineering & Technology, Barasat                   (4 entries)
+   29. College of Engineering and Management, Kolaghat                        (15 entries)
+   30. Cooch Behar Government Engineering College, Cooch Behar                (73 entries)
+   31. DARJEELING HILL INSTITUTE OF TECHNOLOGY AND MANAGEMENT                 (18 entries)
+   32. DEROZIO PHARMA INSTITUTE                                               (3 entries)
+   33. Dr. B. C. Roy Engineering College, Durgapur                            (44 entries)
+   34. Dr.Sudhir Chandra Sur Institute of Technology and Sports Complex, Dum  (17 entries)
+   35. Dream Institute of Technology, Bishnupur, 24-Parganas-South            (5 entries)
+   36. Dumkal Institute of Engineering & Technology, Dumkal, Murshidabad      (4 entries)
+   37. Durgapur Institute of Advanced Technology & Management, Durgapur       (7 entries)
+   38. EAST WEST EDUCATION INSTITUTE                                          (4 entries)
+   39. EMINENT COLLEGE OF PHARMACEUTICAL TECHNOLOGY, BARASAT                  (4 entries)
+   40. Elitte College of Engineering,Mahispota, Sodepur                       (3 entries)
+   41. FACULTY OF TECHNOLOGY, UTTAR BANGA KRISHI VISWAVIDYALAYA               (13 entries)
+   42. FLEMMING COLLEGE OF PHARMACY                                           (2 entries)
+   43. Future Institute of Engineering & Management, Sonarpur                 (20 entries)
+   44. Future Institute of Technology, Boral, Garia                           (16 entries)
+   45. GANDHARI COLLEGE (SCHOOL OF PHARMACY)                                  (3 entries)
+   46. GITANJALI COLLEGE OF PHARMACY, LOHAPUR, BIRBHUM                        (4 entries)
+   47. GUPTA COLLEGE OF TECHNOLOGICAL SCIENCES, ASANSOL, BURDWAN              (9 entries)
+   48. GURU NANAK INSTITUTE OF PHARMACEUTICAL SCIENCE AND TECHNOLOGY, SODEPUR (6 entries)
+   49. Gargi Memorial Institute of Technology, Baruipur, Kolkata              (11 entries)
+   50. Ghani Khan Choudhury Institute of Engineering & Technology, Malda      (74 entries)
+   51. Global Institute of Management and Technology, Krishnanagar, Nadia     (8 entries)
+   52. Goverment College of Engineering and Leather Technology, Kolkata       (46 entries)
+   53. Govt. College of Engg. & Textile Technology, Berhampore                (55 entries)
+   54. Govt. College of Engineering & Ceramic Technology, Kolkata             (43 entries)
+   55. Govt. College of Engineering & Textile Technology, Serampore           (55 entries)
+   56. Greater Kolkata College of Engineering & Management, Baruipur          (2 entries)
+   57. Guru Nanak Institute of Technology, Panihati, Sodepur                  (39 entries)
+   58. Haldia Institute of Pharmacy, Haldia                                   (12 entries)
+   59. Haldia Institute of Technology, Haldia, Purba Medinipur                (104 entries)
+   60. Hemnalini Memorial College of Engineering, Haringhata                  (4 entries)
+   61. Heritage Institute of Technology, Kolkata                              (125 entries)
+   62. Hooghly Engineering & Technology College, Hooghly                      (17 entries)
+   63. IQ CITY INSTITUTE OF PHARMACEUTICAL SCIENCES                           (4 entries)
+   64. Ideal Institute of Engineering, Kalyani                                (13 entries)
+   65. Imps College of Engineering & Technology, Malda                        (5 entries)
+   66. Institute of Pharmacy, Jalpaiguri                                      (15 entries)
+   67. Institute of Science and Technology, Paschim Medinipur                 (7 entries)
+   68. JAKIR HOSSAIN INSTITUTE OF PHARMACY                                    (3 entries)
+   69. Jadavpur University                                                    (279 entries)
+   70. Jalpaiguri Goverment Engineering College,Jalpaiguri                    (91 entries)
+   71. Jis College of Engineering, Kalyani, Nadia                             (47 entries)
+   72. Jis University, Agarpara                                               (9 entries)
+   73. Jld Engineering and Management College, Baruipur                       (2 entries)
+   74. Kaji Nazrul University, Asansol                                        (37 entries)
+   75. Kalyani Goverment Engineering College, Kalyani, Nadia                  (82 entries)
+   76. Mallabhum Institute of Technology, Bishnupur, Bankura                  (8 entries)
+   77. Maulana Abul Kalam Azad University of Technology, West Bengal          (45 entries)
+   78. Mckv Institute of Engineering, Liluah, Howrah                          (39 entries)
+   79. Meghnad Saha Institute of Technology, Kolkata                          (59 entries)
+   80. Murshidabad College of Engineering & Technology, Murshidabad           (8 entries)
+   81. NETAJI SUBHASH CHANDRA BOSE INSTITUTE OF PHARMACY ,CHAKDAH, NADIA      (4 entries)
+   82. NSHM INSTITUTE OF PHARMACEUTICAL TECHNOLOGY, DURGAPUR                  (4 entries)
+   83. NSHM KNOWLEDGE CAMPUS, KOLKATA GROUP OF INSTITUTIONS, KOLKATA          (7 entries)
+   84. NURUL INSTITUTE OF MEDICAL SCIENCES & RESEARCH LAB CENTRE              (1 entries)
+   85. Narula Institute of Technology, Agarpara, Kolkata                      (57 entries)
+   86. Netaji Subhas Engineering College, Garia, Kolkata                      (80 entries)
+   87. Nshm Knowledge Campus, Durgapur Group of Institutions                  (13 entries)
+   88. Om Dayal Group of Institutions, Uluberia, Howrah                       (4 entries)
+   89. P.G. INSTITUTE OF MEDICAL SCIENCES, CHANDRAKONA                        (9 entries)
+   90. PANDAVESWAR SCHOOL OF PHARMACY                                         (2 entries)
+   91. RASHBEHARI PHARMACEUTICAL INSTITUTE                                    (3 entries)
+   92. Ramkrishna Mahato Government Engineering College, Purulia              (68 entries)
+   93. Rcc Institute of Information Technology, Kolkata                       (40 entries)
+   94. Regent Education and Research Foundation, Barasat, Kolkata             (10 entries)
+   95. SCHOOL OF PHARMACY, TECHNO INDIA UNIVERSITY, SALT LAKE                 (5 entries)
+   96. SEACOM PHARMACY COLLEGE                                                (3 entries)
+   97. SKM INSTITUTE OF PHARMACEUTICAL SCIENCES AND RESEARCH                  (5 entries)
+   98. Sanaka Education Trusts Group of Institutions, Durgapur, Burdwan       (14 entries)
+   99. Seacom Engineering College, Sankrail, Howrah                           (12 entries)
+  100. Seacom Skills University, Bolpur                                       (6 entries)
+  101. Siliguri Institute of Technology, Siliguri                             (22 entries)
+  102. Sister Nivedita University, New Town                                   (43 entries)
+  103. St. Thomas College of Engineering & Technology, Khidirpur, Kolkata     (25 entries)
+  104. Supreme Knowledge Foundation Group of Institutions, Mankundu, Hooghly  (14 entries)
+  105. Swami Vivekananda Institute of Science & Technology, Sonarpur          (22 entries)
+  106. Swami Vivekananda University                                           (16 entries)
+  107. TARIFA MEMORIAL INSTITUTE OF PHARMACY                                  (1 entries)
+  108. TECHNO BENGAL INSTITUTE OF TECHNOLOGY                                  (11 entries)
+  109. TECHNO INSTITUTE OF ENGINEERING AND MANAGEMENT                         (9 entries)
+  110. THE NEOTIA UNIVERSITY                                                  (4 entries)
+  111. Techno India University, Salt Lake                                     (45 entries)
+  112. Techno International Batanagar                                         (8 entries)
+  113. Techno International New Town, Rajarhat, New Town                      (43 entries)
+  114. Techno Main Salt Lake, Sector-V, Salt Lake                             (91 entries)
+  115. UNIVERSITY INSTITUTE OF TECHNOLOGY, BURDWAN UNIVERSITY                 (78 entries)
+  116. UNIVERSITY OF KALYANI, KALYANI                                         (54 entries)
+  117. University Of Calcutta                                                 (156 entries)
+  118. VIDYASAGAR PHARMACEUTICAL COLLEGE OF EDUCATION                         (2 entries)
+  119. West Bengal University of Animal & Fishery Sciences                    (11 entries)
+
+--------------------------------------------------------------------------------
+ALL 123 PROGRAMS (with entry count)
+--------------------------------------------------------------------------------
+    1. Computer Science & Engineering                                         (408 entries)
+    2. Electrical Engineering                                                 (235 entries)
+    3. Information Technology                                                 (217 entries)
+    4. Electronics & Communication Engineering                                (214 entries)
+    5. Mechanical Engineering                                                 (165 entries)
+    6. B.Pharm/Pharmaceutical Technology                                      (150 entries)
+    7. Civil Engineering                                                      (143 entries)
+    8. Computer Science & Engineering (Artificial Intelligence And Machine Le (121 entries)
+    9. Computer Science & Engineering - TFW                                   (117 entries)
+   10. Computer Science & Engineering (Data Science)                          (71 entries)
+   11. Electronics & Communication Engineering (TFW)                          (61 entries)
+   12. B.Pharm/Pharmaceutical Technology (TFW)                                (52 entries)
+   13. Information Technology (TFW)                                           (49 entries)
+   14. Computer Science & Engineering (Artificial Intelligence And Machine Le (48 entries)
+   15. Chemical Engineering                                                   (48 entries)
+   16. Electrical Engineering (TFW)                                           (42 entries)
+   17. Computer Science And Business System                                   (37 entries)
+   18. Computer Science & Engineering (Cyber Security)                        (35 entries)
+   19. Agricultural Engineering                                               (30 entries)
+   20. Food Technology                                                        (29 entries)
+   21. Applied Electronics And Instrumentation Engineering                    (25 entries)
+   22. Computer Science & Engineering (Data Science)  (TFW)                   (25 entries)
+   23. Mechanical Engineering (TFW)                                           (22 entries)
+   24. Textile Technology                                                     (22 entries)
+   25. Biotechnology                                                          (21 entries)
+   26. ELECTRONICS & COMPUTER SCIENCE                                         (17 entries)
+   27. Electronics & Tele-Communication Engineering                           (17 entries)
+   28. Civil Engineering (TFW)                                                (17 entries)
+   29. Construction Engineering                                               (17 entries)
+   30. Electronics And Instrumentation Engineering                            (17 entries)
+   31. Production Engineering                                                 (16 entries)
+   32. Food Technology And Bio Chemical Engineering                           (16 entries)
+   33. PRINTING ENGINEERING                                                   (15 entries)
+   34. Metallurgical Engineering                                              (15 entries)
+   35. Instrumentation & Electronics                                          (15 entries)
+   36. CHEMICAL TECHNOLOGY (Ceramic Engineering, Oil Technology, Petrochem &  (14 entries)
+   37. Power Engineering                                                      (14 entries)
+   38. Instrumentation Engineering                                            (13 entries)
+   39. Leather Technology                                                     (13 entries)
+   40. COMPUTER SCIENCE & ENGINEERING (INTERNET OF THINGS)                    (13 entries)
+   41. Polymer Science & Technology                                           (13 entries)
+   42. Jute & Fibre Technology                                                (13 entries)
+   43. Computer Science & Engineering (Cyber Security) (TFW)                  (13 entries)
+   44. Civil And Environmental Engineering                                    (13 entries)
+   45. ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)                   (13 entries)
+   46. Computer Science & Engineering (Internet Of Things And Cyber Security  (13 entries)
+   47. ARTIFICIAL INTELLIGENCE (AI)                                           (12 entries)
+   48. CERAMIC ENGINEERING AND TECHNOLOGY                                     (12 entries)
+   49. Artificial Intelligence And Machine Learning                           (12 entries)
+   50. Computer Science And Business System  (TFW)                            (12 entries)
+   51. Optics & Optoelectronics                                               (12 entries)
+   52. COMPUTER SCIENCE AND INFORMATION TECHNOLOGY                            (12 entries)
+   53. Dairy Technology                                                       (11 entries)
+   54. Architectural Engineering                                              (11 entries)
+   55. Metallurgical And Materials Engineering                                (11 entries)
+   56. ARTIFICIAL INTELLIGENCE (AI) AND DATA SCIENCE                          (11 entries)
+   57. Mining Engineering                                                     (10 entries)
+   58. COMPUTER SCIENCE & ENGINEERING (INTERNET OF THINGS) (TFW)              (10 entries)
+   59. Apparel & Production Management                                        (10 entries)
+   60. Computer Science & Technology                                          (9 entries)
+   61. Food Technology (TFW)                                                  (8 entries)
+   62. Chemical Engineering (TFW)                                             (7 entries)
+   63. Biomedical Engineering                                                 (7 entries)
+   64. Electrical & Electronics Engineering                                   (6 entries)
+   65. Agricultural Engineering (TFW)                                         (5 entries)
+   66. Computer Science & Engineering (Artificial Intelligence)               (5 entries)
+   67. Applied Electronics And Instrumentation Engineering   (TFW)            (5 entries)
+   68. ELECTRONICS & COMPUTER SCIENCE - TFW                                   (5 entries)
+   69. Automobile Engineering                                                 (4 entries)
+   70. Artificial Intelligence And Machine Learning (TFW)                     (4 entries)
+   71. Computer Science & Technology - TFW                                    (4 entries)
+   72. ELECTRICAL & COMPUTER ENGINEERING                                      (4 entries)
+   73. Textile Technology (TFW)                                               (4 entries)
+   74. ELECTRICAL & COMPUTER ENGINEERING (TFW)                                (4 entries)
+   75. Biotechnology (TFW)                                                    (4 entries)
+   76. Computer Science & Engineering (Artificial Intelligence)  (TFW)        (4 entries)
+   77. COMPUTER SCIENCE AND INFORMATION TECHNOLOGY-TFW                        (4 entries)
+   78. Artificial Intelligence And Data Science                               (3 entries)
+   79. Biomedical Engineering (TFW)                                           (3 entries)
+   80. Semiconductor Technology                                               (3 entries)
+   81. Computer Science & Engineering (Internet Of Things And Cyber Security  (3 entries)
+   82. Electronics And Instrumentation Engineering (TFW)                      (3 entries)
+   83. CLOUD COMPUTING                                                        (2 entries)
+   84. Leather Technology (TFW)                                               (2 entries)
+   85. VIRTUAL REALITY (AR/VR) (TFW)                                          (2 entries)
+   86. ARTIFICIAL INTELLIGENCE (AI) AND DATA SCIENCE - TFW                    (2 entries)
+   87. ROBOTICS & ARTIFICIAL INTELLIGENCE (TFW)                               (2 entries)
+   88. ROBOTICS & ARTIFICIAL INTELLIGENCE                                     (2 entries)
+   89. ARTIFICIAL INTELLIGENCE (AI) -TFW                                      (2 entries)
+   90. Instrumentation Engineering (TFW)                                      (2 entries)
+   91. Polymer Science & Technology (TFW)                                     (2 entries)
+   92. Jute & Fibre Technology (TFW)                                          (2 entries)
+   93. ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)-TFW               (2 entries)
+   94. COMPUTER SCIENCE AND APPLIED MATHEMATICS                               (2 entries)
+   95. Computer Science And Design - TFW                                      (2 entries)
+   96. Production Engineering (TFW)                                           (2 entries)
+   97. Computer Science And Design                                            (2 entries)
+   98. Semiconductor Technology (TFW)                                         (2 entries)
+   99. 5G (TFW)                                                               (2 entries)
+  100. Artificial Intelligence And Data Science (TFW)                         (2 entries)
+  101. Architecture                                                           (2 entries)
+  102. Mechatronics Engineering (TFW)                                         (2 entries)
+  103. CERAMIC ENGINEERING AND TECHNOLOGY - TFW                               (2 entries)
+  104. PRINTING ENGINEERING-TFW                                               (2 entries)
+  105. CHEMICAL TECHNOLOGY (Ceramic Engineering, Oil Technology, Petrochem &  (2 entries)
+  106. Construction Engineering (TFW)                                         (2 entries)
+  107. Mining Engineeringwith Tfw                                             (2 entries)
+  108. Mechatronics Engineering                                               (2 entries)
+  109. Power Engineering (TFW)                                                (2 entries)
+  110. B ARCH                                                                 (2 entries)
+  111. Optics & Optoelectronics (TFW)                                         (2 entries)
+  112. Electrical & Electronics Engineering (TFW)                             (2 entries)
+  113. Food Technology And Bio Chemical Engineering (TFW)                     (2 entries)
+  114. Data Science                                                           (1 entries)
+  115. COMPUTER SCIENCE & ENGINEERING (ROBOTICS AND ARTIFICIAL INTELLIGENCE)  (1 entries)
+  116. AUGMENTED REALITY (TFW)                                                (1 entries)
+  117. Instrumentation & Electronics (TFW)                                    (1 entries)
+  118. Metallurgical Engineering (TFW)                                        (1 entries)
+  119. Robotics And Automation Engineering                                    (1 entries)
+  120. 5G                                                                     (1 entries)
+  121. Metallurgical And Materials Engineeringwith Tfw                        (1 entries)
+  122. Apparel & Production Management (TFW)                                  (1 entries)
+  123. Electronics & Tele-Communication Engineering  (TFW)                    (1 entries)
+
+--------------------------------------------------------------------------------
+TOP 10 COLLEGES FOR 'Computer Science & Engineering' (Open, Round 1, WBJEE)
+--------------------------------------------------------------------------------
+  OR:      18 CR:    1915 | Kalyani Goverment Engineering College, Kalyani, Nadia
+  OR:      29 CR:      67 | Jadavpur University
+  OR:      70 CR:     202 | Jadavpur University
+  OR:     163 CR:   26115 | Narula Institute of Technology, Agarpara, Kolkata
+  OR:     279 CR:   43781 | Guru Nanak Institute of Technology, Panihati, Sodepur
+  OR:     377 CR:   40789 | Jis College of Engineering, Kalyani, Nadia
+  OR:     460 CR:   98017 | Dr.Sudhir Chandra Sur Institute of Technology and Sports Com
+  OR:     463 CR:   96618 | Jis University, Agarpara
+  OR:     477 CR:     545 | University Of Calcutta
+  OR:     586 CR:   11126 | Haldia Institute of Technology, Haldia, Purba Medinipur
+
+--------------------------------------------------------------------------------
+TOP 10 COLLEGES FOR 'Electronics & Communication Engineering' (Open, Round 1, WBJEE)
+--------------------------------------------------------------------------------
+  OR:     587 CR:    1398 | University Of Calcutta
+  OR:    1434 CR:    2049 | University Of Calcutta
+  OR:    1778 CR:    2856 | Kalyani Goverment Engineering College, Kalyani, Nadia
+  OR:    2187 CR:    4660 | UNIVERSITY OF KALYANI, KALYANI
+  OR:    2493 CR:    3673 | Jalpaiguri Goverment Engineering College,Jalpaiguri
+  OR:    3539 CR:   11585 | Heritage Institute of Technology, Kolkata
+  OR:    4609 CR:   10702 | Cooch Behar Government Engineering College, Cooch Behar
+  OR:    5230 CR:   13317 | UNIVERSITY INSTITUTE OF TECHNOLOGY, BURDWAN UNIVERSITY
+  OR:    5431 CR:   10437 | Ramkrishna Mahato Government Engineering College, Purulia
+  OR:    5855 CR:    7113 | Aliah University, New Town
+
+--------------------------------------------------------------------------------
+TOP 10 COLLEGES FOR 'Electrical Engineering' (Open, Round 1, WBJEE)
+--------------------------------------------------------------------------------
+  OR:     384 CR:     451 | Jadavpur University
+  OR:     453 CR:     740 | Jadavpur University
+  OR:    1074 CR:    1223 | University Of Calcutta
+  OR:    1887 CR:    2208 | University Of Calcutta
+  OR:    2282 CR:    3470 | Kalyani Goverment Engineering College, Kalyani, Nadia
+  OR:    2900 CR:    4173 | Jalpaiguri Goverment Engineering College,Jalpaiguri
+  OR:    4605 CR:   13386 | Ramkrishna Mahato Government Engineering College, Purulia
+  OR:    4615 CR:   70565 | Ideal Institute of Engineering, Kalyani
+  OR:    5037 CR:   48522 | Techno Main Salt Lake, Sector-V, Salt Lake
+  OR:    5217 CR:   16195 | Heritage Institute of Technology, Kolkata
+
+--------------------------------------------------------------------------------
+TOP 10 COLLEGES FOR 'Mechanical Engineering' (Open, Round 1, WBJEE)
+--------------------------------------------------------------------------------
+  OR:     336 CR:     671 | Jadavpur University
+  OR:     719 CR:    1010 | Jadavpur University
+  OR:    2447 CR:    4249 | Kalyani Goverment Engineering College, Kalyani, Nadia
+  OR:    3760 CR:    5067 | Jalpaiguri Goverment Engineering College,Jalpaiguri
+  OR:    5731 CR:   14990 | Cooch Behar Government Engineering College, Cooch Behar
+  OR:    6663 CR:   11169 | Aliah University, New Town
+  OR:    7017 CR:   16727 | Ghani Khan Choudhury Institute of Engineering & Technology, 
+  OR:    8745 CR:   82034 | Meghnad Saha Institute of Technology, Kolkata
+  OR:    9054 CR:   27909 | Heritage Institute of Technology, Kolkata
+  OR:    9215 CR:   13106 | Govt. College of Engg. & Textile Technology, Berhampore
+
+--------------------------------------------------------------------------------
+TOP 10 COLLEGES FOR 'Information Technology' (Open, Round 1, WBJEE)
+--------------------------------------------------------------------------------
+  OR:     215 CR:     225 | Jadavpur University
+  OR:     226 CR:     414 | Jadavpur University
+  OR:     890 CR:    1145 | University Of Calcutta
+  OR:    1078 CR:   49157 | Narula Institute of Technology, Agarpara, Kolkata
+  OR:    1154 CR:    1880 | University Of Calcutta
+  OR:    1922 CR:   82127 | Guru Nanak Institute of Technology, Panihati, Sodepur
+  OR:    1958 CR:    2610 | Kalyani Goverment Engineering College, Kalyani, Nadia
+  OR:    2007 CR:   23716 | Haldia Institute of Technology, Haldia, Purba Medinipur
+  OR:    2122 CR:    6004 | Maulana Abul Kalam Azad University of Technology, West Benga
+  OR:    2589 CR:    3485 | Jalpaiguri Goverment Engineering College,Jalpaiguri

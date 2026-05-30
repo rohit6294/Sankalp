@@ -1,0 +1,194 @@
+﻿================================================================================
+FILE 1: C:\Users\rahul\Downloads\admissions-nic-in-2026-05-30.xlsx
+================================================================================
+Sheets: ['Sheet1']
+
+--- Sheet: 'Sheet1' ---
+Shape: 3020 rows x 12 columns
+Columns: ['web_scraper_order', 'web_scraper_start_url', 'srno', 'institute_Γû▓Γû╝', 'program_Γû▓Γû╝', 'category_Γû▓Γû╝', 'opening_rank_Γû▓Γû╝', 'closing_rank_Γû▓Γû╝', 'round_Γû▓Γû╝', 'stream_Γû▓Γû╝', 'seat_type_Γû▓Γû╝', 'quota_Γû▓Γû╝']
+
+Dtypes:
+  web_scraper_order: object
+  web_scraper_start_url: object
+  srno: int64
+  institute_Γû▓Γû╝: object
+  program_Γû▓Γû╝: object
+  category_Γû▓Γû╝: object
+  opening_rank_Γû▓Γû╝: int64
+  closing_rank_Γû▓Γû╝: int64
+  round_Γû▓Γû╝: object
+  stream_Γû▓Γû╝: object
+  seat_type_Γû▓Γû╝: object
+  quota_Γû▓Γû╝: object
+
+First 15 rows:
+   web_scraper_order                                                                                                                   web_scraper_start_url  srno                                                        institute_Γû▓Γû╝                                     program_Γû▓Γû╝         category_Γû▓Γû╝  opening_rank_Γû▓Γû╝  closing_rank_Γû▓Γû╝ round_Γû▓Γû╝                                                stream_Γû▓Γû╝ seat_type_Γû▓Γû╝    quota_Γû▓Γû╝
+0       1780122492-1  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     1             Haldia Institute of Technology, Haldia, Purba Medinipur           Computer Science & Engineering - TFW  Tuition Fee Waiver             5021             8720  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+1       1780122492-2  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     2               Kalyani Goverment Engineering College, Kalyani, Nadia           Computer Science & Engineering - TFW  Tuition Fee Waiver             1233             1432  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+2       1780122492-3  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     3                       Mckv Institute of Engineering, Liluah, Howrah           Computer Science & Engineering - TFW  Tuition Fee Waiver            11397            17467  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3       1780122492-4  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     4  St. Thomas College of Engineering & Technology, Khidirpur, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             8360            17234  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+4       1780122492-5  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     5       Maulana Abul Kalam Azad University of Technology, West Bengal           Computer Science & Engineering - TFW  Tuition Fee Waiver             3951             4509  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+5       1780122492-6  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     6                                              University Of Calcutta           Computer Science & Engineering - TFW  Tuition Fee Waiver             1619             1674  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+6       1780122492-7  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     7                       Meghnad Saha Institute of Technology, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             8007            17387  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+7       1780122492-8  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     8                    Rcc Institute of Information Technology, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             9142            15684  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+8       1780122492-9  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     9                                        Swami Vivekananda University           Computer Science & Engineering - TFW  Tuition Fee Waiver            26984            34607  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+9      1780122492-10  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    10           B.P. Poddar Institute of Management & Technology, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             8328            16907  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+10     1780122492-11  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    11                     College of Engineering and Management, Kolaghat           Computer Science & Engineering - TFW  Tuition Fee Waiver             5086            25310  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+11     1780122492-12  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    12                                Sister Nivedita University, New Town           Computer Science & Engineering - TFW  Tuition Fee Waiver             5627            28152  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+12     1780122492-13  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    13             Haldia Institute of Technology, Haldia, Purba Medinipur  Computer Science & Engineering (Data Science)                 EWS            57068            72995  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+13     1780122492-14  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    14                                     Kaji Nazrul University, Asansol  Computer Science & Engineering (Data Science)                 EWS            16613            23200  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+14     1780122492-15  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    15                                     Kaji Nazrul University, Asansol  Computer Science & Engineering (Data Science)             OBC - A            12391            19598  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+
+Last 5 rows:
+     web_scraper_order                                                                                                                   web_scraper_start_url  srno                                         institute_Γû▓Γû╝               program_Γû▓Γû╝         category_Γû▓Γû╝  opening_rank_Γû▓Γû╝  closing_rank_Γû▓Γû╝ round_Γû▓Γû╝                                                stream_Γû▓Γû╝ seat_type_Γû▓Γû╝    quota_Γû▓Γû╝
+3015   1780122492-3016  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3016  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                 EWS            14678            16620  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3016   1780122492-3017  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3017  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                Open             6253             7902  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3017   1780122492-3018  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3018  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                  SC            15928            17674  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3018   1780122492-3019  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3019  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                  ST            61573            67684  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3019   1780122492-3020  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3020  Jalpaiguri Goverment Engineering College,Jalpaiguri  Civil Engineering (TFW)  Tuition Fee Waiver             7010             7010  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+
+Numeric Stats:
+              srno  opening_rank_Γû▓Γû╝  closing_rank_Γû▓Γû╝
+count  3020.000000     3.020000e+03     3.020000e+03
+mean   1510.500000     8.735447e+04     1.432854e+05
+std     871.943232     1.979375e+05     2.936489e+05
+min       1.000000     1.800000e+01     6.700000e+01
+25%     755.750000     8.895750e+03     1.388250e+04
+50%    1510.500000     2.193700e+04     3.371350e+04
+75%    2265.250000     5.350950e+04     9.187550e+04
+max    3020.000000     1.467525e+06     1.469171e+06
+
+Null counts:
+
+Unique value counts:
+  web_scraper_order: 3020 unique
+  web_scraper_start_url: 1 unique
+    https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11: 3020
+  srno: 3020 unique
+  institute_Γû▓Γû╝: 119 unique
+  program_Γû▓Γû╝: 123 unique
+  category_Γû▓Γû╝: 11 unique
+    Open: 1280
+    Tuition Fee Waiver: 589
+    EWS: 267
+    SC: 240
+    OBC - A: 196
+    OBC - B: 194
+    ST: 154
+    Open (PwD): 70
+    OBC - B (PwD): 12
+    OBC - A (PwD): 9
+    SC (PwD): 9
+  opening_rank_Γû▓Γû╝: 2840 unique
+  closing_rank_Γû▓Γû╝: 2860 unique
+  round_Γû▓Γû╝: 2 unique
+    Round 1: 1897
+    Round 2: 1123
+  stream_Γû▓Γû╝: 3 unique
+    B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats): 2865
+    B. Pharma: 153
+    B. Arch  (JEE(Main) Seats): 2
+  seat_type_Γû▓Γû╝: 2 unique
+    WBJEE Seats: 2544
+    JEE(Main) Seats: 476
+  quota_Γû▓Γû╝: 2 unique
+    Home State: 1884
+    All India: 1136
+
+
+================================================================================
+FILE 2: C:\Users\rahul\Downloads\admissions-nic-in-2026-05-30 (1).xlsx
+================================================================================
+Sheets: ['Sheet1']
+
+--- Sheet: 'Sheet1' ---
+Shape: 3020 rows x 12 columns
+Columns: ['web_scraper_order', 'web_scraper_start_url', 'srno', 'institute_Γû▓Γû╝', 'program_Γû▓Γû╝', 'category_Γû▓Γû╝', 'opening_rank_Γû▓Γû╝', 'closing_rank_Γû▓Γû╝', 'round_Γû▓Γû╝', 'stream_Γû▓Γû╝', 'seat_type_Γû▓Γû╝', 'quota_Γû▓Γû╝']
+
+Dtypes:
+  web_scraper_order: object
+  web_scraper_start_url: object
+  srno: int64
+  institute_Γû▓Γû╝: object
+  program_Γû▓Γû╝: object
+  category_Γû▓Γû╝: object
+  opening_rank_Γû▓Γû╝: int64
+  closing_rank_Γû▓Γû╝: int64
+  round_Γû▓Γû╝: object
+  stream_Γû▓Γû╝: object
+  seat_type_Γû▓Γû╝: object
+  quota_Γû▓Γû╝: object
+
+First 15 rows:
+   web_scraper_order                                                                                                                   web_scraper_start_url  srno                                                        institute_Γû▓Γû╝                                     program_Γû▓Γû╝         category_Γû▓Γû╝  opening_rank_Γû▓Γû╝  closing_rank_Γû▓Γû╝ round_Γû▓Γû╝                                                stream_Γû▓Γû╝ seat_type_Γû▓Γû╝    quota_Γû▓Γû╝
+0       1780122587-1  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     1             Haldia Institute of Technology, Haldia, Purba Medinipur           Computer Science & Engineering - TFW  Tuition Fee Waiver             5021             8720  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+1       1780122587-2  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     2               Kalyani Goverment Engineering College, Kalyani, Nadia           Computer Science & Engineering - TFW  Tuition Fee Waiver             1233             1432  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+2       1780122587-3  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     3                       Mckv Institute of Engineering, Liluah, Howrah           Computer Science & Engineering - TFW  Tuition Fee Waiver            11397            17467  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3       1780122587-4  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     4  St. Thomas College of Engineering & Technology, Khidirpur, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             8360            17234  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+4       1780122587-5  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     5       Maulana Abul Kalam Azad University of Technology, West Bengal           Computer Science & Engineering - TFW  Tuition Fee Waiver             3951             4509  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+5       1780122587-6  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     6                                              University Of Calcutta           Computer Science & Engineering - TFW  Tuition Fee Waiver             1619             1674  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+6       1780122587-7  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     7                       Meghnad Saha Institute of Technology, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             8007            17387  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+7       1780122587-8  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     8                    Rcc Institute of Information Technology, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             9142            15684  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+8       1780122587-9  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11     9                                        Swami Vivekananda University           Computer Science & Engineering - TFW  Tuition Fee Waiver            26984            34607  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+9      1780122587-10  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    10           B.P. Poddar Institute of Management & Technology, Kolkata           Computer Science & Engineering - TFW  Tuition Fee Waiver             8328            16907  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+10     1780122587-11  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    11                     College of Engineering and Management, Kolaghat           Computer Science & Engineering - TFW  Tuition Fee Waiver             5086            25310  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+11     1780122587-12  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    12                                Sister Nivedita University, New Town           Computer Science & Engineering - TFW  Tuition Fee Waiver             5627            28152  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+12     1780122587-13  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    13             Haldia Institute of Technology, Haldia, Purba Medinipur  Computer Science & Engineering (Data Science)                 EWS            57068            72995  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+13     1780122587-14  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    14                                     Kaji Nazrul University, Asansol  Computer Science & Engineering (Data Science)                 EWS            16613            23200  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+14     1780122587-15  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11    15                                     Kaji Nazrul University, Asansol  Computer Science & Engineering (Data Science)             OBC - A            12391            19598  Round 1  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+
+Last 5 rows:
+     web_scraper_order                                                                                                                   web_scraper_start_url  srno                                         institute_Γû▓Γû╝               program_Γû▓Γû╝         category_Γû▓Γû╝  opening_rank_Γû▓Γû╝  closing_rank_Γû▓Γû╝ round_Γû▓Γû╝                                                stream_Γû▓Γû╝ seat_type_Γû▓Γû╝    quota_Γû▓Γû╝
+3015   1780122587-3016  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3016  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                 EWS            14678            16620  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3016   1780122587-3017  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3017  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                Open             6253             7902  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3017   1780122587-3018  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3018  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                  SC            15928            17674  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3018   1780122587-3019  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3019  Jalpaiguri Goverment Engineering College,Jalpaiguri        Civil Engineering                  ST            61573            67684  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+3019   1780122587-3020  https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11  3020  Jalpaiguri Goverment Engineering College,Jalpaiguri  Civil Engineering (TFW)  Tuition Fee Waiver             7010             7010  Round 2  B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats)  WBJEE Seats  Home State
+
+Numeric Stats:
+              srno  opening_rank_Γû▓Γû╝  closing_rank_Γû▓Γû╝
+count  3020.000000     3.020000e+03     3.020000e+03
+mean   1510.500000     8.735447e+04     1.432854e+05
+std     871.943232     1.979375e+05     2.936489e+05
+min       1.000000     1.800000e+01     6.700000e+01
+25%     755.750000     8.895750e+03     1.388250e+04
+50%    1510.500000     2.193700e+04     3.371350e+04
+75%    2265.250000     5.350950e+04     9.187550e+04
+max    3020.000000     1.467525e+06     1.469171e+06
+
+Null counts:
+
+Unique value counts:
+  web_scraper_order: 3020 unique
+  web_scraper_start_url: 1 unique
+    https://admissions.nic.in/wbjeeb/Applicant/report/orcrreport.aspx?enc=Nm7QwHILXclJQSv2YVS+7ud0s9OnRxxLItScoKR31F4qbKNJ7YB3loiJ7DTFho11: 3020
+  srno: 3020 unique
+  institute_Γû▓Γû╝: 119 unique
+  program_Γû▓Γû╝: 123 unique
+  category_Γû▓Γû╝: 11 unique
+    Open: 1280
+    Tuition Fee Waiver: 589
+    EWS: 267
+    SC: 240
+    OBC - A: 196
+    OBC - B: 194
+    ST: 154
+    Open (PwD): 70
+    OBC - B (PwD): 12
+    OBC - A (PwD): 9
+    SC (PwD): 9
+  opening_rank_Γû▓Γû╝: 2840 unique
+  closing_rank_Γû▓Γû╝: 2860 unique
+  round_Γû▓Γû╝: 2 unique
+    Round 1: 1897
+    Round 2: 1123
+  stream_Γû▓Γû╝: 3 unique
+    B.E/B.Tech (WBJEE/JEE(Main) Seats)/B.Arch (WBJEE Seats): 2865
+    B. Pharma: 153
+    B. Arch  (JEE(Main) Seats): 2
+  seat_type_Γû▓Γû╝: 2 unique
+    WBJEE Seats: 2544
+    JEE(Main) Seats: 476
+  quota_Γû▓Γû╝: 2 unique
+    Home State: 1884
+    All India: 1136

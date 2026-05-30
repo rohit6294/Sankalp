@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
+require('dotenv').config();
 require('./firebase');
 
 const examsRouter = require('./routes/exams');
@@ -8,6 +9,8 @@ const submitRouter = require('./routes/submit');
 const resultRouter = require('./routes/result');
 const rankRouter = require('./routes/rank');
 const adminRouter = require('./routes/admin');
+const paymentRouter = require('./routes/payment');
+const predictorRouter = require('./routes/predictor');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
 const { sendEmail } = require('./mailer');
@@ -28,6 +31,10 @@ app.use('/api/submit', submitRouter);
 app.use('/api/result', resultRouter);
 app.use('/api/rank', rankRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/payment', paymentRouter);
+// Standard Razorpay endpoint aliases: /api/create-order and /api/verify-payment.
+app.use('/api', paymentRouter);
+app.use('/api/predictor', predictorRouter);
 
 // Student-accessible settings: any authenticated user can read mandatory fields
 app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {
@@ -42,7 +49,7 @@ app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {
 // Student profile update — uses Admin SDK to bypass Firestore client-side permission rules
 app.put('/api/profile', verifyToken, async (req, res) => {
   const uid = req.user.uid;
-  const { firstName, lastName, email, phone, wbjeeYear, gender, caste, tfw, bio } = req.body || {};
+  const { firstName, lastName, email, phone, wbjeeYear, gender, caste, tfw, homeState, bio } = req.body || {};
   const update = {};
   if (firstName !== undefined) update.firstName = String(firstName).trim();
   if (lastName  !== undefined) update.lastName  = String(lastName).trim();
@@ -58,6 +65,7 @@ app.put('/api/profile', verifyToken, async (req, res) => {
   if (gender    !== undefined) update.gender    = String(gender).trim();
   if (caste     !== undefined) update.caste     = String(caste).trim();
   if (tfw       !== undefined) update.tfw       = String(tfw).trim();
+  if (homeState !== undefined) update.homeState = String(homeState).trim();
   if (bio       !== undefined) update.bio       = String(bio).trim();
   if (!Object.keys(update).length) return res.status(400).json({ error: 'no_fields' });
   try {
@@ -69,10 +77,23 @@ app.put('/api/profile', verifyToken, async (req, res) => {
 
     // Send Welcome Email if it is their first time completing the profile
     if (isFirstTime && update.email) {
+      const htmlBody = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 8px;">
+          <h2 style="color: #C94E1F; margin-top: 0;">Welcome to Sankalp Aspirant!</h2>
+          <p>Hello ${update.name || 'Student'},</p>
+          <p>Welcome to Sankalp Aspirant! We are thrilled to have you on board.</p>
+          <p>Make sure to subscribe to our <a href="https://www.youtube.com/@Sankalp_Wbjee12" target="_blank" style="color: #C94E1F; font-weight: bold; text-decoration: underline;">YouTube channel (@sankalp_wbjee12)</a> for updates and tips.</p>
+          <p>You can now take mock tests and view detailed analytics on your dashboard.</p>
+          <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 20px 0;">
+          <p style="font-size: 12px; color: #777777; margin-bottom: 0;">Best of luck with your preparation,<br><strong>Sankalp Aspirant Team</strong></p>
+        </div>
+      `;
+
       sendEmail({
         to: update.email,
-        subject: 'Welcome to Sankalp Learning!',
-        text: `Hello ${update.name || 'Student'},\n\nWelcome to Sankalp Learning!\nWe are thrilled to have you on board.\n\nMake sure to subscribe to our YouTube channel (@sankalp_wbjee12) for updates and tips.\nYou can now take mock tests and view detailed analytics on your dashboard.\n\nBest of luck with your preparation,\nSankalp Learning Team`
+        subject: 'Welcome to Sankalp Aspirant!',
+        text: `Hello ${update.name || 'Student'},\n\nWelcome to Sankalp Aspirant!\nWe are thrilled to have you on board.\n\nMake sure to subscribe to our YouTube channel (@sankalp_wbjee12) here: https://www.youtube.com/@Sankalp_Wbjee12 for updates and tips.\nYou can now take mock tests and view detailed analytics on your dashboard.\n\nBest of luck with your preparation,\nSankalp Aspirant Team`,
+        html: htmlBody
       }).catch(err => console.error('Welcome email failed:', err));
     }
 
@@ -123,8 +144,8 @@ app.post('/api/submit/reset-request', verifyToken, async (req, res) => {
           
           await sendEmail({
             to: automations.adminEmail,
-            subject: 'New Reset Request - Sankalp Learning',
-            text: `Hello Admin,\n\nA new reset request has been submitted.\n\nStudent: ${studentName}\nExam ID: ${examId}\nReason: ${reason || 'No reason provided'}\n\nPlease check the admin panel to approve or reject this request.\n\nBest regards,\nSankalp Learning Automation`
+            subject: 'New Reset Request - Sankalp Aspirant',
+            text: `Hello Admin,\n\nA new reset request has been submitted.\n\nStudent: ${studentName}\nExam ID: ${examId}\nReason: ${reason || 'No reason provided'}\n\nPlease check the admin panel to approve or reject this request.\n\nBest regards,\nSankalp Aspirant Automation`
           });
         }
       }

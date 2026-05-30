@@ -22,6 +22,34 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
   if (path.includes('/student/')) {
     const isProfilePage = path.includes('/student/profile');
 
+    const CACHE_TTL_MS = 60000; // 60 seconds
+
+    function getCachedItem(key) {
+      try {
+        const dataStr = sessionStorage.getItem(key);
+        if (!dataStr) return null;
+        const cached = JSON.parse(dataStr);
+        if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+          return cached.value;
+        }
+        sessionStorage.removeItem(key);
+      } catch (e) {
+        console.warn('Failed to parse cache for key:', key, e);
+      }
+      return null;
+    }
+
+    function setCachedItem(key, value) {
+      try {
+        sessionStorage.setItem(key, JSON.stringify({
+          value,
+          timestamp: Date.now()
+        }));
+      } catch (e) {
+        console.warn('Failed to set cache for key:', key, e);
+      }
+    }
+
     // Helper to render locking form
     function showProfileLockOverlay(missingFields, missingFieldKeys, uid, currentDisplayName) {
       if (document.getElementById('profile-lock-overlay')) return;
@@ -189,6 +217,7 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
           
           // Clear mandatory fields session cache to force re-fetch
           sessionStorage.removeItem('mandatory_profile_fields');
+          sessionStorage.removeItem(`__sankalp_profile_${uid}__`);
           
           // Reload page to reflect changes
           window.location.reload();
@@ -223,21 +252,37 @@ window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
       try {
         // 1. Fetch mandatory fields from settings
         let mandatoryFields = null;
-        const token = await user.getIdToken();
-        const baseUrl = window.EVALUATOR_API || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/settings/mandatory-fields`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          mandatoryFields = data.settings || {};
+        
+        const mfCacheKey = `__sankalp_mf_${user.uid}__`;
+        const cachedMf = getCachedItem(mfCacheKey);
+        if (cachedMf) {
+          mandatoryFields = cachedMf;
+        } else {
+          const token = await user.getIdToken();
+          const baseUrl = window.EVALUATOR_API || 'http://localhost:3000';
+          const res = await fetch(`${baseUrl}/api/settings/mandatory-fields`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            mandatoryFields = data.settings || {};
+            setCachedItem(mfCacheKey, mandatoryFields);
+          }
         }
         
         if (!mandatoryFields) return;
         
         // 2. Fetch student document
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        const userData = userDoc.exists ? (userDoc.data() || {}) : {};
+        let userData = null;
+        const profileCacheKey = `__sankalp_profile_${user.uid}__`;
+        const cachedProfile = getCachedItem(profileCacheKey);
+        if (cachedProfile) {
+          userData = cachedProfile;
+        } else {
+          const userDoc = await db.collection('users').doc(user.uid).get();
+          userData = userDoc.exists ? (userDoc.data() || {}) : {};
+          setCachedItem(profileCacheKey, userData);
+        }
         
         // 3. Match missing fields
         const missingFields = [];

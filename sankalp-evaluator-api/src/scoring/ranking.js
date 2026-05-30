@@ -34,4 +34,16 @@ function predictRank(total, rankRows) {
   return row ? { min: Number(row.rankMin), max: Number(row.rankMax) } : null;
 }
 
-module.exports = { defaultRankRows, predictRank };
+function formatRankRange(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value !== 'object') return String(value);
+
+  const min = Number(value.min);
+  const max = Number(value.max);
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return '';
+
+  const format = (rank) => rank.toLocaleString('en-IN');
+  return min === max ? format(min) : `${format(min)} - ${format(max)}`;
+}
+
+module.exports = { defaultRankRows, predictRank, formatRankRange };

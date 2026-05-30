@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile — Sankalp Learning</title>
+  <title>Profile — Sankalp Aspirant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -54,6 +54,7 @@
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
     <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
     <a href="profile.html" class="sidebar-link active"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
@@ -196,6 +197,14 @@
               <option value="Yes">Yes (Tuition Fee Waiver Scheme)</option>
             </select>
           </div>
+          <div style="margin-bottom:14px">
+            <label id="lbl-homeState" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Home State Status</label>
+            <select id="editHomeState" class="input-field" style="appearance:none">
+              <option value="">Select Home State Status</option>
+              <option value="Yes">Yes (West Bengal Resident / Domicile)</option>
+              <option value="No">No (Other State / All India)</option>
+            </select>
+          </div>
           <div style="margin-bottom:20px">
             <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">About yourself (optional)</label>
             <textarea id="editBio" class="input-field" rows="3" placeholder="Share a little about your preparation journey..." style="resize:none;line-height:1.6"></textarea>
@@ -286,12 +295,12 @@
   // ── Mandatory fields check ────────────────────────────────────────────────
   const FIELD_MAP = {
     name: 'Full Name', phone: 'Phone Number', gender: 'Gender',
-    caste: 'Caste / Category', tfw: 'TFW Status', wbjeeYear: 'WBJEE Year'
+    caste: 'Caste / Category', tfw: 'TFW Status', homeState: 'Home State Status', wbjeeYear: 'WBJEE Year'
   };
   const INPUT_MAP = {
     name: ['editFirstName','editLastName'], phone: ['editPhone'],
     gender: ['editGender'], caste: ['editCaste'],
-    tfw: ['editTfw'], wbjeeYear: ['editYear']
+    tfw: ['editTfw'], homeState: ['editHomeState'], wbjeeYear: ['editYear']
   };
 
   async function checkMandatory(user, profileData) {
@@ -361,6 +370,7 @@
     const gender    = document.getElementById('editGender').value;
     const caste     = document.getElementById('editCaste').value;
     const tfw       = document.getElementById('editTfw').value;
+    const homeState = document.getElementById('editHomeState').value;
     const bio       = document.getElementById('editBio').value.trim();
 
     const fullEnteredName = `${firstName} ${lastName}`.trim().toLowerCase();
@@ -383,7 +393,7 @@
       const res = await fetch(`${API}/api/profile`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw, bio })
+        body: JSON.stringify({ firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw, homeState, bio })
       });
 
       if (!res.ok) {
@@ -399,13 +409,16 @@
 
       showNotif('Profile saved successfully!');
 
+      // Bust client sessionStorage cache for profile so changes take effect immediately on navigation
+      sessionStorage.removeItem(`__sankalp_profile_${user.uid}__`);
+
       // Re-run mandatory check with updated data
       setTimeout(() => {
         // Remove old marks
         document.querySelectorAll('.req-star').forEach(s => s.remove());
         document.querySelectorAll('.field-required').forEach(el => el.classList.remove('field-required'));
         document.getElementById('mandatoryBanner').style.display = 'none';
-        checkMandatory(user, { firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw });
+        checkMandatory(user, { firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw, homeState });
       }, 500);
 
     } catch(err) {
@@ -468,6 +481,7 @@
         if (data.gender)    document.getElementById('editGender').value    = data.gender;
         if (data.caste)     document.getElementById('editCaste').value     = data.caste;
         if (data.tfw)       document.getElementById('editTfw').value       = data.tfw;
+        if (data.homeState) document.getElementById('editHomeState').value = data.homeState;
         if (data.bio)       document.getElementById('editBio').value       = data.bio;
 
         // Stats

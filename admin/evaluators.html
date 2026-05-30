@@ -53,7 +53,7 @@
     .badge-sub-warning { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
     .sub-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .sub-detail-card { border: 1px solid var(--rule); background: var(--paper-deep); padding: 14px; border-radius: 4px; }
-    
+
     @media (max-width: 700px) {
       main.main-content { padding: 72px 14px 24px !important; }
       .tab-btn, .set-tab { flex: 1 1 100%; padding: 10px 12px; letter-spacing: 0.06em; text-align: center; }
@@ -90,12 +90,15 @@
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
     <a href="evaluators.html" class="sidebar-link active"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
+    <a href="#" class="sidebar-link" id="sidebarStudentListBtn" onclick="switchMainTab('studentList', this); return false;"><i class="fas fa-users" style="width:18px"></i> Student List</a>
+    <a href="#" class="sidebar-link" id="sidebarCollegePredictorBtn" onclick="switchMainTab('collegePredictor', this); return false;"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
     <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
 </aside>
 
 <main class="main-content" style="padding:28px 32px;">
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px;">
+  <div id="evaluatorsHeader" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px;">
     <div>
       <h1 class="display-lg">Exam Evaluators</h1>
       <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage set-wise answer keys and rank bands for the marks calculator launch.</p>
@@ -103,7 +106,7 @@
     <button class="btn-rust btn-sm" onclick="showCreateExam()"><i class="fas fa-plus"></i> Create Exam</button>
   </div>
 
-  <div style="display:flex; gap:8px;">
+  <div id="evaluatorsTabBar" style="display:flex; gap:8px;">
     <button class="tab-btn active" data-tab="exams" onclick="switchMainTab('exams', this)">Exams & Answer Keys</button>
     <button class="tab-btn" data-tab="rank" onclick="switchMainTab('rank', this)">Rank Prediction</button>
     <button class="tab-btn" data-tab="submissions" onclick="switchMainTab('submissions', this)">Submissions & Leaderboard</button>
@@ -275,9 +278,9 @@
     <div style="border:1px solid var(--ink); padding:28px; background:var(--paper); margin-bottom:24px; max-width:640px;">
       <h2 style="font-family:var(--font-display); font-size:1.2rem; font-weight:700; margin-bottom:4px; color:var(--ink);">Mandatory Student Profile Fields</h2>
       <p style="font-size:13px; color:var(--ink-mute); margin-bottom:20px;">Configure which profile fields are required for students to access the Sankalp portal</p>
-      
+
       <div style="display:flex; flex-direction:column; gap:0;">
-        
+
         <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
           <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Student Name</div><div style="font-size:11px; color:var(--ink-mute);">First and Last Name are required</div></div>
           <label class="toggle-switch">
@@ -326,10 +329,18 @@
           </label>
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:none;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--rule);">
           <div><div style="font-size:14px; font-weight:600; color:var(--ink);">WBJEE Target Year</div><div style="font-size:11px; color:var(--ink-mute);">Target prep year selection is required</div></div>
           <label class="toggle-switch">
             <input type="checkbox" id="m_wbjeeYear" onchange="saveMandatoryField('wbjeeYear', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:none;">
+          <div><div style="font-size:14px; font-weight:600; color:var(--ink);">Home State Status</div><div style="font-size:11px; color:var(--ink-mute);">Home State (West Bengal Resident) status is required</div></div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="m_homeState" onchange="saveMandatoryField('homeState', this.checked)">
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -340,8 +351,8 @@
     <!-- Email Automations Setting -->
     <div style="border:1px solid var(--ink); padding:28px; background:var(--paper); max-width:640px;">
       <h2 style="font-family:var(--font-display); font-size:1.2rem; font-weight:700; margin-bottom:4px; color:var(--ink);">Email Automations (SMTP)</h2>
-      <p style="font-size:13px; color:var(--ink-mute); margin-bottom:20px;">Configure automated emails sent via sankalp.learning.edu@gmail.com</p>
-      
+      <p style="font-size:13px; color:var(--ink-mute); margin-bottom:20px;">Configure automated emails sent by the <strong>Sankalp Aspirant</strong> platform to students and administrators</p>
+
       <div style="margin-bottom: 20px;">
         <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Admin Email Addresses (comma separated)</label>
         <input type="text" id="adminEmail" class="input-field" placeholder="admin1@example.com, admin2@example.com" style="margin-bottom:4px; width:100%;">
@@ -358,12 +369,650 @@
           <label class="toggle-switch"><input type="checkbox" id="notifyStudentResetDec"><span class="toggle-slider"></span></label>
         </div>
       </div>
-      
+
       <div style="margin-top:16px; display:flex; gap:10px;">
         <button onclick="saveEmailAutomations()" class="btn-primary" style="padding:10px 22px;font-size:13px;background:var(--rust);color:white;border:none;border-radius:6px;"><i class="fas fa-save"></i> Save Automations</button>
         <button onclick="testEmailConfig()" class="btn-secondary" style="padding:10px 22px;font-size:13px;background:#e2e8f0;color:#0f172a;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-paper-plane"></i> Test Email</button>
       </div>
     </div>
+  </div>
+
+  <!-- ===== STUDENT LIST TAB ===== -->
+  <div id="tabStudentList" style="display:none;">
+    <!-- Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 class="display-lg">Student List</h1>
+        <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Complete directory of all registered student accounts</p>
+      </div>
+      <button class="btn-ghost btn-sm" onclick="exportStudentListCSV()" style="height:38px;"><i class="fas fa-download" style="margin-right:6px;"></i>Export CSV</button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:24px;">
+      <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
+        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Total Students</div>
+        <div id="slStatTotal" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--ink);">0</div>
+      </div>
+      <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
+        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Profile Completed</div>
+        <div id="slStatCompleted" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--forest);">0</div>
+      </div>
+      <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
+        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">WBJEE 2026</div>
+        <div id="slStat2026" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--rust);">0</div>
+      </div>
+      <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
+        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">WBJEE 2025</div>
+        <div id="slStat2025" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--ink);">0</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:220px; position:relative;">
+        <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:13px; pointer-events:none;"></i>
+        <input type="text" id="slSearch" placeholder="Search by name, email, or phone…" oninput="slApplyFilters()"
+          style="width:100%; padding:10px 12px 10px 34px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+      </div>
+      <select id="slFilterYear" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+        <option value="">All Years</option>
+        <option value="2025">WBJEE 2025</option>
+        <option value="2026">WBJEE 2026</option>
+        <option value="2027">WBJEE 2027</option>
+      </select>
+      <select id="slFilterGender" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+        <option value="">All Genders</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+      <select id="slFilterCategory" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+        <option value="">All Categories</option>
+        <option value="General">General</option>
+        <option value="OBC-A">OBC-A</option>
+        <option value="OBC-B">OBC-B</option>
+        <option value="SC">SC</option>
+        <option value="ST">ST</option>
+        <option value="EWS">EWS</option>
+      </select>
+      <select id="slSortBy" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+        <option value="name">Sort: Name</option>
+        <option value="joined">Sort: Newest First</option>
+        <option value="year">Sort: WBJEE Year</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div style="border:1px solid var(--ink); background:var(--paper); overflow-x:auto;">
+      <table class="tbl" style="width:100%;">
+        <thead>
+          <tr style="background:var(--paper-soft);">
+            <th style="width:50px;">#</th>
+            <th>Student</th>
+            <th>Phone</th>
+            <th>Year</th>
+            <th>Gender</th>
+            <th>Category</th>
+            <th>TFW</th>
+            <th>Home State</th>
+            <th>Joined</th>
+            <th style="width:80px; text-align:center;">Details</th>
+          </tr>
+        </thead>
+        <tbody id="slTableBody">
+          <tr><td colspan="10" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Loading students...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; flex-wrap:wrap; gap:10px;">
+      <div style="font-size:13px; color:var(--ink-mute);" id="slPagerInfo">—</div>
+      <div style="display:flex; align-items:center; gap:4px;" id="slPagerBtns"></div>
+    </div>
+  </div>
+
+  <!-- Student Detail Modal -->
+  <div id="slDetailModal" class="modal-overlay">
+    <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:520px; width:100%; position:relative; max-height:90vh; overflow-y:auto;">
+      <button onclick="document.getElementById('slDetailModal').style.display='none'" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:18px; color:var(--ink-mute); cursor:pointer; font-weight:700;">✕</button>
+      <div class="eyebrow" style="margin-bottom:4px;">Student Account Details</div>
+      <h2 class="display-md" id="slDetailName" style="margin-bottom:2px;">—</h2>
+      <p style="font-size:12px; color:var(--ink-mute); margin-bottom:24px;" id="slDetailEmail">—</p>
+      <div id="slDetailBody" style="display:flex; flex-direction:column; gap:12px; border-top:1px solid var(--rule); padding-top:18px;"></div>
+      <div style="margin-top:24px; display:flex; justify-content:flex-end;">
+        <button class="btn-rust btn-sm" onclick="document.getElementById('slDetailModal').style.display='none'">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COLLEGE PREDICTOR TAB ===== -->
+  <div id="tabCollegePredictor" style="display:none;">
+    <!-- Styling -->
+    <style>
+      .predictor-header-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .predictor-subtabs {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0;
+        background: var(--paper-deep);
+        padding: 0;
+        border-radius: 8px;
+        border: 1px solid var(--rule-strong);
+        width: fit-content;
+        overflow: hidden;
+      }
+      .predictor-subtab-btn {
+        background: transparent;
+        border: none;
+        border-right: 1px solid var(--rule-strong);
+        color: var(--ink-soft);
+        padding: 12px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 0;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+      }
+      .predictor-subtab-btn:last-child { border-right: none; }
+      .predictor-subtab-btn:hover:not(.active) {
+        background: rgba(15, 23, 42, 0.05);
+        color: var(--ink);
+      }
+      .predictor-subtab-btn.active {
+        background: var(--rust);
+        color: white;
+        box-shadow: 0 4px 12px rgba(10, 116, 245, 0.2);
+      }
+      .predictor-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      @media(min-width: 1024px) {
+        .predictor-grid {
+          grid-template-columns: 320px 1fr;
+        }
+      }
+      .predictor-panel-card {
+        background: var(--paper);
+        border: 1px solid var(--rule-strong);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      }
+      .predictor-form-group {
+        margin-bottom: 18px;
+      }
+      .predictor-form-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+      }
+      .predictor-input-field {
+        width: 100%;
+        background: var(--paper-soft);
+        border: 1px solid #CBD5E1;
+        color: var(--ink);
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      .predictor-input-field:focus {
+        border-color: var(--rust);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(10, 116, 245, 0.12);
+      }
+      .predictor-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .predictor-stat-card {
+        background: var(--paper);
+        border: 1px solid var(--rule-strong);
+        padding: 18px;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      }
+      .predictor-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-color: var(--rust);
+      }
+      .predictor-stat-card.active {
+        background: rgba(10, 116, 245, 0.04);
+        box-shadow: inset 0 0 0 1px rgba(10, 116, 245, 0.24);
+        border-color: var(--rust);
+      }
+      .predictor-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+      }
+      .predictor-stat-card.total::before { background: var(--rust); }
+      .predictor-stat-card.high::before { background: #10B981; }
+      .predictor-stat-card.medium::before { background: #F59E0B; }
+      .predictor-stat-card.low::before { background: #EF4444; }
+
+      .result-cards-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media(min-width: 768px) {
+        .result-cards-container {
+          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        }
+      }
+      .college-result-card {
+        background: var(--paper);
+        border: 1px solid var(--rule-strong);
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+      .college-result-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(10, 116, 245, 0.4);
+        box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+      }
+      .chance-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .chance-badge.high {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10B981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+      .chance-badge.medium {
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+      .chance-badge.low {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+      .upload-box {
+        border: 2px dashed #CBD5E1;
+        background: var(--paper-deep);
+        padding: 32px;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .upload-box:hover {
+        border-color: var(--rust);
+        background: rgba(10, 116, 245, 0.04);
+      }
+      .predictor-settings-list {
+        border: 1px solid var(--rule-strong);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .predictor-setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px;
+        background: var(--paper);
+        border-bottom: 1px solid var(--rule);
+      }
+      .predictor-setting-row:last-child {
+        border-bottom: none;
+      }
+
+      /* Mobile responsiveness overrides */
+      @media(max-width: 480px) {
+        .predictor-grid {
+          gap: 16px;
+        }
+        .predictor-panel-card {
+          padding: 16px;
+        }
+        .predictor-stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .predictor-stat-card {
+          padding: 12px 10px;
+        }
+        .predictor-stat-card div[id^="stat"] {
+          font-size: 20px !important;
+        }
+        .predictor-header-box {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 14px;
+        }
+        .predictor-subtabs {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          width: 100%;
+        }
+        .predictor-subtab-btn {
+          width: 100%;
+          text-align: center;
+          padding: 8px 10px;
+          font-size: 12px;
+          border-right: none;
+          border-bottom: none;
+        }
+        .predictor-subtab-btn:nth-child(odd) { border-right: 1px solid var(--rule-strong); }
+        .predictor-subtab-btn:nth-child(-n+2) { border-bottom: 1px solid var(--rule-strong); }
+      }
+    </style>
+
+    <div class="predictor-header-box">
+      <div>
+        <h1 class="display-lg">WBJEE College Predictor</h1>
+        <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Predict admission probabilities dynamically from official cutoff statistics</p>
+      </div>
+      <div class="predictor-subtabs">
+        <button type="button" class="predictor-subtab-btn active" id="btnPredictorTool" onclick="changePredictorSubView('tool')"><i class="fas fa-search" style="margin-right:6px;"></i>Predictor Tool</button>
+        <button type="button" class="predictor-subtab-btn" id="btnPredictorImport" onclick="changePredictorSubView('import')"><i class="fas fa-file-upload" style="margin-right:6px;"></i>Data Settings</button>
+        <button type="button" class="predictor-subtab-btn" id="btnPredictorPaywall" onclick="changePredictorSubView('paywall')"><i class="fas fa-key" style="margin-right:6px;"></i>Paywall & Price</button>
+        <button type="button" class="predictor-subtab-btn" id="btnPredictorPurchases" onclick="changePredictorSubView('purchases')"><i class="fas fa-history" style="margin-right:6px;"></i>Purchases Log</button>
+      </div>
+    </div>
+
+    <!-- PREDICTOR TOOL VIEW -->
+    <div id="predictorToolView">
+      <div class="predictor-grid">
+        <!-- Sidebar Controls -->
+        <div class="predictor-panel-card" style="height: fit-content;">
+          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:18px; color:var(--ink);"><i class="fas fa-sliders-h" style="margin-right:8px; color:var(--rust);"></i>Search Criteria</h3>
+
+          <form onsubmit="event.preventDefault(); runCollegePrediction();">
+            <div class="predictor-form-group">
+              <label for="predRank">WBJEE Rank *</label>
+              <input type="number" id="predRank" class="predictor-input-field" placeholder="Enter your GMR Rank" required min="1">
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predCategory">Reservation Category *</label>
+              <select id="predCategory" class="predictor-input-field" required>
+                <option value="">-- Select Category --</option>
+              </select>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predCourse">Course Type</label>
+              <select id="predCourse" class="predictor-input-field">
+                <option value="All">All Courses</option>
+                <option value="B.Tech">B.Tech / B.E.</option>
+                <option value="B.Pharm">B.Pharm</option>
+              </select>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predSeatType">Seat Type</label>
+              <select id="predSeatType" class="predictor-input-field">
+                <option value="All">All Seat Types</option>
+              </select>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predQuota">Quota (Home State / All India)</label>
+              <select id="predQuota" class="predictor-input-field">
+                <option value="All">All Quotas</option>
+              </select>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predCollegeType">College Type</label>
+              <select id="predCollegeType" class="predictor-input-field">
+                <option value="All">All Types</option>
+                <option value="GovtGroup">Government (All 4 Types)</option>
+                <option value="PrivateGroup">Private (All 3 Types)</option>
+                <option value="University/University Department">University/University Dept</option>
+                <option value="State Government Engineering College">State Govt Engineering College</option>
+                <option value="State Government Pharmacy College">State Govt Pharmacy College</option>
+                <option value="Central Government Engineering College">Central Govt Engineering College</option>
+                <option value="Private University">Private University</option>
+                <option value="Private Engineering College">Private Engineering College</option>
+                <option value="Stand Alone Private Pharmacy College">Stand Alone Private Pharmacy College</option>
+              </select>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predChance">Admission Chance Filter</label>
+              <select id="predChance" class="predictor-input-field" onchange="filterPredictionsByChance(this.value)">
+                <option value="All">All Chances</option>
+                <option value="High">High Chance Only</option>
+                <option value="Medium">Medium Chance Only</option>
+                <option value="Low">Low Chance Only</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-rust" style="width:100%; height:42px; font-weight:600; margin-top:8px;"><i class="fas fa-magic" style="margin-right:6px;"></i>Predict Colleges</button>
+          </form>
+        </div>
+
+        <!-- Dashboard and Output -->
+        <div>
+          <!-- Aggregates Dashboard -->
+          <div class="predictor-stat-grid" id="adminPredictorStats" style="display:none;">
+            <div class="predictor-stat-card total active" onclick="filterPredictionsByChance('All')" title="Click to show all predictions">
+              <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Total Matches</div>
+              <div id="statTotalMatches" style="font-family:var(--font-display); font-weight:800; font-size:26px; margin-top:6px; color:var(--ink);">0</div>
+            </div>
+            <div class="predictor-stat-card high" onclick="filterPredictionsByChance('High')" title="Click to filter by High Chance only">
+              <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">High Chance</div>
+              <div id="statHighMatches" style="font-family:var(--font-display); font-weight:800; font-size:26px; margin-top:6px; color:#10B981;">0</div>
+            </div>
+            <div class="predictor-stat-card medium" onclick="filterPredictionsByChance('Medium')" title="Click to filter by Medium Chance only">
+              <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Medium Chance</div>
+              <div id="statMediumMatches" style="font-family:var(--font-display); font-weight:800; font-size:26px; margin-top:6px; color:#F59E0B;">0</div>
+            </div>
+            <div class="predictor-stat-card low" onclick="filterPredictionsByChance('Low')" title="Click to filter by Low Chance only">
+              <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Low Chance</div>
+              <div id="statLowMatches" style="font-family:var(--font-display); font-weight:800; font-size:26px; margin-top:6px; color:#EF4444;">0</div>
+            </div>
+          </div>
+
+          <!-- Cards Grid -->
+          <div id="predictionResultsArea" style="min-height: 200px;">
+            <div style="text-align:center; padding:64px; color:var(--ink-mute); border:1px dashed var(--rule-strong); border-radius:10px; background:var(--paper);">
+              <i class="fas fa-university" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.35;"></i>
+              <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">No Predictions Performed Yet</h4>
+              <p style="font-size:12px;">Fill in your rank and reservation category, and click "Predict Colleges" to see dynamic admission chances.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA SETTINGS VIEW -->
+    <div id="predictorImportView" style="display:none;">
+      <div style="display:grid; grid-template-columns:1fr; gap:24px;">
+        <!-- Status Panel -->
+        <div class="predictor-panel-card">
+          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:16px; color:var(--ink);"><i class="fas fa-database" style="margin-right:8px; color:var(--rust);"></i>Database Statistics</h3>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:18px;" id="importStatsGrid">
+            <div style="border:1px solid var(--ink); padding:16px; border-radius:6px; text-align:center; background:var(--paper-soft);">
+              <i class="fas fa-spinner fa-spin" style="font-size:24px; color:var(--ink-mute);"></i>
+              <p style="font-size:12px; margin-top:8px;">Fetching database details...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import Form Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px;">
+          <!-- Year 2024 -->
+          <div class="predictor-panel-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink);">2024 Cutoff Data</h3>
+              <span id="labelState2024" class="chance-badge low" style="padding:2px 8px; font-size:9px;">Not Loaded</span>
+            </div>
+            <p style="font-size:12px; color:var(--ink-mute); margin-bottom:20px;">Upload the official WBJEE 2024 Round 2 closing rank excel sheet to enable 2024 matching.</p>
+
+            <input type="file" id="file2024" style="display:none;" accept=".xlsx,.xls" onchange="uploadCutoffExcel(2024)">
+            <div class="upload-box" onclick="triggerExcelSelect(2024)" id="box2024">
+              <i class="fas fa-cloud-upload-alt" style="font-size:36px; color:var(--rust); margin-bottom:10px;"></i>
+              <div style="font-size:13px; font-weight:600;">Choose Excel File</div>
+              <div style="font-size:10px; color:var(--ink-mute); margin-top:4px;">supports .xlsx, .xls</div>
+            </div>
+          </div>
+
+          <!-- Year 2025 -->
+          <div class="predictor-panel-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink);">2025 Cutoff Data</h3>
+              <span id="labelState2025" class="chance-badge low" style="padding:2px 8px; font-size:9px;">Not Loaded</span>
+            </div>
+            <p style="font-size:12px; color:var(--ink-mute); margin-bottom:20px;">Upload the official WBJEE 2025 Round 2 closing rank excel sheet to enable 2025 matching (Priority).</p>
+
+            <input type="file" id="file2025" style="display:none;" accept=".xlsx,.xls" onchange="uploadCutoffExcel(2025)">
+            <div class="upload-box" onclick="triggerExcelSelect(2025)" id="box2025">
+              <i class="fas fa-cloud-upload-alt" style="font-size:36px; color:var(--rust); margin-bottom:10px;"></i>
+              <div style="font-size:13px; font-weight:600;">Choose Excel File</div>
+              <div style="font-size:10px; color:var(--ink-mute); margin-top:4px;">supports .xlsx, .xls</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="predictor-panel-card" style="border-color:#EF4444; background:rgba(239, 68, 68, 0.02);">
+          <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; color:#EF4444; margin-bottom:6px;"><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>Danger Zone</h3>
+          <p style="font-size:12px; color:var(--ink-mute); margin-bottom:18px;">Clearing the database will completely delete all uploaded WBJEE 2024 and 2025 cutoff stats. Ranks predictor will cease working until new files are uploaded.</p>
+          <button class="btn-rust" onclick="clearCutoffs()" style="background:#EF4444; color:white; border-color:#EF4444; font-size:12px; padding:8px 18px; font-weight:600;"><i class="fas fa-trash-alt" style="margin-right:6px;"></i>Clear All Cutoff Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYWALL SETTINGS VIEW -->
+    <div id="predictorPaywallView" style="display:none; margin-top:24px;">
+      <div style="display:grid; grid-template-columns:1fr; gap:24px;">
+        <div class="predictor-panel-card">
+          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:4px; color:var(--ink);"><i class="fas fa-sliders-h" style="margin-right:8px; color:var(--rust);"></i>College Predictor Settings</h3>
+          <p style="font-size:12px; color:var(--ink-mute); margin-bottom:20px;">Configure visibility and payment verification for the WBJEE College Predictor tool.</p>
+
+          <div style="display:flex; flex-direction:column; gap:18px; max-width:520px; margin-top:20px;">
+            <div class="predictor-settings-list">
+            <div class="predictor-setting-row">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--ink);">Enable College Predictor Feature</div>
+                <div style="font-size:12px;color:var(--ink-mute);">Allow students to view and access the predictor tool</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="predFeatureToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="predictor-setting-row">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--ink);">Enable Paywall</div>
+                <div style="font-size:12px;color:var(--ink-mute);">Require payment from students to unlock the predictor</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="predPaywallToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="predPaywallPrice">Predictor Unlock Price (INR)</label>
+              <div style="position:relative;">
+                <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px; font-weight:700;">₹</span>
+                <input type="number" id="predPaywallPrice" class="predictor-input-field" placeholder="299" min="1" style="padding-left:32px;">
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <button onclick="savePredictorPaywallSettings()" id="savePredictorSettingsBtn" class="btn-rust" style="width:fit-content; padding:10px 24px; font-size:13px; font-weight:600;"><i class="fas fa-save" style="margin-right:6px;"></i>Save Paywall Settings</button>
+              <span id="predictorSettingsStatus" style="font-size:12px; color:var(--ink-mute);"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS VIEW -->
+    <div id="predictorPurchasesView" style="display:none; margin-top:24px;">
+      <div style="display:grid; grid-template-columns:1fr; gap:24px;">
+        <!-- Stats Summary Card -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+          <div class="predictor-panel-card" style="background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+            <div style="font-size:12px; color:var(--forest-deep); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Predictor Revenue</div>
+            <div style="font-size:28px; font-weight:800; color:var(--ink); margin-top:6px;" id="lblPredRevenue">₹0</div>
+          </div>
+          <div class="predictor-panel-card" style="background:rgba(79,70,229,0.05); border-color:rgba(79,70,229,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+            <div style="font-size:12px; color:var(--rust); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Premium Students</div>
+            <div style="font-size:28px; font-weight:800; color:var(--ink); margin-top:6px;" id="lblPredStudents">0</div>
+          </div>
+        </div>
+
+        <!-- Purchases Table Card -->
+        <div class="predictor-panel-card" style="overflow:hidden; padding:0;">
+          <div style="padding:18px 24px; border-bottom:1px solid var(--ink); background:var(--paper-deep);">
+            <h2 style="font-size:15px; font-weight:700; color:var(--ink);">Student Purchases Log</h2>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl" style="width:100%;">
+              <thead>
+                <tr style="background:var(--paper-soft);">
+                  <th style="padding:14px 20px;">Student Name</th>
+                  <th style="padding:14px 20px;">Email</th>
+                  <th style="padding:14px 20px;">Razorpay Payment ID</th>
+                  <th style="padding:14px 20px; text-align:right;">Amount</th>
+                  <th style="padding:14px 20px; text-align:right;">Date</th>
+                </tr>
+              </thead>
+              <tbody id="tblPredPurchasesRows">
+                <tr>
+                  <td colspan="5" style="padding:48px; text-align:center; color:var(--ink-mute);">
+                    <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:8px; display:block; color:var(--rust);"></i>
+                    Loading student transactions...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 
@@ -513,6 +1162,10 @@
         <span style="font-weight:700; color:var(--ink);" id="profStudentTFW">—</span>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+        <span style="font-weight:600; color:var(--ink-mute);">Home State</span>
+        <span style="font-weight:700; color:var(--ink);" id="profStudentHomeState">—</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
         <span style="font-weight:600; color:var(--ink-mute);">WBJEE Target Year</span>
         <span style="font-family:var(--font-mono); font-weight:700; color:var(--ink);" id="profStudentYear">—</span>
       </div>
@@ -535,7 +1188,7 @@ const CAT_RANGES = {
   physics: { 1: [1, 30], 2: [31, 35], 3: [36, 40] },
   chemistry: { 1: [41, 70], 2: [71, 75], 3: [76, 80] },
 };
-const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
+const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
 
 let selectedExamId = null;
 let selectedExamName = '';
@@ -553,6 +1206,7 @@ let filteredSubmissions = [];
 let allUsersMap = {};
 let currentModalSub = null;
 let currentModalPaper = 'math';
+let lastPredictionResults = [];
 
 function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');
@@ -656,16 +1310,39 @@ function resetKeyEditorState() {
 }
 
 function switchMainTab(tab, btn) {
-  document.querySelectorAll('[data-tab]').forEach((node) => node.classList.remove('active'));
-  btn.classList.add('active');
+  // Handle sidebar vs tab-bar distinction
+  const isStudentList = tab === 'studentList';
+  const isCollegePredictor = tab === 'collegePredictor';
+
+  // Manage sidebar active states
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  if (isStudentList) {
+    document.getElementById('sidebarStudentListBtn').classList.add('active');
+  } else if (isCollegePredictor) {
+    document.getElementById('sidebarCollegePredictorBtn').classList.add('active');
+  } else {
+    document.querySelector('.sidebar-link[href="evaluators.html"]').classList.add('active');
+    document.querySelectorAll('[data-tab]').forEach((node) => node.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Show/hide the evaluator header, tabs, and tab panels
+  const evalHeader = document.getElementById('evaluatorsHeader');
+  const evalTabBar = document.getElementById('evaluatorsTabBar');
+  const isSidebarTab = isStudentList || isCollegePredictor;
+  if (evalHeader) evalHeader.style.display = isSidebarTab ? 'none' : 'flex';
+  if (evalTabBar) evalTabBar.style.display = isSidebarTab ? 'none' : 'flex';
+
   document.getElementById('tabExams').style.display = tab === 'exams' ? 'block' : 'none';
   document.getElementById('tabRank').style.display = tab === 'rank' ? 'block' : 'none';
   document.getElementById('tabSubmissions').style.display = tab === 'submissions' ? 'block' : 'none';
   document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
+  document.getElementById('tabStudentList').style.display = isStudentList ? 'block' : 'none';
+  document.getElementById('tabCollegePredictor').style.display = isCollegePredictor ? 'block' : 'none';
 
-  if (tab === 'submissions') {
-    loadSubmissions();
-  }
+  if (tab === 'submissions') loadSubmissions();
+  if (isStudentList && !slStudentsLoaded) loadStudentList();
+  if (isCollegePredictor) loadPredictorDashboard();
 }
 
 async function loadMandatoryFields() {
@@ -679,6 +1356,7 @@ async function loadMandatoryFields() {
     document.getElementById('m_caste').checked = !!settings.caste;
     document.getElementById('m_tfw').checked = !!settings.tfw;
     document.getElementById('m_wbjeeYear').checked = !!settings.wbjeeYear;
+    document.getElementById('m_homeState').checked = !!settings.homeState;
   } catch (err) {
     console.error("Error loading mandatory fields via REST API:", err);
   }
@@ -744,7 +1422,7 @@ function renderExamRows(exams) {
   for (const exam of exams) {
     const row = document.createElement('div');
     row.className = 'exam-row';
-    const recalcHtml = exam.needsRecalculation 
+    const recalcHtml = exam.needsRecalculation
       ? `<button class="btn-ghost btn-sm" data-action="recalc" style="color:#F59E0B; border-color:rgba(245,158,11,0.3);" title="Answers/Ranks changed. Recalculate scores for all submissions."><i class="fas fa-rotate"></i> Recalculate</button>`
       : `<button class="btn-ghost btn-sm" disabled style="opacity:0.5;" title="All submissions are up to date"><i class="fas fa-rotate"></i> Recalculate</button>`;
 
@@ -763,11 +1441,11 @@ function renderExamRows(exams) {
     `;
     row.children[0].children[0].textContent = exam.name;
     row.children[0].children[1].textContent = exam.id;
-    
+
     if (exam.needsRecalculation) {
       row.querySelector('[data-action="recalc"]').addEventListener('click', (e) => recalculateExam(exam.id, exam.name, e.currentTarget));
     }
-    
+
     row.querySelector('[data-action="keys"]').addEventListener('click', () => openKeyEditor(exam.id, exam.name));
     row.querySelector('[data-action="toggle"]').addEventListener('click', () => toggleExamActive(exam.id, !exam.active));
     rows.appendChild(row);
@@ -785,11 +1463,11 @@ async function recalculateExam(examId, examName, btn) {
   if (!confirm(`Are you sure you want to recalculate all submissions for ${examName}?\nThis will re-score every student's answers against the latest answer key and rank tables.`)) {
     return;
   }
-  
+
   const originalHtml = btn.innerHTML;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recalculating...';
   btn.disabled = true;
-  
+
   try {
     const res = await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}/recalculate`, { method: 'POST' });
     toast(res.recalculated !== undefined ? `Successfully recalculated ${res.recalculated} submissions.` : res.message || 'Recalculation complete.');
@@ -1242,11 +1920,11 @@ function filterAndRenderSubmissions() {
         return false;
       }
     }
-    
+
     if (statusFilter === 'reset_pending' && !sub.resetRequested) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -1305,7 +1983,7 @@ function filterAndRenderSubmissions() {
     const examName = sub.examName || sub.examId || 'WBJEE';
     const sets = `M:${sub.mathSet || '—'} P/C:${sub.physChemSet || '—'}`;
     const scores = sub.scores || {};
-    
+
     // Predicted Rank range strings
     const engRank = sub.expectedRank?.engineering
       ? `${sub.expectedRank.engineering.min} - ${sub.expectedRank.engineering.max}`
@@ -1313,7 +1991,7 @@ function filterAndRenderSubmissions() {
     const bphRank = sub.expectedRank?.bpharma
       ? `${sub.expectedRank.bpharma.min} - ${sub.expectedRank.bpharma.max}`
       : '—';
-    
+
     // Formatted date
     let dateStr = '—';
     if (sub.submittedAt) {
@@ -1363,7 +2041,7 @@ function filterAndRenderSubmissions() {
         <td>
           <div style="display:flex; gap:6px; justify-content:center;">
             <button class="btn-ghost" style="padding:6px 10px; font-size:11px;" onclick="viewSubmissionReport('${sub.id}')" title="Detailed Report"><i class="fas fa-chart-line"></i> View</button>
-            ${sub.resetRequested ? 
+            ${sub.resetRequested ?
               `<button class="btn-ghost" style="padding:6px 10px; font-size:11px; color:#F59E0B; border-color:rgba(245,158,11,0.3);" onclick="reviewResetRequest('${sub.id}', '${name.replace(/'/g, "\\'")}', '${sub.resetReason ? sub.resetReason.replace(/'/g, "\\'") : ''}')" title="Review Reset Request"><i class="fas fa-rotate-right"></i> Review Reset</button>` :
               `<button class="btn-ghost" style="padding:6px 10px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.2);" onclick="resetSubmission('${sub.id}', '${name.replace(/'/g, "\\'")}')" title="Reset (Delete) Submission"><i class="fas fa-trash-can"></i> Reset</button>`
             }
@@ -1520,10 +2198,10 @@ async function renderModalAnswers() {
   for (let q = start; q <= end; q++) {
     const qNoStr = String(q);
     const cat = categoryFor(subject, q);
-    
+
     const sRaw = studentAnsMap[qNoStr];
     const sAns = normalizeStudentAnswer(sRaw);
-    
+
     const cRaw = examKeys[qNoStr];
     const cAns = cRaw ? (cat === 3 ? parseCorrect(cRaw) : String(cRaw).trim().toUpperCase()) : null;
 
@@ -1713,7 +2391,7 @@ function exportSubmissionsCSV() {
     const bphRank = sub.expectedRank?.bpharma
       ? `${sub.expectedRank.bpharma.min}-${sub.expectedRank.bpharma.max}`
       : '—';
-    
+
     let dateStr = '—';
     if (sub.submittedAt) {
       try {
@@ -1743,9 +2421,9 @@ function exportSubmissionsCSV() {
     ];
   });
 
-  const csvContent = 'data:text/csv;charset=utf-8,' 
+  const csvContent = 'data:text/csv;charset=utf-8,'
     + [headers, ...rows].map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
-  
+
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
   link.setAttribute('href', encodedUri);
@@ -1766,6 +2444,7 @@ function viewStudentProfile(subId) {
   document.getElementById('profStudentGender').textContent = sub.studentGender || '—';
   document.getElementById('profStudentCaste').textContent = sub.studentCaste || '—';
   document.getElementById('profStudentTFW').textContent = sub.studentTFW || '—';
+  document.getElementById('profStudentHomeState').textContent = sub.studentHomeState || '—';
   document.getElementById('profStudentYear').textContent = sub.studentYear || '—';
 
   document.getElementById('studentProfileModal').style.display = 'flex';
@@ -1816,6 +2495,672 @@ async function testEmailConfig() {
       toast(`Test Failed: ${err.message}`, 'error');
     }
   }
+
+// ===== STUDENT LIST SECTION =====
+let slAllStudents = [];
+let slFiltered = [];
+let slPage = 1;
+const SL_PAGE_SIZE = 15;
+let slStudentsLoaded = false;
+
+const slAvatarColors = ['#C94E1F','#1A6B3C','#2563EB','#7C3AED','#D97706','#DC2626','#0891B2'];
+function slAvatarColor(str) { let h=0; for(let c of(str||'')) h=(h*31+c.charCodeAt(0))%slAvatarColors.length; return slAvatarColors[Math.abs(h)]; }
+function slInitials(name) { if(!name)return'?'; const p=name.trim().split(' '); return p.length>=2?(p[0][0]+p[p.length-1][0]).toUpperCase():p[0].substring(0,2).toUpperCase(); }
+function slFmtDate(ts) {
+  if(!ts) return '—';
+  try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch(e) { return '—'; }
+}
+
+async function loadStudentList() {
+  try {
+    const data = await apiJson('/api/admin/students');
+    slAllStudents = data.students || [];
+    slStudentsLoaded = true;
+  } catch(e) {
+    console.error('Failed to load students:', e);
+    slAllStudents = [];
+  }
+  slUpdateStats();
+  slApplyFilters();
+}
+
+function slUpdateStats() {
+  const total = slAllStudents.length;
+  const completed = slAllStudents.filter(s => s.name && s.phone && s.gender).length;
+  const y2026 = slAllStudents.filter(s => String(s.wbjeeYear) === '2026').length;
+  const y2025 = slAllStudents.filter(s => String(s.wbjeeYear) === '2025').length;
+  document.getElementById('slStatTotal').textContent = total;
+  document.getElementById('slStatCompleted').textContent = completed;
+  document.getElementById('slStat2026').textContent = y2026;
+  document.getElementById('slStat2025').textContent = y2025;
+}
+
+function slApplyFilters() {
+  const q = (document.getElementById('slSearch').value || '').toLowerCase();
+  const year = document.getElementById('slFilterYear').value;
+  const gender = document.getElementById('slFilterGender').value;
+  const category = document.getElementById('slFilterCategory').value;
+  const sort = document.getElementById('slSortBy').value;
+
+  slFiltered = slAllStudents.filter(s => {
+    if (q && !(s.name||'').toLowerCase().includes(q) && !(s.email||'').toLowerCase().includes(q) && !(s.phone||'').toLowerCase().includes(q)) return false;
+    if (year && String(s.wbjeeYear) !== year) return false;
+    if (gender && (s.gender||'') !== gender) return false;
+    if (category && (s.caste||'') !== category) return false;
+    return true;
+  });
+
+  slFiltered.sort((a, b) => {
+    if (sort === 'joined') {
+      try { const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0); const db2 = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0); return db2 - da; } catch(e) { return 0; }
+    }
+    if (sort === 'year') return String(b.wbjeeYear||'').localeCompare(String(a.wbjeeYear||''));
+    return (a.name||'').localeCompare(b.name||'');
+  });
+
+  slPage = 1;
+  slRenderPage();
+}
+
+function slRenderPage() {
+  const start = (slPage - 1) * SL_PAGE_SIZE;
+  const pageItems = slFiltered.slice(start, start + SL_PAGE_SIZE);
+  const tbody = document.getElementById('slTableBody');
+
+  if (!pageItems.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-user-slash" style="margin-right:8px;"></i>No students found</td></tr>';
+    document.getElementById('slPagerInfo').textContent = 'No results';
+    document.getElementById('slPagerBtns').innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = pageItems.map((s, i) => {
+    const name = s.name || s.displayName || s.firstName ? ((s.firstName||'') + ' ' + (s.lastName||'')).trim() : 'Unknown';
+    const email = s.email || '—';
+    const phone = s.phone || '—';
+    const year = s.wbjeeYear || '—';
+    const gender = s.gender || '—';
+    const caste = s.caste || '—';
+    const tfw = s.tfw || '—';
+    const homeState = s.homeState || '—';
+    const joined = slFmtDate(s.createdAt);
+    const bg = slAvatarColor(name);
+    const init = slInitials(name);
+    return `<tr>
+      <td style="font-family:var(--font-mono); font-size:12px; color:var(--ink-mute); font-weight:700;">${start + i + 1}</td>
+      <td>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="avatar" style="background:${bg};">${init}</div>
+          <div>
+            <div style="font-weight:700; color:var(--ink); font-size:13px;">${name}</div>
+            <div style="font-size:11px; color:var(--ink-mute);">${email}</div>
+          </div>
+        </div>
+      </td>
+      <td style="font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);">${phone}</td>
+      <td><span class="badge-sub badge-sub-primary">${year !== '—' ? 'WBJEE ' + year : '—'}</span></td>
+      <td style="font-size:12px; color:var(--ink-soft);">${gender}</td>
+      <td style="font-size:12px; color:var(--ink-soft);">${caste}</td>
+      <td style="font-size:12px; color:var(--ink-soft);">${tfw}</td>
+      <td style="font-size:12px; color:var(--ink-soft);">${homeState}</td>
+      <td style="font-size:12px; color:var(--ink-mute);">${joined}</td>
+      <td style="text-align:center;"><button class="btn-ghost btn-sm" onclick="slViewStudent('${s.id}')" style="font-size:11px;"><i class="fas fa-eye" style="margin-right:4px;"></i>View</button></td>
+    </tr>`;
+  }).join('');
+
+  // Pager
+  const total = slFiltered.length;
+  const totalPages = Math.ceil(total / SL_PAGE_SIZE);
+  document.getElementById('slPagerInfo').textContent = `Showing ${start+1}–${Math.min(start+SL_PAGE_SIZE, total)} of ${total} students`;
+
+  let btns = `<button class="btn-ghost btn-sm" onclick="slGoPage(${slPage-1})" ${slPage===1?'disabled':''}style="width:30px;height:30px;padding:0;justify-content:center;"><i class="fas fa-chevron-left"></i></button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === slPage) btns += `<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:12px;font-weight:700;background:var(--ink);color:var(--paper);border-radius:4px;">${i}</span>`;
+    else if (i === 1 || i === totalPages || Math.abs(i - slPage) <= 1) btns += `<button class="btn-ghost btn-sm" onclick="slGoPage(${i})" style="width:30px;height:30px;padding:0;justify-content:center;font-size:12px;">${i}</button>`;
+    else if (Math.abs(i - slPage) === 2) btns += '<span style="padding:0 2px;color:var(--ink-mute);">…</span>';
+  }
+  btns += `<button class="btn-ghost btn-sm" onclick="slGoPage(${slPage+1})" ${slPage===totalPages?'disabled':''}style="width:30px;height:30px;padding:0;justify-content:center;"><i class="fas fa-chevron-right"></i></button>`;
+  document.getElementById('slPagerBtns').innerHTML = btns;
+}
+
+function slGoPage(p) {
+  const total = Math.ceil(slFiltered.length / SL_PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  slPage = p;
+  slRenderPage();
+}
+
+function slViewStudent(id) {
+  const s = slAllStudents.find(x => x.id === id);
+  if (!s) return;
+  const name = s.name || s.displayName || ((s.firstName||'') + ' ' + (s.lastName||'')).trim() || 'Unknown';
+  document.getElementById('slDetailName').textContent = name;
+  document.getElementById('slDetailEmail').textContent = s.email || '—';
+
+  const fields = [
+    ['User ID', s.id],
+    ['First Name', s.firstName || '—'],
+    ['Last Name', s.lastName || '—'],
+    ['Email', s.email || '—'],
+    ['Phone', s.phone || '—'],
+    ['Gender', s.gender || '—'],
+    ['Caste / Category', s.caste || '—'],
+    ['TFW Status', s.tfw || '—'],
+    ['Home State Status', s.homeState || '—'],
+    ['WBJEE Target Year', s.wbjeeYear ? 'WBJEE ' + s.wbjeeYear : '—'],
+    ['Role', s.role || 'student'],
+    ['Bio', s.bio || '—'],
+    ['Status', s.status || 'active'],
+    ['Created At', slFmtDate(s.createdAt)],
+  ];
+
+  document.getElementById('slDetailBody').innerHTML = fields.map(([k, v]) => `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--rule);">
+      <span style="font-size:13px; font-weight:600; color:var(--ink-mute);">${k}</span>
+      <span style="font-size:13px; font-weight:700; color:var(--ink); max-width:260px; text-align:right; word-break:break-all;">${v}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('slDetailModal').style.display = 'flex';
+}
+
+// Click outside to close detail modal
+document.getElementById('slDetailModal')?.addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+function exportStudentListCSV() {
+  const headers = ['Name','Email','Phone','WBJEE Year','Gender','Category','TFW','Home State','Role','Status','Bio'];
+  const rows = slFiltered.map(s => [
+    s.name||s.displayName||'', s.email||'', s.phone||'',
+    s.wbjeeYear||'', s.gender||'', s.caste||'',
+    s.tfw||'', s.homeState||'', s.role||'student', s.status||'active', s.bio||''
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'sankalp_students_' + Date.now() + '.csv';
+  a.click();
+  toast('Student list exported as CSV!');
+}
+
+// ===== COLLEGE PREDICTOR SECTION =====
+let predictorSubView = 'tool';
+let predictorStats = {};
+
+function changePredictorSubView(view) {
+  predictorSubView = view;
+  document.getElementById('btnPredictorTool').classList.toggle('active', view === 'tool');
+  document.getElementById('btnPredictorImport').classList.toggle('active', view === 'import');
+  document.getElementById('btnPredictorPaywall').classList.toggle('active', view === 'paywall');
+  document.getElementById('btnPredictorPurchases').classList.toggle('active', view === 'purchases');
+
+  document.getElementById('predictorToolView').style.display = view === 'tool' ? 'block' : 'none';
+  document.getElementById('predictorImportView').style.display = view === 'import' ? 'block' : 'none';
+  document.getElementById('predictorPaywallView').style.display = view === 'paywall' ? 'block' : 'none';
+  document.getElementById('predictorPurchasesView').style.display = view === 'purchases' ? 'block' : 'none';
+
+  if (view === 'import') {
+    loadPredictorStatus();
+  } else if (view === 'paywall') {
+    loadPredictorPaywallSettings();
+  } else if (view === 'purchases') {
+    loadPredictorPurchases();
+  }
+}
+
+async function loadPredictorPaywallSettings() {
+  try {
+    const res = await apiJson('/api/admin/predictor/settings');
+    applyPredictorPaywallSettings(res.settings);
+  } catch (err) {
+    console.error('Failed to load paywall settings:', err);
+    toast('Error loading paywall settings: ' + err.message);
+  }
+}
+
+function applyPredictorPaywallSettings(settings = {}) {
+  document.getElementById('predFeatureToggle').checked = settings.enabled !== false;
+  document.getElementById('predPaywallToggle').checked = settings.requiresPayment === true;
+  document.getElementById('predPaywallPrice').value = settings.price !== undefined ? settings.price : 299;
+}
+
+async function savePredictorPaywallSettings() {
+  const enabled = document.getElementById('predFeatureToggle').checked;
+  const requiresPayment = document.getElementById('predPaywallToggle').checked;
+  const price = document.getElementById('predPaywallPrice').value;
+  const button = document.getElementById('savePredictorSettingsBtn');
+  const status = document.getElementById('predictorSettingsStatus');
+
+  if (price === '' || isNaN(price) || Number(price) < 1) {
+    alert('Please enter a valid price of at least INR 1.');
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Saving...';
+  status.textContent = 'Saving settings...';
+
+  try {
+    const res = await apiJson('/api/admin/predictor/settings', {
+      method: 'PUT',
+      body: JSON.stringify({
+        enabled,
+        requiresPayment,
+        price: Number(price)
+      })
+    });
+    applyPredictorPaywallSettings(res.settings);
+    const verified = await apiJson('/api/admin/predictor/settings');
+    applyPredictorPaywallSettings(verified.settings);
+    status.textContent = 'Saved and verified.';
+    toast(res.message || 'Predictor settings saved successfully.');
+  } catch (err) {
+    console.error('Failed to save paywall settings:', err);
+    status.textContent = 'Save failed.';
+    alert('Failed to save paywall settings: ' + err.message);
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fas fa-save" style="margin-right:6px;"></i>Save Paywall Settings';
+  }
+}
+
+async function loadPredictorPurchases() {
+  const tbody = document.getElementById('tblPredPurchasesRows');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" style="padding:48px; text-align:center; color:var(--ink-mute);">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:8px; display:block; color:var(--rust);"></i>
+        Loading student transactions...
+      </td>
+    </tr>
+  `;
+
+  try {
+    const res = await apiJson('/api/admin/payments/purchases');
+    const purchases = res.purchases || [];
+
+    // Filter purchases by product == 'college_predictor'
+    const predPurchases = purchases.filter(p => p.product === 'college_predictor');
+
+    // Calculate metrics
+    let totalRevenue = 0;
+    const uniqueStudents = new Set();
+
+    tbody.innerHTML = '';
+    if (predPurchases.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="padding:48px; text-align:center; color:var(--ink-mute);">
+            No purchases recorded yet.
+          </td>
+        </tr>
+      `;
+    } else {
+      predPurchases.forEach(p => {
+        totalRevenue += (p.amount || 0);
+        if (p.userId) uniqueStudents.add(p.userId);
+
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid var(--rule)';
+
+        const dateStr = p.purchasedAt ? new Date(p.purchasedAt).toLocaleString() : 'N/A';
+        const formattedAmount = (p.amount || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+        row.innerHTML = `
+          <td style="padding:14px 20px; font-weight:600; color:var(--ink);">${escapeHTML(p.name)}</td>
+          <td style="padding:14px 20px; color:var(--ink-soft);">${escapeHTML(p.email)}</td>
+          <td style="padding:14px 20px; font-family:var(--font-mono); font-size:12px; color:var(--ink-mute);">${escapeHTML(p.paymentId || 'N/A')}</td>
+          <td style="padding:14px 20px; text-align:right; font-weight:700; color:var(--rust);">${formattedAmount}</td>
+          <td style="padding:14px 20px; text-align:right; color:var(--ink-mute);">${dateStr}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    const premiumStudents = uniqueStudents.size;
+
+    document.getElementById('lblPredRevenue').textContent = totalRevenue.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+    document.getElementById('lblPredStudents').textContent = premiumStudents.toLocaleString();
+
+  } catch (err) {
+    console.error('Failed to load predictor purchases:', err);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="padding:48px; text-align:center; color:#EF4444;">
+          <i class="fas fa-exclamation-triangle" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+          Failed to load purchases: ${escapeHTML(err.message)}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
+function triggerExcelSelect(year) {
+  document.getElementById(`file${year}`).click();
+}
+
+async function loadPredictorDashboard() {
+  try {
+    // 1. Fetch dynamic categories dropdown
+    const dataCat = await apiJson('/api/admin/predictor/categories');
+    const dropdown = document.getElementById('predCategory');
+    dropdown.innerHTML = '<option value="">-- Select Category --</option>';
+    if (dataCat.categories && dataCat.categories.length > 0) {
+      dataCat.categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        dropdown.appendChild(opt);
+      });
+    }
+
+    // 2. Fetch dynamic seat types dropdown
+    const dataSeat = await apiJson('/api/admin/predictor/seat-types');
+    const dropdownSeat = document.getElementById('predSeatType');
+    dropdownSeat.innerHTML = '<option value="All">All Seat Types</option>';
+    if (dataSeat.seatTypes && dataSeat.seatTypes.length > 0) {
+      dataSeat.seatTypes.forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st;
+        opt.textContent = st;
+        dropdownSeat.appendChild(opt);
+      });
+    }
+
+    // 3. Fetch dynamic quotas dropdown
+    const dataQuota = await apiJson('/api/admin/predictor/quotas');
+    const dropdownQuota = document.getElementById('predQuota');
+    dropdownQuota.innerHTML = '<option value="All">All Quotas</option>';
+    if (dataQuota.quotas && dataQuota.quotas.length > 0) {
+      dataQuota.quotas.forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q;
+        opt.textContent = q;
+        dropdownQuota.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.error('Failed to load predictor dropdown details:', err);
+    toast('Error loading filters. Make sure Excel cutoffs are imported.');
+  }
+
+  // Refresh stats in background
+  loadPredictorStatus().catch(console.error);
+}
+
+async function loadPredictorStatus() {
+  try {
+    const res = await apiJson('/api/admin/predictor/status');
+    const stats = res.stats || {};
+
+    // Render Statistics Table/Cards inside Import Settings tab
+    const grid = document.getElementById('importStatsGrid');
+    grid.innerHTML = '';
+
+    const years = [2024, 2025];
+    years.forEach(year => {
+      const yearStat = stats[year] || { records: 0, colleges: 0 };
+      const loaded = yearStat.records > 0;
+
+      // Update label pill
+      const label = document.getElementById(`labelState${year}`);
+      if (loaded) {
+        label.textContent = 'Loaded';
+        label.className = 'chance-badge high';
+      } else {
+        label.textContent = 'Not Loaded';
+        label.className = 'chance-badge low';
+      }
+
+      // Render stat card in management
+      const card = document.createElement('div');
+      card.style.cssText = 'border:1px solid var(--ink); padding:18px; border-radius:6px; background:var(--paper); text-align:left;';
+      card.innerHTML = `
+        <div style="font-size:12px; font-weight:700; color:var(--rust); margin-bottom:8px;">WBJEE ${year} Year</div>
+        <div style="font-family:var(--font-display); font-weight:800; font-size:24px; color:var(--ink);">${yearStat.records.toLocaleString()} <span style="font-size:12px; font-weight:400; color:var(--ink-mute);">rows</span></div>
+        <div style="font-size:11px; color:var(--ink-mute); margin-top:4px;"><i class="fas fa-university" style="margin-right:4px;"></i>${yearStat.colleges} unique colleges loaded</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Add unique categories count
+    const cardCat = document.createElement('div');
+    cardCat.style.cssText = 'border:1px solid var(--ink); padding:18px; border-radius:6px; background:var(--paper); text-align:left;';
+    cardCat.innerHTML = `
+      <div style="font-size:12px; font-weight:700; color:var(--rust); margin-bottom:8px;">Active Categories</div>
+      <div style="font-family:var(--font-display); font-weight:800; font-size:24px; color:var(--ink);">${res.uniqueCategories || 0} <span style="font-size:12px; font-weight:400; color:var(--ink-mute);">caste bands</span></div>
+      <div style="font-size:11px; color:var(--ink-mute); margin-top:4px;"><i class="fas fa-users-cog" style="margin-right:4px;"></i>Populates predictor dropdown dynamically</div>
+    `;
+    grid.appendChild(cardCat);
+
+  } catch (err) {
+    console.error('Failed to load database status:', err);
+  }
+}
+
+async function uploadCutoffExcel(year) {
+  const fileInput = document.getElementById(`file${year}`);
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const box = document.getElementById(`box${year}`);
+  const oldHTML = box.innerHTML;
+  box.style.pointerEvents = 'none';
+  box.innerHTML = `
+    <i class="fas fa-spinner fa-spin" style="font-size:36px; color:var(--rust); margin-bottom:10px;"></i>
+    <div style="font-size:13px; font-weight:600;">Processing & cleaning...</div>
+    <div style="font-size:10px; color:var(--ink-mute); margin-top:4px;">parsing, mapping headers, storing in SQLite</div>
+  `;
+
+  toast(`Uploading and cleaning ${year} Excel sheet...`);
+
+  try {
+    const token = currentToken || await currentUser.getIdToken();
+    currentToken = token;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('year', year);
+
+    const response = await fetch(`${EVALUATOR_API}/api/admin/predictor/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || result.error || 'Upload failed');
+    }
+
+    toast(`Successfully uploaded ${year} cutoffs!`);
+    await loadPredictorDashboard();
+  } catch (err) {
+    console.error('Upload failed:', err);
+    alert(`Upload failed: ${err.message}`);
+  } finally {
+    box.style.pointerEvents = 'auto';
+    box.innerHTML = oldHTML;
+    fileInput.value = '';
+  }
+}
+
+async function clearCutoffs() {
+  if (!confirm('Are you absolutely sure you want to clear ALL cutoff records from the SQLite database? This cannot be undone.')) return;
+
+  try {
+    const res = await apiJson('/api/admin/predictor/clear', { method: 'POST' });
+    toast(res.message || 'SQLite database cleared.');
+    await loadPredictorDashboard();
+  } catch (err) {
+    alert(`Failed to clear database: ${err.message}`);
+  }
+}
+
+async function runCollegePrediction() {
+  const rank = document.getElementById('predRank').value;
+  const category = document.getElementById('predCategory').value;
+  const courseType = document.getElementById('predCourse').value;
+  const collegeType = document.getElementById('predCollegeType').value;
+  const seatType = document.getElementById('predSeatType').value;
+  const quota = document.getElementById('predQuota').value;
+
+  const resultsArea = document.getElementById('predictionResultsArea');
+  document.getElementById('adminPredictorStats').style.display = 'none';
+  resultsArea.innerHTML = `
+    <div style="text-align:center; padding:64px; color:var(--ink-mute);">
+      <i class="fas fa-spinner fa-spin" style="font-size:36px; color:var(--rust); margin-bottom:16px;"></i>
+      <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">Calculating Admission Probabilities...</h4>
+      <p style="font-size:12px;">Querying SQLite cutoffs and matching rank bands...</p>
+    </div>
+  `;
+
+  try {
+    const query = new URLSearchParams({ rank, category, courseType, collegeType, seatType, quota }).toString();
+    const data = await apiJson(`/api/admin/predictor/predict?${query}`);
+
+    // Update Stats Cards
+    const stats = data.stats || { totalMatches: 0, highCount: 0, mediumCount: 0, lowCount: 0 };
+    document.getElementById('statTotalMatches').textContent = stats.totalMatches.toLocaleString();
+    document.getElementById('statHighMatches').textContent = stats.highCount.toLocaleString();
+    document.getElementById('statMediumMatches').textContent = stats.mediumCount.toLocaleString();
+    document.getElementById('statLowMatches').textContent = stats.lowCount.toLocaleString();
+    document.getElementById('adminPredictorStats').style.display = 'grid';
+
+    // Save results globally for client-side filtering
+    lastPredictionResults = data.results || [];
+
+    // Reset filters visual state
+    const dropdown = document.getElementById('predChance');
+    if (dropdown) dropdown.value = 'All';
+    document.querySelectorAll('.predictor-stat-card').forEach(c => c.classList.remove('active'));
+    document.querySelector('.predictor-stat-card.total')?.classList.add('active');
+
+    // Render results
+    renderPredictionResults(lastPredictionResults);
+  } catch (err) {
+    console.error('Prediction failed:', err);
+    resultsArea.innerHTML = `
+      <div style="text-align:center; padding:48px; border:1px solid rgba(239, 68, 68, 0.2); background:rgba(239, 68, 68, 0.02); color:#EF4444; border-radius:6px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:36px; margin-bottom:12px;"></i>
+        <h4 style="font-weight:600; margin-bottom:4px;">Calculation Error</h4>
+        <p style="font-size:12px;">${err.message || 'Make sure the SQLite cutoff database has records loaded.'}</p>
+      </div>
+    `;
+  }
+}
+
+function renderPredictionResults(results) {
+  const container = document.getElementById('predictionResultsArea');
+  container.innerHTML = '';
+
+  if (results.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:64px; color:var(--ink-mute); border:1px dashed var(--rule-strong); border-radius:10px; background:var(--paper);">
+        <i class="fas fa-info-circle" style="font-size:36px; margin-bottom:16px; color:var(--ink-mute); opacity:0.35;"></i>
+        <h4 style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:4px;">No Matching Colleges Found</h4>
+        <p style="font-size:11px;">Try adjusting your GMR rank, filters, or caste category to broaden results.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'result-cards-container';
+
+  results.forEach(row => {
+    const card = document.createElement('div');
+    card.className = 'college-result-card';
+
+    let typeLabel = '';
+    const ct = row.collegeType;
+    if (ct === 'University/University Department') {
+      typeLabel = '<span style="background:rgba(147,51,234,0.1); color:#A855F7; border:1px solid rgba(147,51,234,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">Univ / Dept</span>';
+    } else if (ct === 'State Government Engineering College') {
+      typeLabel = '<span style="background:rgba(30,144,255,0.1); color:#3090FF; border:1px solid rgba(30,144,255,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">State Govt Engg</span>';
+    } else if (ct === 'State Government Pharmacy College') {
+      typeLabel = '<span style="background:rgba(16,185,129,0.1); color:#10B981; border:1px solid rgba(16,185,129,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">Govt Pharmacy</span>';
+    } else if (ct === 'Central Government Engineering College') {
+      typeLabel = '<span style="background:rgba(236,72,153,0.1); color:#EC4899; border:1px solid rgba(236,72,153,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">Central Govt</span>';
+    } else if (ct === 'Private University') {
+      typeLabel = '<span style="background:rgba(245,158,11,0.1); color:#F59E0B; border:1px solid rgba(245,158,11,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">Private Univ</span>';
+    } else if (ct === 'Stand Alone Private Pharmacy College') {
+      typeLabel = '<span style="background:rgba(14,165,233,0.1); color:#0EA5E9; border:1px solid rgba(14,165,233,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">Private Pharmacy</span>';
+    } else {
+      typeLabel = '<span style="background:rgba(100,116,139,0.1); color:#64748B; border:1px solid rgba(100,116,139,0.2); font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700;">Private Engg</span>';
+    }
+
+    const chanceClass = String(row.chance).toLowerCase(); // 'high', 'medium', 'low'
+
+    card.innerHTML = `
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:12px;">
+          ${typeLabel}
+          <span class="chance-badge ${chanceClass}">${row.chance} Chance</span>
+        </div>
+        <h4 style="font-family:var(--font-display); font-size:14px; font-weight:700; color:var(--ink); line-height:1.4; margin-bottom:6px;">${row.institute}</h4>
+        <p style="font-size:12px; color:var(--rust); font-weight:600; margin-bottom:14px;"><i class="fas fa-code-branch" style="margin-right:6px;"></i>${row.program} <span style="color:var(--ink-mute); font-weight:400; margin-left:6px;">(${row.seatType} | ${row.quota})</span></p>
+      </div>
+      <div style="border-top:1px solid var(--rule); padding-top:12px; margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <div style="font-size:9px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">2025 Cutoff</div>
+          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${row.closingRank2025}</div>
+        </div>
+        <div>
+          <div style="font-size:9px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">2024 Cutoff</div>
+          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${row.closingRank2024}</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  container.appendChild(grid);
+}
+
+function filterPredictionsByChance(chance) {
+  // Sync dropdown selection if changed via card clicks
+  const dropdown = document.getElementById('predChance');
+  if (dropdown && dropdown.value !== chance) {
+    dropdown.value = chance;
+  }
+
+  // Manage active border indicators on cards
+  document.querySelectorAll('.predictor-stat-card').forEach(c => c.classList.remove('active'));
+  if (chance === 'All') {
+    document.querySelector('.predictor-stat-card.total')?.classList.add('active');
+  } else if (chance === 'High') {
+    document.querySelector('.predictor-stat-card.high')?.classList.add('active');
+  } else if (chance === 'Medium') {
+    document.querySelector('.predictor-stat-card.medium')?.classList.add('active');
+  } else if (chance === 'Low') {
+    document.querySelector('.predictor-stat-card.low')?.classList.add('active');
+  }
+
+  // Instantly filter prediction results locally
+  if (!lastPredictionResults || lastPredictionResults.length === 0) return;
+
+  if (chance === 'All') {
+    renderPredictionResults(lastPredictionResults);
+  } else {
+    const filtered = lastPredictionResults.filter(row => row.chance === chance);
+    renderPredictionResults(filtered);
+  }
+}
 
 auth.onAuthStateChanged(async (user) => {
   if (!user) {

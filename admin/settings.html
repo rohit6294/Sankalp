@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings — Admin | Sankalp Learning</title>
+  <title>Settings — Admin | Sankalp Aspirant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -67,7 +67,7 @@
         <div style="display:flex;flex-direction:column;gap:14px">
           <div>
             <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Platform Name</label>
-            <input type="text" class="input-field" value="Sankalp Learning" id="platformName">
+            <input type="text" class="input-field" value="Sankalp Aspirant" id="platformName">
           </div>
           <div>
             <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Tagline</label>
@@ -152,7 +152,7 @@
         <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Mandatory Profile Fields</h2>
         <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure which profile fields are required for students to access the portal</p>
         <div style="display:flex;flex-direction:column;gap:0">
-          
+
           <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
             <div><div style="font-size:14px;font-weight:600">Student Name</div><div style="font-size:12px;color:#475569">First and Last Name are required</div></div>
             <label class="toggle">
@@ -209,6 +209,14 @@
             </label>
           </div>
 
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div><div style="font-size:14px;font-weight:600">Home State Status</div><div style="font-size:12px;color:#475569">Home State (West Bengal Resident) status is required</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="m_homeState" onchange="saveMandatoryField('homeState', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
         </div>
       </div>
 
@@ -216,7 +224,7 @@
       <div class="glass-card p-6 setting-section">
         <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Email Automations (SMTP)</h2>
         <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure automated emails sent via sankalp.learning.edu@gmail.com</p>
-        
+
         <div style="margin-bottom: 20px;">
           <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Admin Email Addresses (comma separated)</label>
           <input type="text" id="adminEmail" class="input-field" placeholder="admin1@example.com, admin2@example.com" style="margin-bottom:4px;">
@@ -233,11 +241,49 @@
             <label class="toggle"><input type="checkbox" id="notifyStudentResetDec"><span class="toggle-slider"></span></label>
           </div>
         </div>
-        
+
         <div style="margin-top:16px; display:flex; gap:10px;">
           <button onclick="saveEmailAutomations()" class="btn-primary" style="padding:10px 22px;font-size:13px;background:var(--rust);color:white;border:none;border-radius:6px;"><i class="fas fa-save"></i> Save Automations</button>
           <button onclick="testEmailConfig()" class="btn-secondary" style="padding:10px 22px;font-size:13px;background:#e2e8f0;color:#0f172a;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-paper-plane"></i> Test Email</button>
         </div>
+      </div>
+
+      <!-- College Predictor Settings -->
+      <div class="glass-card p-6 setting-section">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">College Predictor Settings</h2>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Configure visibility and payment verification for the WBJEE College Predictor tool</p>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div>
+            <div style="font-size:14px;font-weight:600">Enable College Predictor Feature</div>
+            <div style="font-size:12px;color:#475569">Allow students to view and access the predictor tool</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="predFeatureToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div>
+            <div style="font-size:14px;font-weight:600">Enable Paywall</div>
+            <div style="font-size:12px;color:#475569">Require payment to access the predictor tool</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="predPaywallToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="margin-top: 18px; margin-bottom: 18px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Unlock Price (INR)</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;font-size:14px;font-weight:700;">₹</span>
+            <input type="number" id="predPaywallPrice" class="input-field" placeholder="299" min="1" style="padding-left:32px;">
+          </div>
+        </div>
+
+        <button onclick="savePredictorSettings()" id="savePredictorSettingsBtn" class="btn-primary" style="padding:10px 22px;font-size:13px;background:var(--rust);color:white;border:none;border-radius:6px;"><i class="fas fa-save"></i> Save Predictor Settings</button>
       </div>
 
     </div>
@@ -247,7 +293,7 @@
       <div class="glass-card p-6 mb-6" style="background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(124,58,237,0.08))">
         <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">System Info</h3>
         <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
-          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Platform</span><span style="font-weight:600">Sankalp Learning</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Platform</span><span style="font-weight:600">Sankalp Aspirant</span></div>
           <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Firebase Project</span><span style="font-weight:600;font-size:11px">sankalp-learning-5442f</span></div>
           <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Database</span><span style="font-weight:600">Firestore</span></div>
           <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Auth</span><span style="font-weight:600">Firebase Auth</span></div>
@@ -277,6 +323,41 @@
 </main>
 
 <script>
+  const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+  let currentUser = null;
+  let currentToken = null;
+
+  async function apiFetch(path, options = {}) {
+    if (!currentUser) throw new Error('Not authenticated');
+    const token = currentToken || await currentUser.getIdToken();
+    currentToken = token;
+    const headers = { Authorization: `Bearer ${token}`, ...options.headers };
+    if (options.body !== undefined && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    let response = await fetch(`${EVALUATOR_API}${path}`, { ...options, headers });
+    if (response.status === 401) {
+      currentToken = await currentUser.getIdToken(true);
+      response = await fetch(`${EVALUATOR_API}${path}`, {
+        ...options,
+        headers: { ...headers, Authorization: `Bearer ${currentToken}` },
+      });
+    }
+    return response;
+  }
+
+  async function apiJson(path, options = {}) {
+    const response = await apiFetch(path, options);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload.message || payload.error || `HTTP ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+    return payload;
+  }
+
   function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
   function logout(){auth.signOut()}
 
@@ -316,6 +397,7 @@
         document.getElementById('m_caste').checked = !!data.caste;
         document.getElementById('m_wbjeeYear').checked = !!data.wbjeeYear;
         document.getElementById('m_tfw').checked = !!data.tfw;
+        document.getElementById('m_homeState').checked = !!data.homeState;
       }
     } catch(err) {
       console.error("Error loading mandatory fields: ", err);
@@ -326,7 +408,7 @@
     try {
       await apiJson('/api/admin/settings/mandatory-fields', {
         method: 'PUT',
-        body: { [field]: val }
+        body: JSON.stringify({ [field]: val })
       });
       toast(`Mandatory field "${field}" ${val ? 'enabled' : 'disabled'}!`);
     } catch(err) {
@@ -378,10 +460,63 @@
     }
   }
 
+  async function loadPredictorSettings() {
+    try {
+      const res = await apiJson('/api/admin/predictor/settings');
+      applyPredictorSettings(res.settings);
+    } catch (err) {
+      console.error('Failed to load predictor settings:', err);
+    }
+  }
+
+  function applyPredictorSettings(settings = {}) {
+    document.getElementById('predFeatureToggle').checked = settings.enabled !== false;
+    document.getElementById('predPaywallToggle').checked = settings.requiresPayment === true;
+    document.getElementById('predPaywallPrice').value = settings.price !== undefined ? settings.price : 299;
+  }
+
+  async function savePredictorSettings() {
+    const enabled = document.getElementById('predFeatureToggle').checked;
+    const requiresPayment = document.getElementById('predPaywallToggle').checked;
+    const price = document.getElementById('predPaywallPrice').value.trim();
+    const button = document.getElementById('savePredictorSettingsBtn');
+
+    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+      toast('Please enter a valid positive price.', 'error');
+      return;
+    }
+
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+      const saved = await apiJson('/api/admin/predictor/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          enabled,
+          requiresPayment,
+          price: Number(price)
+        })
+      });
+      applyPredictorSettings(saved.settings);
+      const verified = await apiJson('/api/admin/predictor/settings');
+      applyPredictorSettings(verified.settings);
+      toast('Predictor settings saved successfully!');
+    } catch (err) {
+      toast(`Error saving settings: ${err.message}`, 'error');
+    } finally {
+      button.disabled = false;
+      button.innerHTML = '<i class="fas fa-save"></i> Save Predictor Settings';
+    }
+  }
+
   auth.onAuthStateChanged(user=>{
     if(!user) { window.location.href='../login.html'; return; }
+    currentUser = user;
+    currentToken = null;
     loadMandatoryFields();
     loadEmailAutomations();
+    loadPredictorSettings();
   });
 </script>
 </body>

@@ -5,6 +5,7 @@ const { missingAnswerNumbers } = require('../exam-readiness');
 const { scoreSubmission, round2 } = require('../scoring/calculate');
 const { defaultRankRows, predictRank } = require('../scoring/ranking');
 const { sendEmail } = require('../mailer');
+const rankRouter = require('./rank');
 
 const router = express.Router();
 
@@ -120,6 +121,11 @@ router.post('/', verifyToken, async (req, res) => {
       locked: true,
     };
     await subRef.create(payload);
+
+    // Bust the community rank cache for this exam so subsequent rank views reflect the new submission immediately
+    if (rankRouter && typeof rankRouter.bustExamTotalsCache === 'function') {
+      rankRouter.bustExamTotalsCache(examId);
+    }
 
     // Send Exam Submission Receipt Email
     if (userData.email) {

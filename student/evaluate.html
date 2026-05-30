@@ -70,6 +70,7 @@
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
     <a href="evaluate.html" class="sidebar-link active"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
     <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
@@ -271,7 +272,7 @@
 
 <script>
 // ===== Config =====
-const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
+const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
 const COUNTS = { math: 75, physics: 40, chemistry: 40 };
 const START = { math: 1, physics: 1, chemistry: 41 };
 const END = { math: 75, physics: 40, chemistry: 80 };

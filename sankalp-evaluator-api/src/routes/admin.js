@@ -8,6 +8,38 @@ const { defaultRankRows, predictRank } = require('../scoring/ranking');
 
 const router = express.Router();
 const { sendEmail } = require('../mailer');
+const { bustSettingsCache } = require('./predictor');
+
+let _usersCache = null;
+let _usersCacheAt = 0;
+const USERS_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+
+async function getCachedUsersMap() {
+  const now = Date.now();
+  if (_usersCache && (now - _usersCacheAt) < USERS_CACHE_TTL_MS) {
+    return _usersCache;
+  }
+
+  const userSnap = await db.collection('users').get();
+  const usersMap = {};
+  userSnap.forEach((doc) => {
+    const data = doc.data() || {};
+    const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
+    usersMap[doc.id] = {
+      name: fullName,
+      email: data.email || '—',
+      phone: data.phone || '—',
+      gender: data.gender || '—',
+      caste: data.caste || '—',
+      tfw: data.tfw || '—',
+      wbjeeYear: data.wbjeeYear || '—',
+    };
+  });
+
+  _usersCache = usersMap;
+  _usersCacheAt = now;
+  return _usersCache;
+}
 
 const VALID_PAPERS = new Set(['math', 'physChem']);
 const VALID_SETS = new Set(['A', 'B', 'C', 'D']);
@@ -375,21 +407,34 @@ router.get('/submissions', async (req, res) => {
       });
     });
 
-    const userSnap = await db.collection('users').get();
-    const usersMap = {};
-    userSnap.forEach((doc) => {
-      const data = doc.data() || {};
-      const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
-      usersMap[doc.id] = {
-        name: fullName,
-        email: data.email || '—',
-        phone: data.phone || '—',
-        gender: data.gender || '—',
-        caste: data.caste || '—',
-        tfw: data.tfw || '—',
-        wbjeeYear: data.wbjeeYear || '—',
-      };
-    });
+    const baseUsersMap = await getCachedUsersMap();
+    const usersMap = { ...baseUsersMap };
+
+    for (const sub of submissions) {
+      if (sub.userId && !usersMap[sub.userId]) {
+        try {
+          const singleUserDoc = await db.collection('users').doc(sub.userId).get();
+          if (singleUserDoc.exists) {
+            const data = singleUserDoc.data() || {};
+            const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
+            usersMap[sub.userId] = {
+              name: fullName,
+              email: data.email || '—',
+              phone: data.phone || '—',
+              gender: data.gender || '—',
+              caste: data.caste || '—',
+              tfw: data.tfw || '—',
+              wbjeeYear: data.wbjeeYear || '—',
+            };
+            if (_usersCache) {
+              _usersCache[sub.userId] = usersMap[sub.userId];
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to fetch individual user ${sub.userId}:`, err);
+        }
+      }
+    }
 
     const reqSnap = await db.collection('resetRequests').where('status', '==', 'pending').get();
     const pendingResets = {};
@@ -453,9 +498,57 @@ router.put('/settings/mandatory-fields', async (req, res) => {
   const payload = ensurePlainObject(req.body);
   try {
     await db.collection('settings').doc('mandatory_fields').set(payload, { merge: true });
+    
+    // Clear the in-memory predictor settings cache so admin changes
+    // take effect immediately instead of waiting for the 60-second TTL.
+    bustSettingsCache();
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'settings_save_failed', message: e.message });
+  }
+});
+
+// Fetch college predictor settings
+router.get('/predictor/settings', async (req, res) => {
+  try {
+    const doc = await db.collection('settings').doc('college_predictor').get();
+    res.json({ settings: doc.exists ? doc.data() : {} });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_load_failed', message: e.message });
+  }
+});
+
+// Update college predictor settings
+router.put('/predictor/settings', async (req, res) => {
+  const payload = ensurePlainObject(req.body);
+  try {
+    await db.collection('settings').doc('college_predictor').set(payload, { merge: true });
+    
+    // Clear the in-memory predictor settings cache so student requests
+    // see the update immediately
+    bustSettingsCache();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'settings_save_failed', message: e.message });
+  }
+});
+
+// Fetch all transactions/purchases
+router.get('/payments/purchases', async (req, res) => {
+  try {
+    const snap = await db.collection('purchases').orderBy('purchasedAt', 'desc').get();
+    const purchases = [];
+    snap.forEach(doc => {
+      const data = doc.data() || {};
+      purchases.push({
+        id: doc.id,
+        ...data,
+        purchasedAt: normalizeTimestamp(data.purchasedAt),
+      });
+    });
+    res.json({ ok: true, purchases });
+  } catch (e) {
+    res.status(500).json({ error: 'purchases_load_failed', message: e.message });
   }
 });
 

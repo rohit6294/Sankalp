@@ -402,7 +402,7 @@ async function saveAnnouncement(e){
       if (document.getElementById('annEmail').checked) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Emails…';
         const token = await currentUser.getIdToken();
-        const EVALUATOR_API = window.EVALUATOR_API || 'http://localhost:3000';
+        const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
         const res = await fetch(`${EVALUATOR_API}/api/admin/broadcast-announcement`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payments — Admin | Sankalp Learning</title>
+  <title>Payments — Admin | Sankalp Aspirant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -62,27 +62,27 @@
     <a href="settings.html" class="btn-gold" style="padding:11px 22px;font-size:13px;white-space:nowrap"><i class="fas fa-cog"></i> Configure Now</a>
   </div>
 
-  <!-- Revenue Stats (placeholders) -->
+  <!-- Revenue Stats -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px">
     <div class="glass-card p-5" style="background:rgba(79,70,229,0.1);border-color:rgba(79,70,229,0.25)">
       <div style="font-size:12px;color:#818CF8;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Total Revenue</div>
-      <div style="font-size:28px;font-weight:900;color:#475569">₹ —</div>
-      <div style="font-size:12px;color:#334155;margin-top:4px">Awaiting integration</div>
+      <div style="font-size:28px;font-weight:900;color:white" id="statTotalRevenue">₹0</div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px">All-time sales</div>
     </div>
     <div class="glass-card p-5" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2)">
       <div style="font-size:12px;color:#34D399;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">This Month</div>
-      <div style="font-size:28px;font-weight:900;color:#475569">₹ —</div>
-      <div style="font-size:12px;color:#334155;margin-top:4px">Awaiting integration</div>
+      <div style="font-size:28px;font-weight:900;color:white" id="statMonthRevenue">₹0</div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px">Current month sales</div>
     </div>
     <div class="glass-card p-5" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2)">
       <div style="font-size:12px;color:#FCD34D;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Premium Users</div>
-      <div style="font-size:28px;font-weight:900;color:#475569">—</div>
-      <div style="font-size:12px;color:#334155;margin-top:4px">Awaiting integration</div>
+      <div style="font-size:28px;font-weight:900;color:white" id="statPremiumCount">0</div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px">Unique paid students</div>
     </div>
     <div class="glass-card p-5" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2)">
       <div style="font-size:12px;color:#F87171;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Refunds</div>
-      <div style="font-size:28px;font-weight:900;color:#475569">₹ —</div>
-      <div style="font-size:12px;color:#334155;margin-top:4px">Awaiting integration</div>
+      <div style="font-size:28px;font-weight:900;color:white" id="statRefunds">₹0</div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px">Processed refunds</div>
     </div>
   </div>
 
@@ -126,16 +126,33 @@
         </div>
       </div>
 
-      <!-- Transaction Table (placeholder) -->
+      <!-- Transaction Table -->
       <div class="glass-card" style="overflow:hidden">
         <div style="padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(15,23,42,0.5);display:flex;align-items:center;justify-content:space-between">
           <h2 style="font-size:15px;font-weight:700">Recent Transactions</h2>
-          <span class="badge badge-warning">Coming Soon</span>
+          <span class="badge badge-success" id="transBadge">Active</span>
         </div>
-        <div style="padding:48px;text-align:center;color:#334155">
-          <div style="font-size:48px;margin-bottom:16px;opacity:0.3">💳</div>
-          <p style="font-size:14px;font-weight:600;margin-bottom:6px">Payment integration pending</p>
-          <p style="font-size:13px">Once Razorpay is configured, all transactions will appear here with student name, plan, amount, and date.</p>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
+            <thead>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.01);">
+                <th style="padding:14px 20px; color:#64748B; font-weight:600;">Student Name</th>
+                <th style="padding:14px 20px; color:#64748B; font-weight:600;">Email</th>
+                <th style="padding:14px 20px; color:#64748B; font-weight:600;">Payment ID</th>
+                <th style="padding:14px 20px; color:#64748B; font-weight:600;">Product</th>
+                <th style="padding:14px 20px; color:#64748B; font-weight:600; text-align:right;">Amount</th>
+                <th style="padding:14px 20px; color:#64748B; font-weight:600; text-align:right;">Date</th>
+              </tr>
+            </thead>
+            <tbody id="transactionRows">
+              <tr>
+                <td colspan="6" style="padding:48px; text-align:center; color:#334155;">
+                  <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:8px; display:block; color:#4F46E5;"></i>
+                  Loading transactions...
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -191,6 +208,41 @@
 </main>
 
 <script>
+  const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+  let currentUser = null;
+  let currentToken = null;
+
+  async function apiFetch(path, options = {}) {
+    if (!currentUser) throw new Error('Not authenticated');
+    const token = currentToken || await currentUser.getIdToken();
+    currentToken = token;
+    const headers = { Authorization: `Bearer ${token}`, ...options.headers };
+    if (options.body !== undefined && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    let response = await fetch(`${EVALUATOR_API}${path}`, { ...options, headers });
+    if (response.status === 401) {
+      currentToken = await currentUser.getIdToken(true);
+      response = await fetch(`${EVALUATOR_API}${path}`, {
+        ...options,
+        headers: { ...headers, Authorization: `Bearer ${currentToken}` },
+      });
+    }
+    return response;
+  }
+
+  async function apiJson(path, options = {}) {
+    const response = await apiFetch(path, options);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload.message || payload.error || `HTTP ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+    return payload;
+  }
+
   function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
   function logout(){auth.signOut()}
 
@@ -198,7 +250,86 @@
     document.querySelector('[style*="grid-template-columns:1fr 360px"]').style.gridTemplateColumns='1fr';
   }
 
-  auth.onAuthStateChanged(user=>{if(!user)window.location.href='../login.html'});
+  async function loadTransactions() {
+    try {
+      const res = await apiJson('/api/admin/payments/purchases');
+      const purchases = res.purchases || [];
+
+      let totalRevenue = 0;
+      let monthRevenue = 0;
+      const premiumUsers = new Set();
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+
+      const tbody = document.getElementById('transactionRows');
+
+      if (purchases.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="padding:48px; text-align:center; color:#64748B;">
+              <i class="fas fa-info-circle" style="font-size:28px; margin-bottom:8px; display:block; opacity:0.5;"></i>
+              No payments collected yet.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      purchases.forEach(p => {
+        totalRevenue += p.amount;
+        const pDate = new Date(p.purchasedAt);
+        if (pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear) {
+          monthRevenue += p.amount;
+        }
+        if (p.status === 'success' && p.userId) {
+          premiumUsers.add(p.userId);
+        }
+
+        const dateStr = pDate.toLocaleDateString(undefined, {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:14px 20px; font-weight:600; color:white;">${p.name}</td>
+          <td style="padding:14px 20px; color:#94A3B8;">${p.email}</td>
+          <td style="padding:14px 20px; font-family:monospace; color:#818CF8; font-size:12px;">${p.paymentId}</td>
+          <td style="padding:14px 20px; color:#E2E8F0;"><span class="badge badge-primary" style="font-size:10px; padding:2px 8px;">College Predictor</span></td>
+          <td style="padding:14px 20px; text-align:right; font-weight:700; color:#34D399;">₹${p.amount}</td>
+          <td style="padding:14px 20px; text-align:right; color:#64748B;">${dateStr}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update metrics
+      document.getElementById('statTotalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+      document.getElementById('statMonthRevenue').textContent = `₹${monthRevenue.toLocaleString()}`;
+      document.getElementById('statPremiumCount').textContent = premiumUsers.size;
+
+    } catch (err) {
+      console.error('Failed to load transaction data:', err);
+      const tbody = document.getElementById('transactionRows');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding:48px; text-align:center; color:#EF4444;">
+            <i class="fas fa-exclamation-triangle" style="font-size:28px; margin-bottom:8px; display:block;"></i>
+            Failed to load transaction data: ${err.message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if(!user) { window.location.href='../login.html'; return; }
+    currentUser = user;
+    currentToken = null;
+    await loadTransactions();
+  });
 </script>
 </body>
 </html>

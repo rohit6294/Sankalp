@@ -4,6 +4,33 @@ const { verifyToken } = require('../auth');
 
 const router = express.Router();
 
+// Server-side cache for exam scores list (60-second TTL)
+const totalsCache = {}; // { examId: { totals: [...], cachedAt: timestamp } }
+const CACHE_TTL_MS = 60000; // 60 seconds
+
+async function getCachedExamTotals(examId) {
+  const now = Date.now();
+  if (totalsCache[examId] && (now - totalsCache[examId].cachedAt) < CACHE_TTL_MS) {
+    return totalsCache[examId].totals;
+  }
+
+  const allSnap = await db.collection('submissions').where('examId', '==', examId).get();
+  const totals = allSnap.docs.map(doc => {
+    const s = doc.data().scores || {};
+    return s.total ?? s.engineering ?? 0;
+  });
+
+  totalsCache[examId] = {
+    totals,
+    cachedAt: now
+  };
+  return totals;
+}
+
+function bustExamTotalsCache(examId) {
+  delete totalsCache[examId];
+}
+
 router.get('/:examId', verifyToken, async (req, res) => {
   const uid = req.user.uid;
   const { examId } = req.params;
@@ -12,13 +39,8 @@ router.get('/:examId', verifyToken, async (req, res) => {
     if (!mine.exists) return res.status(404).json({ error: 'no_submission' });
     const myTotal = mine.data().scores?.total ?? mine.data().scores?.engineering ?? 0;
 
-    // Fetch all submissions for this exam and compute rank in JS
-    // (avoids Firestore composite index requirement for count + inequality on nested field)
-    const allSnap = await db.collection('submissions').where('examId', '==', examId).get();
-    const totals = allSnap.docs.map(doc => {
-      const s = doc.data().scores || {};
-      return s.total ?? s.engineering ?? 0;
-    });
+    // Retrieve from 60-second cache instead of hitting Firestore collection scans every time
+    const totals = await getCachedExamTotals(examId);
 
     const higher = totals.filter(t => t > myTotal).length;
     const total  = totals.length;
@@ -33,4 +55,5 @@ router.get('/:examId', verifyToken, async (req, res) => {
   }
 });
 
+router.bustExamTotalsCache = bustExamTotalsCache;
 module.exports = router;

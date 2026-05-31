@@ -101,13 +101,60 @@ router.post('/', async (req, res) => {
       },
     });
   } catch (err) {
+    if (err.code === 'auth/email-already-exists') {
+      try {
+        const existingUser = await admin.auth().getUserByEmail(email);
+        
+        // Update user display name and password in Firebase Auth
+        await admin.auth().updateUser(existingUser.uid, {
+          displayName: name,
+          password: password,
+        });
+
+        // Set sub-admin custom claims
+        await setSubAdminClaims(existingUser.uid, permissions);
+
+        const userRef = db.collection('users').doc(existingUser.uid);
+        const snap = await userRef.get();
+        
+        const payload = {
+          name,
+          email,
+          role: 'admin',
+          isSubAdmin: true,
+          permissions,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (!snap.exists) {
+          payload.createdAt = admin.firestore.FieldValue.serverTimestamp();
+          await userRef.set(payload);
+        } else {
+          await userRef.update(payload);
+        }
+
+        return res.status(201).json({
+          ok: true,
+          message: 'Existing account promoted to sub-admin successfully.',
+          admin: {
+            id: existingUser.uid,
+            ...payload,
+            createdAt: snap.exists && snap.data().createdAt ? (snap.data().createdAt.toMillis && typeof snap.data().createdAt.toMillis === 'function' ? snap.data().createdAt.toMillis() : Date.now()) : Date.now(),
+            updatedAt: Date.now(),
+          },
+        });
+      } catch (promoErr) {
+        console.error('Failed to promote existing user to sub-admin:', promoErr);
+        return res.status(500).json({ error: 'promotion_failed', message: promoErr.message });
+      }
+    }
+
     if (userRecord?.uid) {
       await admin.auth().deleteUser(userRecord.uid).catch(() => {});
     }
 
     console.error('Failed to create sub-admin:', err);
-    const status = err.code === 'auth/email-already-exists' ? 409 : 500;
-    res.status(status).json({ error: 'creation_failed', message: err.message });
+    res.status(500).json({ error: 'creation_failed', message: err.message });
   }
 });
 

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WBJEE Marks Calculator 2026 — Calculate Your Exact Scores | Sankalp</title>
+  <meta name="description" content="Calculate your exact WBJEE marks instantly with our free marks calculator. Supports Category 1, 2, and Category 3 partial marks logic for Physics, Chemistry, and Math.">
+  <meta name="keywords" content="wbjee marks calculator, wbjee score calculator, calculate wbjee marks, wbjee response sheet evaluator, wbjee marks vs rank">
+  <meta name="author" content="Sankalp WBJEE">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sankalp-learning-5442f.web.app/wbjee-marks-calculator.html">
+  <meta property="og:title" content="WBJEE Marks Calculator 2026 — Calculate Your Exact Scores | Sankalp">
+  <meta property="og:description" content="Calculate your exact WBJEE marks based on Category 1, 2, and 3 scoring rules. Dynamic, offline marks calculator for serious aspirants.">
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .calculator-container {
+      border: 1px solid var(--ink);
+      background: var(--paper-soft);
+      padding: 32px;
+      margin-bottom: 48px;
+    }
+    .mode-tab-bar {
+      display: inline-flex;
+      border: 1px solid var(--ink);
+      margin-bottom: 28px;
+    }
+    .mode-tab {
+      padding: 12px 24px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .mode-tab.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      border: 1px solid var(--rule-strong);
+      padding: 24px;
+      background: var(--paper);
+      margin-bottom: 24px;
+    }
+    @media (max-width: 768px) {
+      .input-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .input-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .input-col h3 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+      border-bottom: 1px solid var(--rule-strong);
+      padding-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .input-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .input-field-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+    .input-field-group input {
+      padding: 10px;
+      border: 1px solid #CBD5E1;
+      background: var(--paper-deep);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink);
+      outline: none;
+    }
+    .input-field-group input:focus {
+      border-color: var(--rust);
+    }
+    .results-panel {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 28px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    @media (max-width: 640px) {
+      .results-panel {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .results-panel .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .results-panel .metric .val {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 900;
+    }
+    .results-panel .metric .lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.7;
+    }
+    .detailed-sheet-row {
+      display: grid;
+      grid-template-columns: 80px repeat(3, 1fr);
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--rule);
+      align-items: center;
+    }
+    .detailed-sheet-row:hover {
+      background: var(--paper-deep);
+    }
+    .detailed-sheet-row .q-lbl {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-mute);
+    }
+    .sheet-btn {
+      padding: 8px 12px;
+      border: 1px solid var(--rule-strong);
+      background: var(--paper);
+      color: var(--ink-mute);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+      transition: all 0.1s ease;
+    }
+    .sheet-btn.correct.active {
+      background: var(--forest);
+      color: var(--paper);
+      border-color: var(--forest);
+    }
+    .sheet-btn.incorrect.active {
+      background: var(--danger);
+      color: var(--paper);
+      border-color: var(--danger);
+    }
+    .sheet-btn.skipped.active {
+      background: #64748B;
+      color: var(--paper);
+      border-color: #64748B;
+    }
+    .cat-badge {
+      background: var(--paper-deep);
+      border: 1px solid var(--ink);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 10px 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .articles-section {
+      padding: 48px 0;
+      border-top: 1px solid var(--ink);
+    }
+    .article-card {
+      margin-bottom: 36px;
+    }
+    .article-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+    .article-card p {
+      color: var(--ink-soft);
+      line-height: 1.7;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+    .seo-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      border: 1px solid var(--ink);
+    }
+    .seo-table th, .seo-table td {
+      border: 1px solid var(--rule-strong);
+      padding: 12px 16px;
+      font-size: 14px;
+      text-align: left;
+    }
+    .seo-table th {
+      background: var(--ink);
+      color: var(--paper);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .seo-table tr:nth-child(even) {
+      background: var(--paper-deep);
+    }
+  </style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-inner">
+    <span>Volume 1 · Edition 1</span>
+    <span class="hide-mobile">· WBJEE 2026 Score Evaluation ·</span>
+    <span>Sankalp WBJEE</span>
+    <span class="hide-mobile">· Free &amp; Offline Verified ·</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="wbjee-marks-calculator.html" class="nav-link active">Marks Calculator</a>
+      <a href="wbjee-college-predictor.html" class="nav-link">College Predictor</a>
+      <a href="pricing.html" class="nav-link">Pricing</a>
+      <a href="login.html" class="nav-link">Sign In</a>
+    </div>
+    <a href="register.html" class="btn-ink btn-sm">Join Sankalp</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="section" style="padding-top: 64px; padding-bottom: 32px;">
+  <div class="container">
+    <div class="section-label" style="margin-bottom: 20px;">— Tool &amp; Evaluation</div>
+    <h1 class="display-hero" style="margin-bottom: 20px;">
+      WBJEE Marks <span class="italic-accent">Calculator.</span><br>
+      <span class="rust-accent">Instant. Accurate.</span>
+    </h1>
+    <p class="lede" style="max-width: 60ch;">
+      Calculate your exact WBJEE marks using official category structures. Toggle between the super-fast **Quick Mode** or audit subject booklet sets dynamically in **Detailed Sheet Mode**.
+    </p>
+  </div>
+</section>
+
+<!-- MAIN CALCULATOR INTERFACE -->
+<section style="padding-bottom: 64px;">
+  <div class="container">
+    <div class="calculator-container">
+      
+      <!-- Toggle bar -->
+      <div class="mode-tab-bar">
+        <button class="mode-tab active" onclick="switchMode('quick', this)">Quick Mode (Count)</button>
+        <button class="mode-tab" onclick="switchMode('detailed', this)">Detailed Mode (Sheet)</button>
+      </div>
+
+      <!-- 1. QUICK MODE CONTENT -->
+      <div id="quickModeView">
+        <div class="input-grid">
+          
+          <!-- MATHEMATICS -->
+          <div class="input-col">
+            <h3>📐 Mathematics</h3>
+            <div class="input-field-group">
+              <label>Cat 1 Correct (1 to 50)</label>
+              <input type="number" id="mC1" value="0" min="0" max="50" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 1 Incorrect</label>
+              <input type="number" id="mW1" value="0" min="0" max="50" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 2 Correct (51 to 65)</label>
+              <input type="number" id="mC2" value="0" min="0" max="15" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 2 Incorrect</label>
+              <input type="number" id="mW2" value="0" min="0" max="15" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 3 All Correct Marked (66 to 75)</label>
+              <input type="number" id="mC3" value="0" min="0" max="10" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 3 Total Partial Marks Score</label>
+              <input type="number" id="mP3" value="0" step="0.1" placeholder="e.g. 3.5" oninput="calcQuick()">
+            </div>
+          </div>
+
+          <!-- PHYSICS -->
+          <div class="input-col">
+            <h3>⚡ Physics</h3>
+            <div class="input-field-group">
+              <label>Cat 1 Correct (1 to 30)</label>
+              <input type="number" id="pC1" value="0" min="0" max="30" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 1 Incorrect</label>
+              <input type="number" id="pW1" value="0" min="0" max="30" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 2 Correct (31 to 35)</label>
+              <input type="number" id="pC2" value="0" min="0" max="5" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 2 Incorrect</label>
+              <input type="number" id="pW2" value="0" min="0" max="5" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 3 All Correct Marked (36 to 40)</label>
+              <input type="number" id="pC3" value="0" min="0" max="5" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 3 Total Partial Marks Score</label>
+              <input type="number" id="pP3" value="0" step="0.1" placeholder="e.g. 1.2" oninput="calcQuick()">
+            </div>
+          </div>
+
+          <!-- CHEMISTRY -->
+          <div class="input-col">
+            <h3>🧪 Chemistry</h3>
+            <div class="input-field-group">
+              <label>Cat 1 Correct (41 to 70)</label>
+              <input type="number" id="cC1" value="0" min="0" max="30" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 1 Incorrect</label>
+              <input type="number" id="cW1" value="0" min="0" max="30" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 2 Correct (71 to 75)</label>
+              <input type="number" id="cC2" value="0" min="0" max="5" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 2 Incorrect</label>
+              <input type="number" id="cW2" value="0" min="0" max="5" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 3 All Correct Marked (76 to 80)</label>
+              <input type="number" id="cC3" value="0" min="0" max="5" oninput="calcQuick()">
+            </div>
+            <div class="input-field-group">
+              <label>Cat 3 Total Partial Marks Score</label>
+              <input type="number" id="cP3" value="0" step="0.1" placeholder="e.g. 1.8" oninput="calcQuick()">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 2. DETAILED SHEET MODE CONTENT -->
+      <div id="detailedModeView" style="display:none;">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div class="eyebrow" style="color: var(--ink);">Interactive Audit Grid</div>
+          <button class="btn-ink btn-sm" onclick="resetDetailed()" style="background:var(--paper-deep); color:var(--ink); border:1px dashed var(--ink);"><i class="fas fa-rotate-right"></i> Reset Grid</button>
+        </div>
+        <div style="display:flex; border:1px solid var(--ink); margin-bottom: 24px;">
+          <button id="detTabMath" onclick="setDetTab('math')" style="flex:1; padding:12px; border:none; font-family:var(--font-sans); font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; background:var(--ink); color:var(--paper);">Mathematics</button>
+          <button id="detTabPhys" onclick="setDetTab('physics')" style="flex:1; padding:12px; border:none; font-family:var(--font-sans); font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; background:var(--paper-deep); color:var(--ink);">Physics</button>
+          <button id="detTabChem" onclick="setDetTab('chemistry')" style="flex:1; padding:12px; border:none; font-family:var(--font-sans); font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; background:var(--paper-deep); color:var(--ink);">Chemistry</button>
+        </div>
+        <div id="detailedSheetContainer" style="max-height:400px; overflow-y:scroll; border:1px solid var(--rule-strong); background:var(--paper); padding:0; margin-bottom:24px;">
+          <!-- JS generated rows -->
+        </div>
+      </div>
+
+      <!-- RESULTS PANEL -->
+      <div class="results-panel">
+        <div class="metric">
+          <div class="val" id="rMath">0.00</div>
+          <div class="lbl">Math Score</div>
+        </div>
+        <div class="metric">
+          <div class="val" id="rPhys">0.00</div>
+          <div class="lbl">Physics Score</div>
+        </div>
+        <div class="metric">
+          <div class="val" id="rChem">0.00</div>
+          <div class="lbl">Chem Score</div>
+        </div>
+        <div class="metric" style="border-left:1px dashed rgba(234,219,192,0.25);">
+          <div class="val" id="rTotal" style="color:var(--forest);">0.00</div>
+          <div class="lbl" style="color:var(--forest);">Total Score</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SEO ARTICLES SECTION -->
+<section class="section" style="background:var(--paper-soft); border-top:1px solid var(--ink);">
+  <div class="container-narrow">
+    
+    <div class="article-card">
+      <h2>How the WBJEE Marks Calculator Works</h2>
+      <p>
+        The West Bengal Joint Entrance Examination (WBJEE) is renowned for its highly technical three-tier scoring structure. Standard entrance tests rely on a single uniform negative marking system, but WBJEE divides its scoring architecture into three distinct categories across Mathematics, Physics, and Chemistry.
+      </p>
+      <p>
+        Here is the breakdown of Category rules that our calculator evaluates programmatically:
+      </p>
+      <ul style="margin-left: 24px; margin-bottom: 24px; color: var(--ink-soft); line-height: 1.7; display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+        <li><strong>Category 1</strong>: Correct choices receive <strong>+1 mark</strong>. Each incorrect choice incurs a penalty of <strong>-0.25 marks</strong>. Skipped questions award 0.</li>
+        <li><strong>Category 2</strong>: Correct choices receive <strong>+2 marks</strong>. Each incorrect choice incurs a penalty of <strong>-0.5 marks</strong>. Skipped questions award 0.</li>
+        <li><strong>Category 3 (Multiple-Choice Select)</strong>: Programmatically challenging. Questions feature one or more correct options. Marking all correct options awards <strong>+2 marks</strong>. If you mark any incorrect option, your score for that question is strictly <strong>0</strong>. However, if you mark a subset of correct options without marking any incorrect ones, you receive partial credit:
+          <div style="font-family: var(--font-mono); font-size: 13px; background: var(--paper-deep); padding: 12px; border-left: 3px solid var(--rust); margin: 8px 0; color: var(--ink);">
+            Partial Score = 2 × (Number of Correct Options Marked / Total Actual Correct Options)
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="article-card">
+      <h2>Expected WBJEE Marks vs GMR Rank 2026</h2>
+      <p>
+        Getting to know your calculated score is only half the battle. Your score translates to a General Merit Rank (GMR) which determines which engineering college and branch you get admitted to in West Bengal. 
+      </p>
+      <p>
+        Based on multiple years of historical WBJEE cutoff data compiled inside our database, here is the expected **Marks vs GMR Rank** index:
+      </p>
+      <table class="seo-table">
+        <thead>
+          <tr>
+            <th>Calculated Marks</th>
+            <th>Expected GMR Rank</th>
+            <th>Target Institutions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>135+ Marks</strong></td>
+            <td>Top 50</td>
+            <td>Jadavpur University CSE, IT, ECE</td>
+          </tr>
+          <tr>
+            <td><strong>115 - 134 Marks</strong></td>
+            <td>51 - 250</td>
+            <td>Jadavpur University Core, Calcutta University CSE</td>
+          </tr>
+          <tr>
+            <td><strong>95 - 114 Marks</strong></td>
+            <td>251 - 650</td>
+            <td>Kalyani Govt, JGEC, Heritage CSE</td>
+          </tr>
+          <tr>
+            <td><strong>80 - 94 Marks</strong></td>
+            <td>651 - 1,200</td>
+            <td>IEM CSE, Heritage IT, Techno Main Salt Lake</td>
+          </tr>
+          <tr>
+            <td><strong>65 - 79 Marks</strong></td>
+            <td>1,201 - 3,000</td>
+            <td>Haldia Institute of Technology, Netaji Subhash CSE</td>
+          </tr>
+          <tr>
+            <td><strong>50 - 64 Marks</strong></td>
+            <td>3,001 - 7,500</td>
+            <td>AOT, RCCIIT, Future Institute Core</td>
+          </tr>
+          <tr>
+            <td><strong>35 - 49 Marks</strong></td>
+            <td>7,501 - 18,000</td>
+            <td>Tier-3 private engineering college CSE &amp; ECE branches</td>
+          </tr>
+          <tr>
+            <td><strong>Under 35 Marks</strong></td>
+            <td>18,001+</td>
+            <td>Private engineering colleges and core engineering branches</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 13px; color: var(--ink-mute); font-style: italic;">
+        *Note: The actual ranks may fluctuate depending on the difficulty of the 2026 paper, total number of candidates, and standard deviation of marks.
+      </p>
+    </div>
+
+    <!-- FAQ ACCORDION -->
+    <div class="article-card">
+      <h2>Marks Calculator &amp; Evaluation FAQs</h2>
+      <div id="faqList" style="margin-top: 18px;">
+        <!-- JS Accordion -->
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="section">
+  <div class="container">
+    <div style="border: 1px solid var(--ink); padding: 48px; background: var(--paper-deep); text-align: center;">
+      <div class="section-label" style="margin-bottom: 16px;">— Predictive Insights</div>
+      <h2 class="display-lg" style="margin-bottom: 14px;">Predict your college chances next.</h2>
+      <p style="color:var(--ink-soft); font-size:15px; max-width:60ch; margin:0 auto 28px; line-height:1.6;">
+        Once you've calculated your expected score, use our free preview College Predictor to see which government or top private colleges align with your rank.
+      </p>
+      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <a href="wbjee-college-predictor.html" class="btn-rust btn-lg">Predict Colleges Now →</a>
+        <a href="register.html" class="btn-ghost btn-lg">Create Free Account</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer-ink">
+  <div class="footer-bottom" style="margin-top:0;">
+    <span>© 2026 Sankalp WBJEE · All rights reserved</span>
+    <span class="footer-stamp">Evaluator</span>
+    <span><a href="index.html" style="color:var(--paper); opacity:0.7;">Home</a> · <a href="login.html" style="color:var(--paper); opacity:0.7;">Login</a> · <a href="register.html" style="color:var(--paper); opacity:0.7;">Register</a></span>
+  </div>
+</footer>
+
+<script>
+  let currentMode = 'quick';
+  let detTab = 'math';
+  let detailedAnswers = {
+    math: {},
+    physics: {},
+    chemistry: {}
+  };
+
+  // Switch between quick and detailed tab views
+  function switchMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    
+    document.getElementById('quickModeView').style.display = mode === 'quick' ? 'block' : 'none';
+    document.getElementById('detailedModeView').style.display = mode === 'detailed' ? 'block' : 'none';
+    
+    if (mode === 'detailed') {
+      renderDetailedGrid();
+    }
+    calculate();
+  }
+
+  // SWITCH DETAILED SUBJECT TAB
+  function setDetTab(tab) {
+    detTab = tab;
+    document.getElementById('detTabMath').style.background = tab === 'math' ? 'var(--ink)' : 'var(--paper-deep)';
+    document.getElementById('detTabMath').style.color = tab === 'math' ? 'var(--paper)' : 'var(--ink)';
+    document.getElementById('detTabPhys').style.background = tab === 'physics' ? 'var(--ink)' : 'var(--paper-deep)';
+    document.getElementById('detTabPhys').style.color = tab === 'physics' ? 'var(--paper)' : 'var(--ink)';
+    document.getElementById('detTabChem').style.background = tab === 'chemistry' ? 'var(--ink)' : 'var(--paper-deep)';
+    document.getElementById('detTabChem').style.color = tab === 'chemistry' ? 'var(--paper)' : 'var(--ink)';
+    renderDetailedGrid();
+  }
+
+  const DET_COUNTS = { math: 75, physics: 40, chemistry: 40 };
+  const DET_START = { math: 1, physics: 1, chemistry: 41 };
+  const DET_END = { math: 75, physics: 40, chemistry: 80 };
+  const DET_CAT_RANGES = {
+    math:      { 1:[1,50], 2:[51,65], 3:[66,75] },
+    physics:   { 1:[1,30], 2:[31,35], 3:[36,40] },
+    chemistry: { 1:[41,70], 2:[71,75], 3:[76,80] },
+  };
+
+  function categoryFor(subject, qNo) {
+    const r = DET_CAT_RANGES[subject];
+    if (qNo >= r[1][0] && qNo <= r[1][1]) return 1;
+    if (qNo >= r[2][0] && qNo <= r[2][1]) return 2;
+    return 3;
+  }
+
+  // RENDER DETAILED GRID
+  function renderDetailedGrid() {
+    const container = document.getElementById('detailedSheetContainer');
+    container.innerHTML = '';
+    const start = DET_START[detTab];
+    const end = DET_END[detTab];
+    let lastCat = 0;
+    
+    for (let q = start; q <= end; q++) {
+      const cat = categoryFor(detTab, q);
+      if (cat !== lastCat) {
+        const badge = document.createElement('div');
+        badge.className = 'cat-badge';
+        let desc = cat === 1 ? '+1 / -0.25' : cat === 2 ? '+2 / -0.5' : '+2 / Partial Credit (0 if any wrong choice)';
+        badge.innerHTML = `<span>Category ${cat}</span><span style="font-family:var(--font-mono); font-size:10px; opacity:0.7;">${desc}</span>`;
+        container.appendChild(badge);
+        lastCat = cat;
+      }
+      
+      const row = document.createElement('div');
+      row.className = 'detailed-sheet-row';
+      const ans = detailedAnswers[detTab][q] || 'skipped';
+      
+      let cat3Html = '';
+      if (cat === 3) {
+        cat3Html = `
+          <button class="sheet-btn correct ${ans === 'c3_full' ? 'active' : ''}" onclick="setDetailedAnswer(${q}, 'c3_full')">Fully Correct</button>
+          <button class="sheet-btn ${ans === 'c3_part' ? 'active' : ''}" onclick="setDetailedAnswer(${q}, 'c3_part')" style="border-color:#3b82f6; color:${ans === 'c3_part' ? '#FFFFFF' : '#3b82f6'}; background:${ans === 'c3_part' ? '#3b82f6' : '#FFFFFF'};">Partially Correct</button>
+          <button class="sheet-btn incorrect ${ans === 'incorrect' ? 'active' : ''}" onclick="setDetailedAnswer(${q}, 'incorrect')">Incorrect</button>
+        `;
+      } else {
+        cat3Html = `
+          <button class="sheet-btn correct ${ans === 'correct' ? 'active' : ''}" onclick="setDetailedAnswer(${q}, 'correct')">Correct</button>
+          <button class="sheet-btn incorrect ${ans === 'incorrect' ? 'active' : ''}" onclick="setDetailedAnswer(${q}, 'incorrect')">Incorrect</button>
+          <button class="sheet-btn skipped ${ans === 'skipped' ? 'active' : ''}" onclick="setDetailedAnswer(${q}, 'skipped')">Skipped</button>
+        `;
+      }
+      
+      row.innerHTML = `
+        <div class="q-lbl">${detTab[0].toUpperCase()}${q}</div>
+        ${cat3Html}
+      `;
+      container.appendChild(row);
+    }
+  }
+
+  // SET DETAILED SELECTION
+  function setDetailedAnswer(q, type) {
+    if (type === 'c3_part') {
+      const correctOptionsCount = prompt("How many correct options did you mark? (e.g. 1 or 2)", "1");
+      const totalCorrectOptions = prompt("How many actual correct options does this question have? (e.g. 2 or 3)", "2");
+      const C = Number(correctOptionsCount);
+      const T = Number(totalCorrectOptions);
+      if (isNaN(C) || isNaN(T) || C <= 0 || T <= 0 || C > T) {
+        alert("Invalid input! Making it 0.5 partial score.");
+        detailedAnswers[detTab][q] = { status: 'c3_part', score: 0.5 };
+      } else {
+        const score = 2 * (C / T);
+        detailedAnswers[detTab][q] = { status: 'c3_part', score: score };
+      }
+    } else {
+      detailedAnswers[detTab][q] = type;
+    }
+    renderDetailedGrid();
+    calculate();
+  }
+
+  function resetDetailed() {
+    if (confirm("Reset the grid completely? All markings will be cleared.")) {
+      detailedAnswers = { math: {}, physics: {}, chemistry: {} };
+      renderDetailedGrid();
+      calculate();
+    }
+  }
+
+  // GLOBAL CALCULATOR TRIGGER
+  function calculate() {
+    if (currentMode === 'quick') {
+      calcQuick();
+    } else {
+      calcDetailed();
+    }
+  }
+
+  // QUICK CALCULATION SCORING
+  function calcQuick() {
+    // Math
+    const mC1 = Number(document.getElementById('mC1').value) || 0;
+    const mW1 = Number(document.getElementById('mW1').value) || 0;
+    const mC2 = Number(document.getElementById('mC2').value) || 0;
+    const mW2 = Number(document.getElementById('mW2').value) || 0;
+    const mC3 = Number(document.getElementById('mC3').value) || 0;
+    const mP3 = Number(document.getElementById('mP3').value) || 0;
+    const scoreMath = (mC1 * 1) - (mW1 * 0.25) + (mC2 * 2) - (mW2 * 0.5) + (mC3 * 2) + mP3;
+
+    // Physics
+    const pC1 = Number(document.getElementById('pC1').value) || 0;
+    const pW1 = Number(document.getElementById('pW1').value) || 0;
+    const pC2 = Number(document.getElementById('pC2').value) || 0;
+    const pW2 = Number(document.getElementById('pW2').value) || 0;
+    const pC3 = Number(document.getElementById('pC3').value) || 0;
+    const pP3 = Number(document.getElementById('pP3').value) || 0;
+    const scorePhys = (pC1 * 1) - (pW1 * 0.25) + (pC2 * 2) - (pW2 * 0.5) + (pC3 * 2) + pP3;
+
+    // Chemistry
+    const cC1 = Number(document.getElementById('cC1').value) || 0;
+    const cW1 = Number(document.getElementById('cW1').value) || 0;
+    const cC2 = Number(document.getElementById('cC2').value) || 0;
+    const cW2 = Number(document.getElementById('cW2').value) || 0;
+    const cC3 = Number(document.getElementById('cC3').value) || 0;
+    const cP3 = Number(document.getElementById('cP3').value) || 0;
+    const scoreChem = (cC1 * 1) - (cW1 * 0.25) + (cC2 * 2) - (cW2 * 0.5) + (cC3 * 2) + cP3;
+
+    const total = scoreMath + scorePhys + scoreChem;
+
+    document.getElementById('rMath').textContent = scoreMath.toFixed(2);
+    document.getElementById('rPhys').textContent = scorePhys.toFixed(2);
+    document.getElementById('rChem').textContent = scoreChem.toFixed(2);
+    document.getElementById('rTotal').textContent = total.toFixed(2);
+  }
+
+  // DETAILED CALCULATION SCORING
+  function calcDetailed() {
+    const subjects = ['math', 'physics', 'chemistry'];
+    const scores = { math: 0, physics: 0, chemistry: 0 };
+    
+    subjects.forEach(sub => {
+      const answers = detailedAnswers[sub];
+      const start = DET_START[sub];
+      const end = DET_END[sub];
+      
+      for (let q = start; q <= end; q++) {
+        const cat = categoryFor(sub, q);
+        const ans = answers[q] || 'skipped';
+        
+        if (cat === 1) {
+          if (ans === 'correct') scores[sub] += 1;
+          else if (ans === 'incorrect') scores[sub] -= 0.25;
+        } else if (cat === 2) {
+          if (ans === 'correct') scores[sub] += 2;
+          else if (ans === 'incorrect') scores[sub] -= 0.5;
+        } else if (cat === 3) {
+          if (ans === 'c3_full') scores[sub] += 2;
+          else if (ans && typeof ans === 'object' && ans.status === 'c3_part') {
+            scores[sub] += Number(ans.score) || 0;
+          }
+          // incorrect and skipped are 0
+        }
+      }
+    });
+
+    const total = scores.math + scores.physics + scores.chemistry;
+    
+    document.getElementById('rMath').textContent = scores.math.toFixed(2);
+    document.getElementById('rPhys').textContent = scores.physics.toFixed(2);
+    document.getElementById('rChem').textContent = scores.chemistry.toFixed(2);
+    document.getElementById('rTotal').textContent = total.toFixed(2);
+  }
+
+  // FAQ CONTENT
+  const faqs = [
+    { q: "Is there negative marking in WBJEE Category 3 questions?", a: "No! There is absolutely zero negative marking in Category 3. If you select a wrong option, you receive 0 marks for that question, but no marks will be deducted from your total score." },
+    { q: "How is partial scoring calculated in Category 3?", a: "If you mark only correct choices and select zero wrong choices, your score is calculated as: 2 × (Number of correct choices marked / Total actual correct choices for that booklet question)." },
+    { q: "What is a good score in WBJEE for Jadavpur University CSE?", a: "For General category home-state students, a score of 120+ (Rank under 100) is highly safe for Jadavpur Computer Science & Engineering. For core branches like Mechanical or Civil, a score of 80+ can secure a seat." },
+    { q: "Can I use this marks calculator for Category 3 if I marked one wrong option?", a: "Yes! If you marked one wrong option, just mark that question as 'Incorrect' or 'W' (0 score). In Category 3, marking even a single wrong choice automatically results in 0 marks for that entire question." },
+    { q: "Are marks vs rank ratios consistent every year?", a: "No, they fluctuate based on paper difficulty. For example, in a tough paper, a score of 90 can secure a top 300 rank, whereas in an easy paper, you might need 110+ for the same rank." }
+  ];
+
+  document.getElementById('faqList').innerHTML = faqs.map((f, i) => `
+    <div class="accordion-item" style="margin-bottom:0;">
+      <div class="accordion-header" onclick="toggleFaq(${i})">
+        <span style="font-size:14px; font-weight:700;">${f.q}</span>
+        <i class="fas fa-chevron-down" id="faqIcon_${i}" style="color:var(--ink-mute); transition:transform 0.3s; font-size:13px;"></i>
+      </div>
+      <div class="accordion-content" id="faqContent_${i}">
+        <p style="font-size:14px; line-height:1.7;">${f.a}</p>
+      </div>
+    </div>`).join('');
+
+  function toggleFaq(i) {
+    const content = document.getElementById(`faqContent_${i}`);
+    const icon = document.getElementById(`faqIcon_${i}`);
+    const isOpen = content.classList.contains('open');
+    content.classList.toggle('open', !isOpen);
+    icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+
+  // Initialize
+  calculate();
+</script>
+</body>
+</html>

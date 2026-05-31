@@ -444,6 +444,11 @@
         <option value="ST">ST</option>
         <option value="EWS">EWS</option>
       </select>
+      <select id="slFilterPredictor" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
+        <option value="">All Predictor</option>
+        <option value="free">Free Access</option>
+        <option value="locked">Paid/Locked</option>
+      </select>
       <select id="slSortBy" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
         <option value="name">Sort: Name</option>
         <option value="joined">Sort: Newest First</option>
@@ -2763,6 +2768,7 @@ function slApplyFilters() {
   const year = document.getElementById('slFilterYear').value;
   const gender = document.getElementById('slFilterGender').value;
   const category = document.getElementById('slFilterCategory').value;
+  const predictor = document.getElementById('slFilterPredictor').value;
   const sort = document.getElementById('slSortBy').value;
 
   slFiltered = slAllStudents.filter(s => {
@@ -2770,6 +2776,11 @@ function slApplyFilters() {
     if (year && String(s.wbjeeYear) !== year) return false;
     if (gender && (s.gender||'') !== gender) return false;
     if (category && (s.caste||'') !== category) return false;
+    if (predictor) {
+      const isFree = s.predictorUnlocked === true;
+      if (predictor === 'free' && !isFree) return false;
+      if (predictor === 'locked' && isFree) return false;
+    }
     return true;
   });
 

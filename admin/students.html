@@ -172,6 +172,12 @@
       <option value="active">Active</option>
       <option value="suspended">Suspended</option>
     </select>
+    <select id="filterPredictor" onchange="applyFilters()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="">All Predictor</option>
+      <option value="free">Free Access</option>
+      <option value="locked">Paid/Locked</option>
+    </select>
     <select id="sortBy" onchange="applyFilters()"
       style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
       <option value="name">Sort: Name</option>
@@ -401,6 +407,7 @@ function applyFilters(){
   const q=(document.getElementById('searchInput').value||'').toLowerCase();
   const year=document.getElementById('filterYear').value;
   const status=document.getElementById('filterStatus').value;
+  const predictor=document.getElementById('filterPredictor').value;
   const sort=document.getElementById('sortBy').value;
 
   filteredStudents = allStudents.filter(s=>{
@@ -410,6 +417,11 @@ function applyFilters(){
       const st=s.status||'active';
       if(status==='active'&&st!=='active') return false;
       if(status==='suspended'&&st!=='suspended') return false;
+    }
+    if(predictor){
+      const isFree = s.predictorUnlocked===true;
+      if(predictor==='free' && !isFree) return false;
+      if(predictor==='locked' && isFree) return false;
     }
     return true;
   });

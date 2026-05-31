@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sub Admins - Sankalp Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -13,81 +12,96 @@
   <script src="../js/firebase-config.js"></script>
   <script src="../js/admin-guard.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif;min-height:100vh}
-    .admin-sidebar{width:240px;min-height:100vh;background:rgba(10,14,26,0.98);border-right:1px solid rgba(255,255,255,0.05);position:fixed;left:0;top:0;z-index:50;transition:transform 0.3s;overflow-y:auto}
-    .admin-main{margin-left:240px;min-height:100vh}
-    .anl{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;color:#64748B;text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;margin:2px 0}
-    .anl:hover{background:rgba(79,70,229,0.1);color:#94A3B8}
-    .anl.active{background:rgba(79,70,229,0.2);color:white;border-left:3px solid #4F46E5}
-    .glass{background:rgba(15,23,42,0.82);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.07);border-radius:16px}
-    .inp{width:100%;background:rgba(2,6,23,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 13px;color:#E2E8F0;font-size:13px;outline:none}
-    .inp:focus{border-color:rgba(129,140,248,.55)}
-    .inp:disabled{opacity:.55;cursor:not-allowed}
-    label{display:block;font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:6px}
-    .btn-primary{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;border:none;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center}
-    .btn-primary:hover{opacity:.92}
-    .btn-ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#94A3B8;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
-    .btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.24);color:#F87171;padding:8px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer}
-    .btn-edit{background:rgba(79,70,229,.14);border:1px solid rgba(129,140,248,.28);color:#A5B4FC;padding:8px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer}
-    .tbl{width:100%;border-collapse:collapse}
-    .tbl th{padding:12px 14px;text-align:left;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(255,255,255,.06)}
-    .tbl td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle}
-    .tbl tr:hover td{background:rgba(255,255,255,.02)}
-    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800}
-    .badge-super{background:rgba(245,158,11,.15);color:#FBBF24}
-    .badge-sub{background:rgba(59,130,246,.15);color:#93C5FD}
-    .permission-grid{display:grid;gap:10px}
-    .perm-row{display:grid;grid-template-columns:minmax(150px,1fr) 90px 90px 150px;align-items:center;gap:12px;padding:12px;border-radius:12px;background:rgba(2,6,23,.42);border:1px solid rgba(255,255,255,.06)}
-    .perm-title{font-size:13px;font-weight:800;color:white}
-    .perm-note{font-size:11px;color:#64748B;margin-top:3px}
-    .toggle-cell{display:flex;align-items:center;gap:8px;font-size:12px;color:#94A3B8;font-weight:700}
-    .toggle-cell input{accent-color:#6366F1;width:16px;height:16px}
-    .toast{position:fixed;right:24px;bottom:24px;background:#0F172A;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:13px 16px;z-index:200;font-size:13px;font-weight:700;box-shadow:0 12px 40px rgba(0,0,0,.45);transform:translateY(70px);opacity:0;transition:.25s;display:flex;align-items:center;gap:8px}
-    .toast.show{transform:translateY(0);opacity:1}
-    @media(max-width:900px){.admin-main{margin-left:0}.admin-sidebar{transform:translateX(-100%)}.admin-sidebar.open{transform:translateX(0)}.perm-row{grid-template-columns:1fr 1fr}.perm-row>div:first-child{grid-column:1/-1}}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--paper); color: var(--ink); font-family: var(--font-sans); min-height: 100vh; }
+    .glass { background: var(--paper-soft); border: 1px solid var(--ink); padding: 22px; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.01); }
+    .inp { width: 100%; background: var(--paper); border: 1px solid var(--ink); border-radius: 4px; padding: 11px 13px; color: var(--ink); font-size: 13px; outline: none; font-family: var(--font-sans); }
+    .inp:focus { border-color: var(--rust); }
+    .inp:disabled { opacity: 0.55; cursor: not-allowed; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    
+    .btn-primary { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); padding: 11px 18px; border-radius: 4px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; justify-content: center; transition: all 0.15s; font-family: var(--font-sans); }
+    .btn-primary:hover { background: var(--paper); color: var(--ink); }
+    
+    .btn-ghost { background: var(--paper); border: 1px solid var(--ink); color: var(--ink); padding: 10px 16px; border-radius: 4px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.15s; font-family: var(--font-sans); }
+    .btn-ghost:hover { background: var(--paper-deep); }
+    
+    .btn-danger { background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; padding: 8px 11px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .btn-danger:hover { background: #EF4444; color: white; }
+    
+    .btn-edit { background: rgba(10, 116, 245, 0.1); border: 1px solid var(--rust); color: var(--rust); padding: 8px 11px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .btn-edit:hover { background: var(--rust); color: white; }
+    
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--ink); }
+    .tbl td { padding: 13px 14px; border-bottom: 1px solid var(--rule); font-size: 13px; vertical-align: middle; color: var(--ink-soft); }
+    .tbl tr:hover td { background: var(--paper-deep); }
+    
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge-super { background: rgba(245, 158, 11, 0.15); color: #D97706; }
+    .badge-sub { background: rgba(10, 116, 245, 0.15); color: var(--rust); }
+    
+    .permission-grid { display: grid; gap: 10px; }
+    .perm-row { display: grid; grid-template-columns: minmax(150px, 1fr) 90px 90px 150px; align-items: center; gap: 12px; padding: 12px; background: var(--paper); border: 1px solid var(--ink); border-radius: 4px; }
+    .perm-title { font-size: 13px; font-weight: 800; color: var(--ink); }
+    .perm-note { font-size: 11px; color: var(--ink-mute); margin-top: 3px; }
+    .toggle-cell { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); font-weight: 700; }
+    .toggle-cell input { accent-color: var(--rust); width: 16px; height: 16px; }
+    
+    .toast { position: fixed; right: 24px; bottom: 24px; background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 4px; padding: 13px 16px; z-index: 200; font-size: 13px; font-weight: 700; box-shadow: 0 12px 40px rgba(0,0,0,0.15); transform: translateY(70px); opacity: 0; transition: 0.25s; display: flex; align-items: center; gap: 8px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+    
+    @media (max-width: 900px) {
+      .main-content { margin-left: 0; padding: 72px 14px 24px !important; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .perm-row { grid-template-columns: 1fr 1fr; }
+      .perm-row > div:first-child { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
 <button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
 <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<aside class="admin-sidebar" id="adminSidebar">
-  <div style="padding:20px 16px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)">
-      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
-      <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
-    </div>
-    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
-    <a href="students.html" class="anl"><i class="fas fa-users" style="width:16px"></i> Students</a>
-    <a href="content.html" class="anl"><i class="fas fa-book" style="width:16px"></i> Content</a>
-    <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
-    <a href="evaluators.html" class="anl"><i class="fas fa-calculator" style="width:16px"></i> Evaluators</a>
-    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
-    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
-    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
-    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
-    <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
-    <a href="sub-admins.html" class="anl active"><i class="fas fa-user-shield" style="width:16px"></i> Sub Admins</a>
-    <a href="../login.html" class="anl" onclick="auth.signOut()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
+<aside class="sidebar sidebar-ink" id="adminSidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">Admin Panel</div>
+      </span>
+    </a>
   </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
+    <a href="evaluators.html" class="sidebar-link"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
+    <a href="evaluators.html#studentList" class="sidebar-link" id="sidebarStudentListBtn"><i class="fas fa-users" style="width:18px"></i> Student List</a>
+    <a href="evaluators.html#collegePredictor" class="sidebar-link" id="sidebarCollegePredictorBtn"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="sub-admins.html" class="sidebar-link active"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
+    <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
 </aside>
 
-<main class="admin-main" style="padding:28px 32px">
+<main class="main-content" style="padding:28px 32px">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:24px">
     <div>
-      <h1 style="font-size:23px;font-weight:800;color:white">Sub Admin Management</h1>
-      <p style="font-size:13px;color:#64748B;margin-top:3px">Create admin accounts and decide exactly what each one can view or edit.</p>
+      <h1 class="display-lg" style="color:var(--ink);">Sub Admin Management</h1>
+      <p style="font-size:13px;color:var(--ink-mute);margin-top:3px">Create admin accounts and decide exactly what each one can view or edit.</p>
     </div>
     <button class="btn-ghost" onclick="resetForm()"><i class="fas fa-plus"></i> New Sub Admin</button>
   </div>
 
-  <div style="display:grid;grid-template-columns:minmax(360px,470px) 1fr;gap:22px;align-items:start">
+  <div style="display:grid;grid-template-columns:minmax(360px,470px) 1fr;gap:22px;align-items:start" class="grid-2-collapse">
     <section class="glass" style="padding:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
         <div>
-          <h2 id="formTitle" style="font-size:16px;font-weight:800;color:white">Create Sub Admin</h2>
-          <p id="formHint" style="font-size:12px;color:#64748B;margin-top:2px">Password is required for new accounts.</p>
+          <h2 id="formTitle" style="font-size:16px;font-weight:800;color:var(--ink)">Create Sub Admin</h2>
+          <p id="formHint" style="font-size:12px;color:var(--ink-mute);margin-top:2px">Password is required for new accounts.</p>
         </div>
       </div>
       <form id="subAdminForm" onsubmit="saveSubAdmin(event)">
@@ -108,7 +122,7 @@
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px">
-          <h3 style="font-size:14px;font-weight:800;color:white">Permissions</h3>
+          <h3 style="font-size:14px;font-weight:800;color:var(--ink)">Permissions</h3>
           <button type="button" class="btn-ghost" style="padding:7px 10px;font-size:11px" onclick="grantViewOnly()"><i class="fas fa-eye"></i> View Only</button>
         </div>
         <div id="permissionRows" class="permission-grid"></div>
@@ -121,10 +135,10 @@
     </section>
 
     <section class="glass" style="overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06);gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--ink);gap:12px;flex-wrap:wrap">
         <div>
-          <h2 style="font-size:16px;font-weight:800;color:white">Admin Accounts</h2>
-          <p style="font-size:12px;color:#64748B;margin-top:2px">Super admins are listed for clarity and cannot be modified here.</p>
+          <h2 style="font-size:16px;font-weight:800;color:var(--ink)">Admin Accounts</h2>
+          <p style="font-size:12px;color:var(--ink-mute);margin-top:2px">Super admins are listed for clarity and cannot be modified here.</p>
         </div>
         <button class="btn-ghost" onclick="loadAdmins()"><i class="fas fa-rotate"></i> Refresh</button>
       </div>
@@ -139,7 +153,7 @@
             </tr>
           </thead>
           <tbody id="adminsBody">
-            <tr><td colspan="4" style="text-align:center;padding:42px;color:#64748B"><i class="fas fa-spinner fa-spin"></i> Loading admins...</td></tr>
+            <tr><td colspan="4" style="text-align:center;padding:42px;color:var(--ink-mute)"><i class="fas fa-spinner fa-spin"></i> Loading admins...</td></tr>
           </tbody>
         </table>
       </div>
@@ -167,7 +181,16 @@ let currentToken = null;
 let sections = FALLBACK_SECTIONS;
 let admins = [];
 
-function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function logout() {
+  auth.signOut().then(() => {
+    window.location.href = '../login.html';
+  });
+}
 
 async function apiFetch(path, options = {}) {
   if (!currentUser) throw new Error('Not authenticated');
@@ -221,12 +244,12 @@ function renderPermissionRows() {
       <label class="toggle-cell">
         <input type="checkbox" data-section="${section.key}" data-action="edit" onchange="syncPermissionRow('${section.key}')">
         Edit
-      </label>` : '<span style="font-size:12px;color:#475569">Read only</span>';
+      </label>` : '<span style="font-size:12px;color:var(--ink-mute);">Read only</span>';
     const extraCell = section.key === 'payments' ? `
       <label class="toggle-cell">
         <input type="checkbox" data-section="payments" data-action="transactions" onchange="syncPermissionRow('payments')">
         Transaction log
-      </label>` : '<span style="font-size:12px;color:#475569">-</span>';
+      </label>` : '<span style="font-size:12px;color:var(--ink-mute);">-</span>';
     return `
       <div class="perm-row" data-perm-row="${section.key}">
         <div>
@@ -288,41 +311,55 @@ function grantViewOnly() {
 }
 
 function summarizePermissions(perms) {
-  if (!perms) return '<span style="color:#64748B">Full access</span>';
+  if (!perms) return '<span style="color:var(--ink-soft)">Full access</span>';
   const visible = sections.filter(s => !s.superOnly && perms[s.key]?.view).map(s => s.label);
   if (!visible.length) return '<span style="color:#F87171">No sections</span>';
   const editCount = sections.filter(s => !s.superOnly && perms[s.key]?.edit).length;
   const txn = perms.payments?.transactions ? ' + transactions' : '';
-  return `<span style="color:#CBD5E1">${escapeHtml(visible.slice(0, 4).join(', '))}${visible.length > 4 ? ` +${visible.length - 4}` : ''}</span><div style="font-size:11px;color:#64748B;margin-top:3px">${editCount} edit sections${txn}</div>`;
+  return `<span style="color:var(--ink-soft)">${escapeHtml(visible.slice(0, 4).join(', '))}${visible.length > 4 ? ` +${visible.length - 4}` : ''}</span><div style="font-size:11px;color:var(--ink-mute);margin-top:3px">${editCount} edit sections${txn}</div>`;
+}
+
+function getAvatarColor(name) {
+  const colors = ['#818CF8','#F472B6','#34D399','#FBBF24','#38BDF8','#A78BFA','#F87171'];
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return colors[sum % colors.length];
+}
+
+function getInitials(name) {
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 }
 
 function renderAdmins() {
   const tbody = document.getElementById('adminsBody');
   if (!admins.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:42px;color:#64748B">No admin accounts found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:42px;color:var(--ink-mute)">No admin accounts found.</td></tr>';
     return;
   }
-  tbody.innerHTML = admins.map((admin) => `
-    <tr>
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-weight:900;color:white">${escapeHtml((admin.name || admin.email || 'A')[0]).toUpperCase()}</div>
-          <div>
-            <div style="font-weight:800;color:white">${escapeHtml(admin.name || 'Unknown Admin')}</div>
-            <div style="font-size:11px;color:#64748B">${escapeHtml(admin.email || '')}</div>
+  tbody.innerHTML = admins.map((admin) => {
+    const bg = getAvatarColor(admin.name || admin.email || 'A');
+    const init = getInitials(admin.name || admin.email || 'A');
+    return `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="avatar" style="background:${bg};font-family:var(--font-sans);font-weight:700;color:white;">${init}</div>
+            <div>
+              <div style="font-weight:800;color:var(--ink)">${escapeHtml(admin.name || 'Unknown Admin')}</div>
+              <div style="font-size:11px;color:var(--ink-mute)">${escapeHtml(admin.email || '')}</div>
+            </div>
           </div>
-        </div>
-      </td>
-      <td>${admin.isSubAdmin ? '<span class="badge badge-sub"><i class="fas fa-user-shield"></i> Sub Admin</span>' : '<span class="badge badge-super"><i class="fas fa-crown"></i> Super Admin</span>'}</td>
-      <td>${summarizePermissions(admin.permissions)}</td>
-      <td style="text-align:right;white-space:nowrap">
-        ${admin.isSubAdmin ? `
-          <button class="btn-edit" onclick="editAdmin('${admin.id}')"><i class="fas fa-pen"></i></button>
-          <button class="btn-danger" onclick="deleteAdmin('${admin.id}')"><i class="fas fa-trash"></i></button>
-        ` : '<span style="font-size:12px;color:#64748B">Protected</span>'}
-      </td>
-    </tr>
-  `).join('');
+        </td>
+        <td>${admin.isSubAdmin ? '<span class="badge badge-sub"><i class="fas fa-user-shield"></i> Sub Admin</span>' : '<span class="badge badge-super"><i class="fas fa-crown"></i> Super Admin</span>'}</td>
+        <td>${summarizePermissions(admin.permissions)}</td>
+        <td style="text-align:right;white-space:nowrap">
+          ${admin.isSubAdmin ? `
+            <button class="btn-edit" onclick="editAdmin('${admin.id}')"><i class="fas fa-pen"></i></button>
+            <button class="btn-danger" onclick="deleteAdmin('${admin.id}')"><i class="fas fa-trash"></i></button>
+          ` : '<span style="font-size:12px;color:var(--ink-mute)">Protected</span>'}
+        </td>
+      </tr>`;
+  }).join('');
 }
 
 async function loadAdmins() {

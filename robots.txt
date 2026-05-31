@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /student/
+Disallow: /js/
+
+Sitemap: https://sankalp-learning-5442f.web.app/sitemap.xml

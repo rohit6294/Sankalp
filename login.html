@@ -146,6 +146,19 @@
   <script>
     const adminEmails = ['rohitgupta6294@gmail.com', 'rahulgupta6294@gmail.com'];
 
+    function getRedirectUrl(role) {
+      if (role === 'admin') {
+        return 'admin/evaluators.html';
+      }
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect === 'predictor') return 'student/predictor.html';
+      if (redirect === 'evaluate') return 'student/evaluate.html';
+      if (redirect === 'counseling') return 'student/counseling.html';
+      if (redirect === 'notes') return 'student/notes.html';
+      return 'student/evaluate.html';
+    }
+
     function togglePassword(id, iconId) {
       const inp = document.getElementById(id);
       const icon = document.getElementById(iconId);
@@ -230,7 +243,7 @@
           // If read fails (e.g. permissions), skip block and assume student since email didn't match admin list
         }
         
-        window.location.href = 'student/evaluate.html';
+        window.location.href = getRedirectUrl('student');
       } catch (err) {
         setLoading(btn, false);
         const msgs = {
@@ -268,7 +281,7 @@
             xp: 0, streak: 0
           });
         }
-        window.location.href = 'student/evaluate.html';
+        window.location.href = getRedirectUrl('student');
       } catch (err) {
         showError('Google login failed. Please try again.');
       }
@@ -411,13 +424,13 @@
         try {
           const doc = await db.collection('users').doc(user.uid).get();
           const role = doc.exists ? doc.data().role : 'student';
-          window.location.href = role === 'admin' ? 'admin/evaluators.html' : 'student/evaluate.html';
+          window.location.href = getRedirectUrl(role);
         } catch(e) {
           // Robust fallback routing using email checks if Firestore read throws permission error
           if (adminEmails.includes(user.email.toLowerCase())) {
             window.location.href = 'admin/evaluators.html';
           } else {
-            window.location.href = 'student/evaluate.html';
+            window.location.href = getRedirectUrl('student');
           }
         }
       }

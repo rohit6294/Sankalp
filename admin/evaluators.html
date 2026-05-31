@@ -41,6 +41,7 @@
     .toggle-slider:before { position: absolute; content: ''; height: 12px; width: 12px; left: 3px; bottom: 3px; background: var(--ink); border-radius: 50%; transition: 0.3s; }
     .toggle-switch input:checked + .toggle-slider { background: var(--ink); }
     .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: var(--paper); }
+    .toggle-switch input:disabled + .toggle-slider { opacity: 0.45 !important; cursor: not-allowed !important; pointer-events: none !important; }
 
     /* New Submissions & Leaderboard Dashboard styles */
     .tbl { width: 100%; border-collapse: collapse; }
@@ -141,7 +142,8 @@
         <div class="set-tab" data-exam-set="C" onclick="switchSet('C', this)"><i class="fa-solid fa-droplet" style="margin-right:6px;"></i>Set C</div>
         <div class="set-tab" data-exam-set="D" onclick="switchSet('D', this)"><i class="fa-solid fa-circle" style="margin-right:6px;"></i>Set D</div>
         <div style="flex:1;"></div>
-        <button class="btn-ghost btn-sm" onclick="importJson()" style="margin-left:8px;"><i class="fas fa-file-import"></i> Import JSON</button>
+        <button class="btn-ghost btn-sm" onclick="importJson()" style="margin-left:8px;" id="importKeyBtn"><i class="fas fa-file-import"></i> Import JSON</button>
+        <button class="btn-ghost btn-sm" onclick="exportJson()" style="margin-left:8px;" id="exportKeyBtn"><i class="fas fa-file-export"></i> Export JSON</button>
       </div>
 
       <div style="display:flex; gap:0; border:1px solid var(--ink); border-bottom:none; margin-top:16px;">
@@ -215,6 +217,20 @@
        </div>
      </div>
 
+      <!-- Collapsible Score Distribution Panel -->
+      <div data-admin-readonly-allow="true" style="margin-bottom:24px; border:1px solid var(--ink); background:var(--paper-soft); border-radius:4px; overflow:hidden;">
+        <button onclick="toggleScoreDistribution()" class="btn-ghost" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border:none; font-family:var(--font-sans); font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; background:var(--paper-deep); cursor:pointer;">
+          <span><i class="fas fa-chart-bar" style="margin-right:8px; color:var(--rust);"></i><span id="scoreDistToggleText">Score Range Distribution (Unwrap to View)</span></span>
+          <span id="scoreDistToggleIcon" style="font-size: 14px;"><i class="fas fa-chevron-down"></i></span>
+        </button>
+        <div id="scoreDistributionCollapse" style="display:none; padding:18px; background:var(--paper); border-top:1px solid var(--ink);">
+          <div id="scoreDistributionGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:10px;">
+            <!-- Dynamic ranges will populate here -->
+          </div>
+          <div style="margin-top:12px; font-size:11px; color:var(--ink-mute); text-align:center;"><i class="fas fa-info-circle" style="margin-right:4px;"></i>Click a card to filter submissions by that range. Click again to clear.</div>
+        </div>
+      </div>
+
      <!-- Filters Row -->
      <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
        <div style="flex:1; min-width:200px; position:relative;">
@@ -241,6 +257,9 @@
            <option value="all">- All Status -</option>
            <option value="reset_pending">Reset Requested</option>
          </select>
+       </div>
+       <div>
+        <input type="hidden" id="subScoreRangeFilter" value="all">
        </div>
        <button class="btn-ghost btn-sm" onclick="exportSubmissionsCSV()" style="height:42px;"><i class="fas fa-download"></i> Export CSV</button>
      </div>
@@ -1345,8 +1364,14 @@ function applyEvaluatorPermissions() {
   setHidden('[data-tab="exams"], [data-tab="rank"], [data-tab="submissions"]', !adminCan('evaluators', 'view'));
   setHidden('[data-tab="settings"]', !adminCan('settings', 'view'));
 
+  // Robustly hide Sub Admins link for non-super-admins
+  setHidden('.sidebar-link[href="sub-admins.html"]', !window.SankalpAdminGuard || !window.SankalpAdminGuard.isSuperAdmin());
+
   setHidden('[onclick="showCreateExam()"]', !adminCan('evaluators', 'edit'));
   setDisabled('#saveKeyBtn, #saveRankBtn', !adminCan('evaluators', 'edit'));
+  setDisabled('[onclick="addRankRow()"]', !adminCan('evaluators', 'edit'));
+  setDisabled('#importKeyBtn', !adminCan('evaluators', 'edit'));
+  setDisabled('#exportKeyBtn', !adminCan('evaluators', 'view'));
   setHidden('[data-action="recalc"], [data-action="toggle"]', !adminCan('evaluators', 'edit'));
   setHidden('#appResetBtn, #rejResetBtn', !adminCan('evaluators', 'edit'));
 
@@ -1354,6 +1379,13 @@ function applyEvaluatorPermissions() {
   setHidden('#btnPredictorPaywall', !adminCan('collegePredictor', 'edit'));
   setHidden('#btnPredictorPurchases', !adminCan('payments', 'transactions'));
   setDisabled('#file2024, #file2025, #predFeatureToggle, #predPaywallToggle, #predPaywallPrice, #savePredictorSettingsBtn', !adminCan('collegePredictor', 'edit'));
+  setDisabled('[onclick="clearCutoffs()"]', !adminCan('collegePredictor', 'edit'));
+
+  const predictorEdit = adminCan('collegePredictor', 'edit');
+  document.querySelectorAll('#box2024, #box2025').forEach((node) => {
+    node.classList.toggle('sankalp-readonly-disabled', !predictorEdit);
+    node.style.setProperty('pointer-events', predictorEdit ? '' : 'none');
+  });
 
   setDisabled('#m_name, #m_email, #m_phone, #m_gender, #m_caste, #m_tfw, #m_wbjeeYear, #m_homeState, #adminEmail, #notifyAdminResetReq, #notifyStudentResetDec', !adminCan('settings', 'edit'));
 }
@@ -1733,9 +1765,14 @@ function renderKeyGrid() {
     row.className = 'key-grid';
     row.innerHTML = `<div class="qno">${prefix}${q}</div>`;
 
+    const canEdit = adminCan('evaluators', 'edit');
     ['A', 'B', 'C', 'D'].forEach((letter) => {
       const opt = document.createElement('div');
       opt.className = `key-opt ${isCat3 ? 'multi' : ''} ${currentOpts.includes(letter) ? 'selected' : ''}`;
+      if (!canEdit) {
+        opt.classList.add('sankalp-readonly-disabled');
+        opt.style.pointerEvents = 'none';
+      }
       opt.textContent = letter;
       opt.addEventListener('click', () => toggleKeyOpt(subject, q, letter, category));
       row.appendChild(opt);
@@ -1866,6 +1903,23 @@ function doImportJson() {
   } catch (error) {
     toast(`Invalid JSON: ${error.message}`);
   }
+}
+
+function exportJson() {
+  const docId = `${currentPaper}_${currentSet}`;
+  const data = keyData[docId] || (currentPaper === 'math' ? { math: {} } : { physics: {}, chemistry: {} });
+  const filename = `${selectedExamId || 'exam'}_${currentPaper}_Set_${currentSet}_answer_key.json`;
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(`Exported JSON for Set ${currentSet}!`);
 }
 
 function defaultRankRows(type) {
@@ -2014,6 +2068,11 @@ async function populateSubmissionsExamSelect() {
 async function loadSubmissions() {
   if (!adminCan('evaluators', 'view')) return;
 
+  const filterEl = document.getElementById('subScoreRangeFilter');
+  if (filterEl) {
+    filterEl.value = 'all';
+  }
+
   const tableBody = document.getElementById('submissionsTableBody');
   tableBody.innerHTML = `
     <tr>
@@ -2028,6 +2087,7 @@ async function loadSubmissions() {
     const path = `/api/admin/submissions` + (examIdFilter ? `?examId=${encodeURIComponent(examIdFilter)}` : '');
     const { submissions } = await apiJson(path);
     allSubmissions = submissions || [];
+    populateScoreRangeDropdown(allSubmissions);
     filterAndRenderSubmissions();
   } catch (error) {
     console.error('Error loading submissions:', error);
@@ -2073,10 +2133,101 @@ function updateSubmissionsStats(subs) {
   document.getElementById('subStatAvgBph').textContent = avgBph.toFixed(2);
 }
 
+function populateScoreRangeDropdown(subs) {
+  const grid = document.getElementById('scoreDistributionGrid');
+  if (!grid) return;
+
+  let minScore = 0;
+  let maxScore = 100;
+  
+  subs.forEach(sub => {
+    const score = sub.scores?.engineering || 0;
+    if (score < minScore) minScore = score;
+    if (score > maxScore) maxScore = score;
+  });
+
+  const absoluteMin = Math.floor(minScore / 10) * 10;
+  const absoluteMax = Math.ceil(maxScore / 10) * 10;
+
+  const filterEl = document.getElementById('subScoreRangeFilter');
+  if (filterEl) {
+    filterEl.dataset.absoluteMin = absoluteMin;
+  }
+
+  const ranges = [];
+  for (let min = absoluteMax - 10; min >= absoluteMin; min -= 10) {
+    ranges.push({ min, max: min + 10 });
+  }
+
+  grid.innerHTML = '';
+  
+  const activeRange = filterEl?.value || 'all';
+
+  ranges.forEach(r => {
+    const count = subs.filter(sub => {
+      const score = sub.scores?.engineering || 0;
+      if (r.min === absoluteMin) {
+        return score >= r.min && score <= r.max;
+      }
+      return score > r.min && score <= r.max;
+    }).length;
+
+    const isActive = activeRange === `${r.min}_${r.max}`;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      border: 1px solid ${isActive ? 'var(--rust)' : 'var(--rule)'};
+      padding: 10px;
+      border-radius: 4px;
+      background: ${isActive ? 'rgba(201, 78, 31, 0.05)' : 'var(--paper-soft)'};
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    `;
+    
+    card.innerHTML = `
+      <div style="font-family:var(--font-mono); font-size:10px; color:${isActive ? 'var(--rust)' : 'var(--ink-mute)'}; font-weight:700;">${r.min}-${r.max}</div>
+      <div style="font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--ink); margin-top:2px;">${count}</div>
+    `;
+
+    card.addEventListener('mouseover', () => {
+      if (!isActive) card.style.borderColor = 'var(--ink)';
+    });
+    card.addEventListener('mouseout', () => {
+      if (!isActive) card.style.borderColor = 'var(--rule)';
+    });
+
+    card.addEventListener('click', () => {
+      if (filterEl) {
+        const val = `${r.min}_${r.max}`;
+        filterEl.value = filterEl.value === val ? 'all' : val;
+        filterAndRenderSubmissions();
+      }
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function toggleScoreDistribution() {
+  const panel = document.getElementById('scoreDistributionCollapse');
+  const icon = document.getElementById('scoreDistToggleIcon');
+  const text = document.getElementById('scoreDistToggleText');
+  if (!panel || !icon) return;
+
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  icon.innerHTML = isHidden ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+  if (text) {
+    text.textContent = isHidden ? 'Score Range Distribution (Wrap to Unview)' : 'Score Range Distribution (Unwrap to View)';
+  }
+}
+
 function filterAndRenderSubmissions() {
   const searchQ = document.getElementById('subSearchInput').value.trim().toLowerCase();
   const sortBy = document.getElementById('subSortBy').value;
   const statusFilter = document.getElementById('subStatusFilter').value;
+  const rangeFilter = document.getElementById('subScoreRangeFilter')?.value || 'all';
 
   // Filter
   filteredSubmissions = allSubmissions.filter((sub) => {
@@ -2090,6 +2241,19 @@ function filterAndRenderSubmissions() {
 
     if (statusFilter === 'reset_pending' && !sub.resetRequested) {
       return false;
+    }
+
+    if (rangeFilter !== 'all') {
+      const [minStr, maxStr] = rangeFilter.split('_');
+      const min = Number(minStr);
+      const max = Number(maxStr);
+      const score = sub.scores?.engineering || 0;
+      const absoluteMin = Number(document.getElementById('subScoreRangeFilter')?.dataset.absoluteMin || 0);
+      if (min === absoluteMin) {
+        if (score < min || score > max) return false;
+      } else {
+        if (score <= min || score > max) return false;
+      }
     }
 
     return true;
@@ -2114,6 +2278,7 @@ function filterAndRenderSubmissions() {
 
   // Calculate & Update Stats overview on the fly for filtered list
   updateSubmissionsStats(filteredSubmissions);
+  populateScoreRangeDropdown(allSubmissions);
 
   // Render with Pagination
   subPage = 1;

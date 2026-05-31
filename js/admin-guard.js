@@ -95,11 +95,16 @@
 
   function normalizeHref(href) {
     if (!href || href === '#') return '';
+    let file = '';
     try {
-      return new URL(href, window.location.href).pathname.split('/').filter(Boolean).pop().toLowerCase();
+      file = new URL(href, window.location.href).pathname.split('/').filter(Boolean).pop().toLowerCase();
     } catch (_err) {
-      return href.split('/').pop().toLowerCase();
+      file = href.split('/').pop().toLowerCase();
     }
+    if (file && !file.includes('.')) {
+      file = file + '.html';
+    }
+    return file;
   }
 
   function sectionForLink(link) {
@@ -477,5 +482,8 @@
     // Apply read-only mode dynamically to the active section
     applyReadOnlyMode();
     applyInlinePermissionBits();
+    if (typeof window.applyEvaluatorPermissions === 'function') {
+      window.applyEvaluatorPermissions();
+    }
   });
 })();

@@ -17,16 +17,16 @@
 
   const SECTION_PAGES = {
     dashboard: 'index.html',
-    students: 'students.html',
+    students: 'evaluators.html#studentList',
     content: 'content.html',
     tests: 'tests.html',
-    evaluators: 'evaluators.html',
-    collegePredictor: 'evaluators.html',
+    evaluators: 'evaluators.html#exams',
+    collegePredictor: 'evaluators.html#collegePredictor',
     bookings: 'bookings.html',
     announcements: 'announcements.html',
     payments: 'payments.html',
     analytics: 'analytics.html',
-    settings: 'settings.html',
+    settings: 'evaluators.html#settings',
     subAdmins: 'sub-admins.html',
   };
 
@@ -73,12 +73,24 @@
   };
 
   function pageFileName() {
-    const file = window.location.pathname.split('/').filter(Boolean).pop() || 'index.html';
-    return file.includes('.') ? file.toLowerCase() : 'index.html';
+    let file = window.location.pathname.split('/').filter(Boolean).pop() || 'index.html';
+    file = file.toLowerCase();
+    if (!file.includes('.')) {
+      file = file + '.html';
+    }
+    return file;
   }
 
   function sectionForCurrentPage() {
-    return PAGE_SECTIONS[pageFileName()] || null;
+    const file = pageFileName();
+    if (file === 'evaluators.html') {
+      const hash = (window.location.hash || '').replace('#', '');
+      if (hash === 'studentList') return 'students';
+      if (hash === 'collegePredictor') return 'collegePredictor';
+      if (hash === 'settings') return 'settings';
+      return 'evaluators';
+    }
+    return PAGE_SECTIONS[file] || null;
   }
 
   function normalizeHref(href) {
@@ -315,7 +327,6 @@
   }
 
   function applyReadOnlyMode() {
-    if (pageFileName() === 'evaluators.html') return;
     const section = state.currentSection;
     if (!section || can(section, 'edit')) return;
     document.body.dataset.adminReadonly = 'true';
@@ -437,5 +448,34 @@
       showAccessDenied('Your admin role could not be verified. Please sign in with an authorized admin account.', '../login.html');
       readyReject(err);
     }
+  });
+
+  window.addEventListener('hashchange', () => {
+    state.currentSection = sectionForCurrentPage();
+    const currentAllowed = canViewCurrentPage(state.currentSection);
+    if (!currentAllowed) {
+      showAccessDenied('This account does not have permission to view this admin section.', firstAllowedPage());
+      return;
+    }
+    // Reset read-only styling blocks before applying fresh for the new section
+    document.querySelectorAll('.sankalp-readonly-disabled').forEach((el) => {
+      el.classList.remove('sankalp-readonly-disabled');
+      el.removeAttribute('title');
+      el.removeAttribute('aria-disabled');
+      if (el.dataset.adminGuardDisabled === '1') {
+        delete el.dataset.adminGuardDisabled;
+        if ('disabled' in el) {
+          el.disabled = false;
+        } else {
+          el.removeEventListener('click', blockReadonlyClick, true);
+          el.style.pointerEvents = '';
+        }
+      }
+    });
+    document.body.removeAttribute('data-admin-readonly');
+    
+    // Apply read-only mode dynamically to the active section
+    applyReadOnlyMode();
+    applyInlinePermissionBits();
   });
 })();

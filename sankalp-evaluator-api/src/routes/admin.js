@@ -1180,8 +1180,22 @@ router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), 
 router.get('/students', requirePermission('students', 'view'), async (req, res) => {
   try {
     const userSnap = await db.collection('users').get();
-    const students = [];
     
+    // Fetch successful college predictor purchases
+    const purchaseSnap = await db.collection('purchases')
+      .where('product', '==', 'college_predictor')
+      .where('status', '==', 'success')
+      .get();
+    
+    const purchasedUserIds = new Set();
+    purchaseSnap.forEach((doc) => {
+      const pData = doc.data();
+      if (pData && pData.userId) {
+        purchasedUserIds.add(pData.userId);
+      }
+    });
+
+    const students = [];
     userSnap.forEach((doc) => {
       const data = doc.data() || {};
       const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
@@ -1199,6 +1213,7 @@ router.get('/students', requirePermission('students', 'view'), async (req, res) 
         role: data.role || 'student',
         status: data.status || 'active',
         predictorUnlocked: data.predictorUnlocked === true,
+        predictorPurchased: purchasedUserIds.has(doc.id),
         createdAt: data.createdAt || null
       });
     });

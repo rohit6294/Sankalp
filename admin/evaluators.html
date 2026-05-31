@@ -446,8 +446,9 @@
       </select>
       <select id="slFilterPredictor" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
         <option value="">All Predictor</option>
-        <option value="free">Free Access</option>
-        <option value="locked">Paid/Locked</option>
+        <option value="free">Free Access (Admin)</option>
+        <option value="paid">Paid / Subscription</option>
+        <option value="locked">Locked (No Access)</option>
       </select>
       <select id="slSortBy" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
         <option value="name">Sort: Name</option>
@@ -2778,8 +2779,10 @@ function slApplyFilters() {
     if (category && (s.caste||'') !== category) return false;
     if (predictor) {
       const isFree = s.predictorUnlocked === true;
+      const isPaid = s.predictorPurchased === true;
       if (predictor === 'free' && !isFree) return false;
-      if (predictor === 'locked' && isFree) return false;
+      if (predictor === 'paid' && !isPaid) return false;
+      if (predictor === 'locked' && (isFree || isPaid)) return false;
     }
     return true;
   });
@@ -2821,8 +2824,10 @@ function slRenderPage() {
     const bg = slAvatarColor(name);
     const init = slInitials(name);
     const predictorUnlocked = s.predictorUnlocked === true;
-    const canTogglePredictor = canGrantStudentPredictorAccess() && (s.role || 'student') !== 'admin';
-    const predictorTitle = canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission';
+    const predictorPurchased = s.predictorPurchased === true;
+    const isUnlocked = predictorUnlocked || predictorPurchased;
+    const canTogglePredictor = canGrantStudentPredictorAccess() && (s.role || 'student') !== 'admin' && !predictorPurchased;
+    const predictorTitle = predictorPurchased ? 'Unlocked via student purchase (Paid)' : (canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission');
     return `<tr>
       <td style="font-family:var(--font-mono); font-size:12px; color:var(--ink-mute); font-weight:700;">${start + i + 1}</td>
       <td>
@@ -2843,10 +2848,10 @@ function slRenderPage() {
       <td>
         <div style="display:flex; align-items:center; gap:8px; min-width:108px;">
           <label class="toggle-switch" title="${predictorTitle}" style="${canTogglePredictor?'':'opacity:.5;'}">
-            <input type="checkbox" ${predictorUnlocked?'checked':''} ${canTogglePredictor?'':'disabled'} onchange="slTogglePredictorAccess('${s.id}', this.checked, this)">
+            <input type="checkbox" ${isUnlocked?'checked':''} ${canTogglePredictor?'':'disabled'} onchange="slTogglePredictorAccess('${s.id}', this.checked, this)">
             <span class="toggle-slider"></span>
           </label>
-          <span style="font-size:11px; font-weight:800; color:${predictorUnlocked?'#1A6B3C':'var(--ink-mute)'};">${predictorUnlocked?'Free':'Locked'}</span>
+          <span style="font-size:11px; font-weight:800; color:${predictorUnlocked?'#1A6B3C':(predictorPurchased?'#1D4ED8':'var(--ink-mute)')};">${predictorUnlocked?'Free':(predictorPurchased?'Paid':'Locked')}</span>
         </div>
       </td>
       <td style="font-size:12px; color:var(--ink-mute);">${joined}</td>

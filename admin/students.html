@@ -67,6 +67,7 @@
     .predictor-toggle input:disabled+span{opacity:.45;cursor:not-allowed}
     .predictor-access-label{font-size:11px;font-weight:700;color:#64748B;white-space:nowrap}
     .predictor-access-label.unlocked{color:#34D399}
+    .predictor-access-label.paid{color:#60A5FA}
     .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
     .toast{position:fixed;bottom:24px;right:24px;background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 20px;font-size:13px;font-weight:500;z-index:200;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s}
     .toast.show{transform:translateY(0);opacity:1}
@@ -175,8 +176,9 @@
     <select id="filterPredictor" onchange="applyFilters()"
       style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
       <option value="">All Predictor</option>
-      <option value="free">Free Access</option>
-      <option value="locked">Paid/Locked</option>
+      <option value="free">Free Access (Admin)</option>
+      <option value="paid">Paid / Subscription</option>
+      <option value="locked">Locked (No Access)</option>
     </select>
     <select id="sortBy" onchange="applyFilters()"
       style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
@@ -420,8 +422,10 @@ function applyFilters(){
     }
     if(predictor){
       const isFree = s.predictorUnlocked===true;
+      const isPaid = s.predictorPurchased===true;
       if(predictor==='free' && !isFree) return false;
-      if(predictor==='locked' && isFree) return false;
+      if(predictor==='paid' && !isPaid) return false;
+      if(predictor==='locked' && (isFree || isPaid)) return false;
     }
     return true;
   });
@@ -464,8 +468,10 @@ function renderPage(){
     const bg=getAvatarColor(name);
     const init=getInitials(name);
     const predictorUnlocked=s.predictorUnlocked===true;
-    const canTogglePredictor=canGrantPredictorAccess() && role!=='admin' && !String(s.id).startsWith('demo');
-    const predictorTitle=canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission';
+    const predictorPurchased=s.predictorPurchased===true;
+    const isUnlocked=predictorUnlocked || predictorPurchased;
+    const canTogglePredictor=canGrantPredictorAccess() && role!=='admin' && !String(s.id).startsWith('demo') && !predictorPurchased;
+    const predictorTitle=predictorPurchased ? 'Unlocked via student purchase (Paid)' : (canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission');
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px">
         <div class="avatar" style="background:${bg}">${init}</div>
@@ -484,10 +490,10 @@ function renderPage(){
       <td>
         <div class="predictor-cell">
           <label class="predictor-toggle" title="${predictorTitle}">
-            <input type="checkbox" ${predictorUnlocked?'checked':''} ${canTogglePredictor?'':'disabled'} onchange="togglePredictorAccess('${s.id}', this.checked, this)">
+            <input type="checkbox" ${isUnlocked?'checked':''} ${canTogglePredictor?'':'disabled'} onchange="togglePredictorAccess('${s.id}', this.checked, this)">
             <span></span>
           </label>
-          <span class="predictor-access-label ${predictorUnlocked?'unlocked':''}">${predictorUnlocked?'Free':'Locked'}</span>
+          <span class="predictor-access-label ${predictorUnlocked?'unlocked':(predictorPurchased?'paid':'')}">${predictorUnlocked?'Free':(predictorPurchased?'Paid':'Locked')}</span>
         </div>
       </td>
       <td><span class="badge ${status==='active'?'badge-active':'badge-suspended'}">${status}</span>

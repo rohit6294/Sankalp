@@ -1398,6 +1398,15 @@ function switchMainTab(tab, btn) {
     return;
   }
 
+  // Update hash for persistence
+  if (window.location.hash !== '#' + tab) {
+    if (history.pushState) {
+      history.pushState(null, null, '#' + tab);
+    } else {
+      window.location.hash = tab;
+    }
+  }
+
   // Handle sidebar vs tab-bar distinction
   const isStudentList = tab === 'studentList';
   const isCollegePredictor = tab === 'collegePredictor';
@@ -3507,7 +3516,10 @@ auth.onAuthStateChanged(async (user) => {
   }
 
   applyEvaluatorPermissions();
-  const initialTab = firstAllowedMainTab();
+  let initialTab = window.location.hash ? window.location.hash.substring(1) : '';
+  if (!initialTab || !canOpenMainTab(initialTab)) {
+    initialTab = firstAllowedMainTab();
+  }
   if (initialTab) {
     switchMainTab(initialTab);
   }

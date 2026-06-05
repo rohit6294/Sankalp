@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test tests/*.test.js",
-    "postinstall": "npm rebuild sqlite3 --build-from-source"
+    "test": "node --test tests/*.test.js"
   },
   "engines": {
     "node": ">=20"

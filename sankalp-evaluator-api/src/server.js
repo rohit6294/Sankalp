@@ -169,11 +169,11 @@ app.post('/api/submit/reset-request', verifyToken, async (req, res) => {
           const userDoc = await db.collection('users').doc(uid).get();
           const studentName = userDoc.exists ? (userDoc.data().name || userDoc.data().displayName || 'A student') : 'A student';
           
-          await sendEmail({
+          sendEmail({
             to: automations.adminEmail,
-            subject: 'New Reset Request - Sankalp Aspirant',
-            text: `Hello Admin,\n\nA new reset request has been submitted.\n\nStudent: ${studentName}\nExam ID: ${examId}\nReason: ${reason || 'No reason provided'}\n\nPlease check the admin panel to approve or reject this request.\n\nBest regards,\nSankalp Aspirant Automation`
-          });
+            subject: 'New Reset Request - Sankalp Learning',
+            text: `Hello Admin,\n\nA new reset request has been submitted.\n\nStudent: ${studentName}\nExam ID: ${examId}\nReason: ${reason || 'No reason provided'}\n\nPlease check the admin panel to approve or reject this request.\n\nBest regards,\nSankalp Learning Automation`
+          }).catch(console.error);
         }
       }
     } catch (err) {

@@ -611,15 +611,14 @@ router.post('/broadcast-announcement', requirePermission('announcements', 'edit'
       return res.json({ ok: true, sentCount: 0 });
     }
 
-    // Send emails in batches of 50 to avoid overloading SMTP or timing out
-    let sentCount = 0;
+    // Send emails asynchronously to prevent blocking the UI
     for (let i = 0; i < emails.length; i += 50) {
       const batch = emails.slice(i, i + 50);
-      await Promise.all(batch.map(email => sendEmail({
+      Promise.all(batch.map(email => sendEmail({
         to: email,
         subject: `Announcement: ${title} - Sankalp Learning`,
         text: `Hello,\n\nA new announcement has been posted on Sankalp Learning:\n\n${title}\n\n${message}\n\nPlease log in to the portal for more details.\n\nBest regards,\nSankalp Learning Team`
-      })));
+      }))).catch(console.error);
       sentCount += batch.length;
     }
 
@@ -674,11 +673,11 @@ router.post('/reset-approve/:subId', requirePermission('evaluators', 'edit'), as
           const userEmail = userDoc.exists ? userDoc.data().email : null;
           
           if (userEmail) {
-            await sendEmail({
+            sendEmail({
               to: userEmail,
               subject: 'Update on your Reset Request - Sankalp Learning',
               text: `Hello,\n\nYour request to reset your exam submission has been APPROVED.\n\nYou may now log in to the portal and take the exam again.\n\nBest regards,\nSankalp Learning Team`
-            });
+            }).catch(console.error);
           }
         }
       } catch (err) {
@@ -709,11 +708,11 @@ router.post('/reset-reject/:subId', requirePermission('evaluators', 'edit'), asy
         const userEmail = userDoc.exists ? userDoc.data().email : null;
         
         if (userEmail) {
-          await sendEmail({
+          sendEmail({
             to: userEmail,
             subject: 'Update on your Reset Request - Sankalp Learning',
             text: `Hello,\n\nUnfortunately, your request to reset your exam submission has been REJECTED by the admin.\n\nIf you have any questions, please contact support.\n\nBest regards,\nSankalp Learning Team`
-          });
+          }).catch(console.error);
         }
       }
     } catch (err) {

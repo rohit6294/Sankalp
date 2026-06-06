@@ -442,7 +442,7 @@
             await loadData();
             
             // Open secure viewer directly
-            openSecureViewer(noteId, verifyRes.fileUrl, title, '', '', '', 'pdf');
+            viewNote(noteId, '', title, '', '', '', 'pdf');
           } catch (err) {
             console.error(err);
             toast(err.message || 'Payment verification failed.', 'error');
@@ -476,7 +476,7 @@
     document.body.style.overflow = '';
   }
 
-  async function openSecureViewer(noteId, fileUrl, title, subject, sectionName, subsectionName, fileType) {
+  async function openSecureViewer(noteId, fileUrl, title, subject, sectionName, subsectionName, fileType, files) {
     const viewer = document.getElementById('secureViewer');
     viewer.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -515,8 +515,8 @@
     try {
       // Build array of files to render
       let filesToRender = [];
-      if (accessData && accessData.files && accessData.files.length > 0) {
-        filesToRender = accessData.files;
+      if (files && files.length > 0) {
+        filesToRender = files;
       } else {
         filesToRender = [{ fileUrl, fileType }]; // Legacy single-file mode
       }
@@ -597,7 +597,7 @@
         toast('You do not have access to this note.', 'error');
         return;
       }
-      openSecureViewer(noteId, accessData.fileUrl, title, subject, sectionName, subsectionName, fileType);
+      openSecureViewer(noteId, accessData.fileUrl, title, subject, sectionName, subsectionName, fileType, accessData.files);
     } catch (err) {
       console.error('Failed to get note access:', err);
       toast('Failed to load note: ' + (err.message || 'Unknown error'), 'error');

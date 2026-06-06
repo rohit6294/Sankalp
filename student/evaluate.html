@@ -686,7 +686,6 @@ async function doSubmit() {
       const err = await res.json().catch(() => ({}));
       if (err.error === 'incomplete_profile') {
         alert("CRITICAL ERROR: Your submission was BLOCKED by the server.\n\nReason: You have an invalid or missing name.\n\nYou must go to your Profile, enter a real name (at least 2 letters), and save it before you can submit this exam.");
-        hide('submittingView');
         show('reviewView');
         return;
       }

@@ -134,7 +134,7 @@ router.post('/', verifyToken, async (req, res) => {
       const mathScore = (scores.math || 0);
       const physicsScore = (scores.physics || 0);
       const chemistryScore = (scores.chemistry || 0);
-      const rankText = expectedRank ? `\nYour Expected WBJEE Rank is: ${expectedRank}` : '';
+      const rankText = expectedRank ? `\nYour Expected WBJEE Rank:\n- Engineering Rank: ${expectedRank.engineering || 'N/A'}\n- B.Pharma Rank: ${expectedRank.bpharma || 'N/A'}` : '';
       
       sendEmail({
         to: userData.email,

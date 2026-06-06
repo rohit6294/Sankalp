@@ -513,52 +513,70 @@
     }
     
     try {
-      if (fileType === 'pdf') {
-        const loadingTask = pdfjsLib.getDocument(fileUrl);
-        const pdf = await loadingTask.promise;
-        pagesContainer.innerHTML = '';
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.5 });
-          
-          const pageWrapper = document.createElement('div');
-          pageWrapper.style.position = 'relative';
-          pageWrapper.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
-          pageWrapper.style.borderRadius = '8px';
-          pageWrapper.style.overflow = 'hidden';
-          pageWrapper.style.background = 'white';
-          pageWrapper.style.margin = '0 auto';
-          pageWrapper.style.width = viewport.width + 'px';
-          pageWrapper.style.height = viewport.height + 'px';
-          
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          canvas.style.display = 'block';
-          pageWrapper.appendChild(canvas);
-          
-          pagesContainer.appendChild(pageWrapper);
-          
-          const renderContext = {
-            canvasContext: canvas.getContext('2d'),
-            viewport: viewport
-          };
-          await page.render(renderContext).promise;
-        }
-      } else if (fileType === 'image') {
-        pagesContainer.innerHTML = `
-          <div style="max-width:100%; text-align:center; margin:0 auto; box-shadow:0 4px 20px rgba(0,0,0,0.5); border-radius:8px; overflow:hidden">
-            <img src="${fileUrl}" style="max-width:100%; display:block; pointer-events:none" />
-          </div>
-        `;
+      // Build array of files to render
+      let filesToRender = [];
+      if (accessData && accessData.files && accessData.files.length > 0) {
+        filesToRender = accessData.files;
       } else {
-        const encodedUrl = encodeURIComponent(fileUrl);
-        pagesContainer.innerHTML = `
-          <div style="width:100%; height:75vh; box-shadow:0 4px 20px rgba(0,0,0,0.5); border-radius:8px; overflow:hidden; background:white">
-            <iframe src="https://docs.google.com/gview?url=${encodedUrl}&embedded=true" style="width:100%; height:100%; border:none; pointer-events:auto"></iframe>
-          </div>
-        `;
+        filesToRender = [{ fileUrl, fileType }]; // Legacy single-file mode
+      }
+      
+      pagesContainer.innerHTML = '';
+      
+      for (const f of filesToRender) {
+        const url = f.fileUrl;
+        const type = f.fileType;
+        
+        if (type === 'pdf') {
+          const loadingTask = pdfjsLib.getDocument(url);
+          const pdf = await loadingTask.promise;
+          
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.5 });
+            
+            const pageWrapper = document.createElement('div');
+            pageWrapper.style.position = 'relative';
+            pageWrapper.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+            pageWrapper.style.borderRadius = '8px';
+            pageWrapper.style.overflow = 'hidden';
+            pageWrapper.style.background = 'white';
+            pageWrapper.style.margin = '0 auto 20px auto';
+            pageWrapper.style.width = viewport.width + 'px';
+            pageWrapper.style.height = viewport.height + 'px';
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.display = 'block';
+            pageWrapper.appendChild(canvas);
+            
+            pagesContainer.appendChild(pageWrapper);
+            
+            const renderContext = {
+              canvasContext: canvas.getContext('2d'),
+              viewport: viewport
+            };
+            await page.render(renderContext).promise;
+          }
+        } else if (type === 'image') {
+          const imgWrapper = document.createElement('div');
+          imgWrapper.innerHTML = `
+            <div style="max-width:100%; text-align:center; margin:0 auto 20px auto; box-shadow:0 4px 20px rgba(0,0,0,0.5); border-radius:8px; overflow:hidden">
+              <img src="${url}" style="max-width:100%; display:block; pointer-events:none" />
+            </div>
+          `;
+          pagesContainer.appendChild(imgWrapper.firstElementChild);
+        } else {
+          const encodedUrl = encodeURIComponent(url);
+          const docWrapper = document.createElement('div');
+          docWrapper.innerHTML = `
+            <div style="width:100%; height:75vh; box-shadow:0 4px 20px rgba(0,0,0,0.5); border-radius:8px; overflow:hidden; background:white; margin-bottom:20px;">
+              <iframe src="https://docs.google.com/gview?url=${encodedUrl}&embedded=true" style="width:100%; height:100%; border:none; pointer-events:auto"></iframe>
+            </div>
+          `;
+          pagesContainer.appendChild(docWrapper.firstElementChild);
+        }
       }
     } catch (err) {
       console.error('Failed to render secure note:', err);

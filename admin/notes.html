@@ -706,6 +706,8 @@ async function saveNote(e) {
   };
   
   try {
+    let uploadedFiles = [];
+    
     if (fi.files.length > 0) {
       for (let i = 0; i < fi.files.length; i++) {
         let file = fi.files[i];
@@ -728,7 +730,7 @@ async function saveNote(e) {
         const txt = document.getElementById('nProgressText');
         bar.style.display = 'block';
         await new Promise((res, rej) => task.on('state_changed',
-          s => { const p = Math.round((s.bytesTransferred / s.totalBytes) * 100); fill.style.width = p + '%'; txt.textContent = `Uploading ${file.name}: ${p}%`; }, rej, res));
+          s => { const p = Math.round((s.bytesTransferred / s.totalBytes) * 100); fill.style.width = p + '%'; txt.textContent = `Uploading file ${i+1}/${fi.files.length}: ${p}%`; }, rej, res));
         
         const fileUrl = await ref.getDownloadURL();
         const ext = file.name.split('.').pop().toLowerCase();
@@ -738,31 +740,35 @@ async function saveNote(e) {
         else if (['doc', 'docx'].includes(ext)) fileType = 'doc';
         else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) fileType = 'image';
         
-        let fileData = { ...data, fileUrl, fileName: file.name, fileSize: file.size, fileType };
-        
-        if (fi.files.length > 1 && !id) {
-          fileData.title = data.title + ` (${i+1})`;
-        }
-        
-        if (id) {
-          await apiJson(`/api/notes/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(fileData)
-          });
-          showToast('Note updated!');
-          break; // if updating an existing note, we only apply the first file
-        } else {
-          fileData.viewCount = 0; 
-          fileData.purchaseCount = 0;
-          await apiJson('/api/notes', {
-            method: 'POST',
-            body: JSON.stringify(fileData)
-          });
-          showToast(`Uploaded ${file.name}!`); 
-        }
-        
-        bar.style.display = 'none'; txt.textContent = '';
+        uploadedFiles.push({ fileUrl, fileName: file.name, fileSize: file.size, fileType });
       }
+      
+      if (uploadedFiles.length === 0) {
+        showToast('No valid files were uploaded.', true);
+        btn.textContent = 'Upload Note'; btn.disabled = false;
+        return;
+      }
+      
+      // Merge file data into note
+      data.files = uploadedFiles;
+      data.fileUrl = uploadedFiles[0].fileUrl; // backwards compatibility
+      data.fileType = uploadedFiles[0].fileType;
+      data.fileName = uploadedFiles[0].fileName + (uploadedFiles.length > 1 ? ` (+${uploadedFiles.length-1} more)` : '');
+      data.fileSize = uploadedFiles.reduce((acc, f) => acc + f.fileSize, 0);
+
+      if (id) {
+        await apiJson(`/api/notes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        showToast('Note updated!');
+      } else {
+        data.viewCount = 0; 
+        data.purchaseCount = 0;
+        await apiJson('/api/notes', { method: 'POST', body: JSON.stringify(data) });
+        showToast(`Uploaded ${uploadedFiles.length} file(s) as one Note!`); 
+      }
+      
+      document.getElementById('nProgressBar').style.display = 'none';
+      document.getElementById('nProgressText').textContent = '';
+      
     } else if (!id) {
       showToast('Please select a file to upload.', true);
       btn.textContent = 'Upload Note'; btn.disabled = false;

@@ -153,16 +153,16 @@ router.get('/access/:noteId', verifyToken, async (req, res) => {
     const note = noteDoc.data();
     
     if (note.access === 'free') {
-      return res.json({ ok: true, hasAccess: true, type: 'free', fileUrl: note.fileUrl });
+      return res.json({ ok: true, hasAccess: true, type: 'free', fileUrl: note.fileUrl, files: note.files });
     }
     
     // Check purchase record
     const purchaseDoc = await db.collection('notePurchases').doc(`${noteId}_${uid}`).get();
     if (purchaseDoc.exists) {
-      return res.json({ ok: true, hasAccess: true, type: 'purchased', fileUrl: note.fileUrl });
+      return res.json({ ok: true, hasAccess: true, type: 'purchased', fileUrl: note.fileUrl, files: note.files });
     }
     
-    return res.json({ ok: true, hasAccess: false, price: note.price });
+    return res.json({ ok: true, hasAccess: false, price: note.price, files: note.files });
   } catch (e) {
     res.status(500).json({ error: 'access_check_failed', message: e.message });
   }

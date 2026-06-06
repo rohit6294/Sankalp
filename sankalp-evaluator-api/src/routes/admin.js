@@ -425,14 +425,23 @@ router.get('/submissions', requirePermission('evaluators', 'view'), async (req, 
     const baseUsersMap = await getCachedUsersMap();
     const usersMap = { ...baseUsersMap };
 
-    for (const sub of submissions) {
-      if (sub.userId && !usersMap[sub.userId]) {
-        try {
-          const singleUserDoc = await db.collection('users').doc(sub.userId).get();
+    const uncachedUserIds = [...new Set(
+      submissions
+        .map(sub => sub.userId)
+        .filter(uid => uid && !usersMap[uid])
+    )];
+
+    if (uncachedUserIds.length > 0) {
+      try {
+        const userDocs = await Promise.all(
+          uncachedUserIds.map(uid => db.collection('users').doc(uid).get())
+        );
+        userDocs.forEach(singleUserDoc => {
           if (singleUserDoc.exists) {
             const data = singleUserDoc.data() || {};
             const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
-            usersMap[sub.userId] = {
+            const uid = singleUserDoc.id;
+            usersMap[uid] = {
               name: fullName,
               email: data.email || '—',
               phone: data.phone || '—',
@@ -442,12 +451,12 @@ router.get('/submissions', requirePermission('evaluators', 'view'), async (req, 
               wbjeeYear: data.wbjeeYear || '—',
             };
             if (_usersCache) {
-              _usersCache[sub.userId] = usersMap[sub.userId];
+              _usersCache[uid] = usersMap[uid];
             }
           }
-        } catch (err) {
-          console.error(`Failed to fetch individual user ${sub.userId}:`, err);
-        }
+        });
+      } catch (err) {
+        console.error('Failed to fetch uncached users in parallel:', err);
       }
     }
 

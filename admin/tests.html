@@ -410,8 +410,11 @@
     }
   }
 
+  let editingTestObj = null;
+
   async function openEditor(id, title) {
     editingTestId = id;
+    editingTestObj = currentTests.find(t => t.id === id);
     document.getElementById('editorTitle').textContent = `Editing: ${title}`;
     document.getElementById('mainView').style.display = 'none';
     document.getElementById('editorView').style.display = 'block';
@@ -428,12 +431,26 @@
 
   function closeEditor() {
     editingTestId = null;
+    editingTestObj = null;
     document.getElementById('editorView').style.display = 'none';
     document.getElementById('mainView').style.display = 'block';
     loadTests();
   }
 
   function addQuestion(cat) {
+    if (editingTestObj) {
+      let currentCount = questionsEditor.filter(q => q.category === cat).length;
+      let maxAllowed = 0;
+      if (cat === 1) maxAllowed = editingTestObj.cat1Qs || 0;
+      if (cat === 2) maxAllowed = editingTestObj.cat2Qs || 0;
+      if (cat === 3) maxAllowed = editingTestObj.cat3Qs || 0;
+      
+      if (currentCount >= maxAllowed) {
+        toast(`Limit Reached: You can only add ${maxAllowed} questions in Category ${cat}.`, 'error');
+        return;
+      }
+    }
+
     questionsEditor.push({
       id: 'temp_'+Date.now(),
       text: '',

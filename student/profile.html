@@ -90,6 +90,430 @@
       </div>
     </div>
   </div>
+
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start" id="profileGrid">
+    <!-- Left: Profile Card -->
+    <div>
+      <div class="glass-card p-8 text-center mb-6" style="background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(124,58,237,0.08))">
+        <div id="profileAvatar" style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-size:36px;font-weight:700;margin:0 auto 16px">?</div>
+        <div id="profileName" style="font-size:20px;font-weight:700;font-family:'Poppins',sans-serif;margin-bottom:4px">Loading...</div>
+        <div id="profileEmail" style="font-size:13px;color:#64748B;margin-bottom:8px"></div>
+        <div id="profileTargetYear" style="font-size:12px;font-weight:700;color:var(--rust);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em"></div>
+        <span id="profileLevel" class="badge badge-primary">Beginner 🌱</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="glass-card p-6 mb-6">
+        <h3 style="font-size:14px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Stats</h3>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-bolt" style="color:#818CF8"></i> Total XP</span>
+            <span id="statXP" style="font-weight:700;color:#818CF8">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-fire" style="color:#F59E0B"></i> Current Streak</span>
+            <span id="statStreak" style="font-weight:700;color:#FCD34D">0 days</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-check-circle" style="color:#34D399"></i> Modules Done</span>
+            <span id="statModules" style="font-weight:700;color:#34D399">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#64748B"><i class="fas fa-clipboard-check" style="color:#F87171"></i> Tests Taken</span>
+            <span id="statTests" style="font-weight:700;color:#F87171">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="glass-card p-6">
+        <h3 style="font-size:14px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Badges Earned</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="badge-card">
+            <div class="badge-icon" style="background:rgba(245,158,11,0.15)">🌱</div>
+            <div><div style="font-size:13px;font-weight:600">First Step</div><div style="font-size:11px;color:#475569">Completed registration</div></div>
+          </div>
+          <div class="badge-card" style="opacity:0.4">
+            <div class="badge-icon" style="background:rgba(79,70,229,0.1)">🔥</div>
+            <div><div style="font-size:13px;font-weight:600;color:#475569">7-Day Streak</div><div style="font-size:11px;color:#334155">Keep a 7-day streak</div></div>
+          </div>
+          <div class="badge-card" style="opacity:0.4">
+            <div class="badge-icon" style="background:rgba(16,185,129,0.1)">📚</div>
+            <div><div style="font-size:13px;font-weight:600;color:#475569">Scholar</div><div style="font-size:11px;color:#334155">Complete 10 modules</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Edit Profile -->
+    <div>
+      <div class="glass-card p-8 mb-6">
+        <h2 style="font-size:17px;font-weight:700;margin-bottom:20px">Edit Profile</h2>
+        <form onsubmit="saveProfile(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div>
+              <label id="lbl-firstName" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">First Name</label>
+              <input type="text" id="editFirstName" class="input-field" placeholder="Arjun">
+            </div>
+            <div>
+              <label id="lbl-lastName" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Last Name</label>
+              <input type="text" id="editLastName" class="input-field" placeholder="Das">
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Email Address</label>
+            <input type="email" id="editEmail" class="input-field" disabled style="opacity:0.5;cursor:not-allowed">
+            <p id="emailNotice" style="font-size:11px;color:#334155;margin-top:4px">Email cannot be changed if signed in with Google</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div>
+              <label id="lbl-phone" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Phone Number</label>
+              <input type="tel" id="editPhone" class="input-field" placeholder="+91 98765 43210">
+            </div>
+            <div>
+              <label id="lbl-wbjeeYear" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">WBJEE Year</label>
+              <select id="editYear" class="input-field" style="appearance:none">
+                <option value="2025">WBJEE 2025</option>
+                <option value="2026" selected>WBJEE 2026</option>
+                <option value="2027">WBJEE 2027</option>
+                <option value="2028">WBJEE 2028</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div>
+              <label id="lbl-gender" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Gender</label>
+              <select id="editGender" class="input-field" style="appearance:none">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label id="lbl-caste" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Caste / Category</label>
+              <select id="editCaste" class="input-field" style="appearance:none">
+                <option value="">Select Category</option>
+                <option value="General">General</option>
+                <option value="OBC-A">OBC-A</option>
+                <option value="OBC-B">OBC-B</option>
+                <option value="SC">SC</option>
+                <option value="ST">ST</option>
+                <option value="EWS">EWS</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <label id="lbl-tfw" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">TFW (Tuition Fee Waiver) Status</label>
+            <select id="editTfw" class="input-field" style="appearance:none">
+              <option value="">Select TFW Status</option>
+              <option value="No">No (General Selection)</option>
+              <option value="Yes">Yes (Tuition Fee Waiver Scheme)</option>
+            </select>
+          </div>
+          <div style="margin-bottom:14px">
+            <label id="lbl-homeState" style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">Home State Status</label>
+            <select id="editHomeState" class="input-field" style="appearance:none">
+              <option value="">Select Home State Status</option>
+              <option value="Yes">Yes (West Bengal Resident / Domicile)</option>
+              <option value="No">No (Other State / All India)</option>
+            </select>
+          </div>
+          <div style="margin-bottom:20px">
+            <label style="font-size:13px;font-weight:500;color:#94A3B8;display:block;margin-bottom:6px">About yourself (optional)</label>
+            <textarea id="editBio" class="input-field" rows="3" placeholder="Share a little about your preparation journey..." style="resize:none;line-height:1.6"></textarea>
+          </div>
+          <button type="submit" id="saveBtn" class="btn-primary" style="padding:12px 28px"><i class="fas fa-save"></i> Save Changes</button>
+        </form>
+      </div>
+
+      <!-- XP Progress -->
+      <div class="glass-card p-6 mb-6">
+        <h2 style="font-size:17px;font-weight:700;margin-bottom:16px">Level Progress</h2>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+          <div id="lvl0" style="text-align:center;padding:12px;border-radius:12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">
+            <div style="font-size:22px;margin-bottom:4px">🌱</div>
+            <div style="font-size:11px;font-weight:600;color:#34D399">Beginner</div>
+            <div style="font-size:10px;color:#475569">0 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">🔥</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Explorer</div>
+            <div style="font-size:10px;color:#334155">100 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">📚</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Scholar</div>
+            <div style="font-size:10px;color:#334155">300 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">⚡</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Expert</div>
+            <div style="font-size:10px;color:#334155">600 XP</div>
+          </div>
+          <div style="text-align:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:22px;margin-bottom:4px;opacity:0.4">🏆</div>
+            <div style="font-size:11px;font-weight:600;color:#475569">Master</div>
+            <div style="font-size:10px;color:#334155">1000 XP</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="glass-card p-6">
+        <h2 style="font-size:17px;font-weight:700;margin-bottom:16px">Account Security</h2>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(30,41,59,0.5);border-radius:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fas fa-lock" style="color:#818CF8"></i>
+              <div>
+                <div style="font-size:14px;font-weight:600">Change Password</div>
+                <div style="font-size:12px;color:#475569">Update your login password</div>
+              </div>
+            </div>
+            <button onclick="changePassword()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(79,70,229,0.3);background:rgba(79,70,229,0.1);color:#818CF8;font-size:13px;font-weight:600;cursor:pointer">Change</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(30,41,59,0.5);border-radius:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fas fa-sign-out-alt" style="color:#F87171"></i>
+              <div>
+                <div style="font-size:14px;font-weight:600">Sign Out</div>
+                <div style="font-size:12px;color:#475569">Sign out from all devices</div>
+              </div>
+            </div>
+            <button onclick="logout()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.1);color:#F87171;font-size:13px;font-weight:600;cursor:pointer">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+  function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
+
+  function showNotif(msg, type='success') {
+    const el = document.createElement('div');
+    el.className = `notif ${type}`;
+    el.innerHTML = `<i class="fas fa-${type==='success'?'check':'times'}-circle"></i> ${msg}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // ── Mandatory fields check ────────────────────────────────────────────────
+  const FIELD_MAP = {
+    name: 'Full Name', phone: 'Phone Number', gender: 'Gender',
+    caste: 'Caste / Category', tfw: 'TFW Status', homeState: 'Home State Status', wbjeeYear: 'WBJEE Year'
+  };
+  const INPUT_MAP = {
+    name: ['editFirstName','editLastName'], phone: ['editPhone'],
+    gender: ['editGender'], caste: ['editCaste'],
+    tfw: ['editTfw'], homeState: ['editHomeState'], wbjeeYear: ['editYear']
+  };
+
+  async function checkMandatory(user, profileData) {
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`${API}/api/settings/mandatory-fields`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const { settings } = await res.json();
+      const missing = [];
+
+      // Check each mandatory field
+      Object.keys(settings).forEach(field => {
+        if (!settings[field]) return;
+        let isEmpty = false;
+        if (field === 'name') {
+          isEmpty = !profileData.firstName?.trim() && !profileData.name?.trim();
+        } else {
+          isEmpty = !profileData[field] || !String(profileData[field]).trim();
+        }
+        if (isEmpty) missing.push(FIELD_MAP[field] || field);
+
+        // Mark required label with star
+        const lblId = `lbl-${field === 'name' ? 'firstName' : field}`;
+        const lbl = document.getElementById(lblId);
+        if (lbl && !lbl.querySelector('.req-star')) {
+          lbl.insertAdjacentHTML('beforeend', '<span class="req-star"> ✱</span>');
+        }
+        // Also mark last name if name is required
+        if (field === 'name') {
+          const lbl2 = document.getElementById('lbl-lastName');
+          if (lbl2 && !lbl2.querySelector('.req-star'))
+            lbl2.insertAdjacentHTML('beforeend', '<span class="req-star"> ✱</span>');
+        }
+        // Mark the input field visually if empty
+        if (isEmpty && INPUT_MAP[field]) {
+          INPUT_MAP[field].forEach(id => {
+            const inp = document.getElementById(id);
+            if (inp) inp.classList.add('field-required');
+          });
+        }
+      });
+
+      if (missing.length) {
+        const banner = document.getElementById('mandatoryBanner');
+        document.getElementById('mandatoryList').textContent = missing.join(', ');
+        banner.style.display = 'block';
+      }
+    } catch(e) {
+      console.warn('[profile] mandatory check error:', e.message);
+    }
+  }
+
+  // ── Save profile via backend API ─────────────────────────────────────────
+  async function saveProfile(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const firstName = document.getElementById('editFirstName').value.trim();
+    const lastName  = document.getElementById('editLastName').value.trim();
+    const email     = document.getElementById('editEmail').value.trim();
+    const phone     = document.getElementById('editPhone').value.trim();
+    const year      = document.getElementById('editYear').value;
+    const gender    = document.getElementById('editGender').value;
+    const caste     = document.getElementById('editCaste').value;
+    const tfw       = document.getElementById('editTfw').value;
+    const homeState = document.getElementById('editHomeState').value;
+    const bio       = document.getElementById('editBio').value.trim();
+
+    const fullEnteredName = `${firstName} ${lastName}`.trim().toLowerCase();
+    if (fullEnteredName && !/[a-z].*[a-z]/i.test(fullEnteredName)) {
+      showNotif('Please enter a valid real name (at least 2 letters required).', 'error');
+      btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+      btn.disabled = false;
+      return;
+    }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+    btn.disabled = true;
+
+    try {
+      // 1. Update Firebase Auth display name
+      await user.updateProfile({ displayName: `${firstName} ${lastName}`.trim() });
+
+      // 2. Save to Firestore via secure backend (bypasses permission rules)
+      const token = await user.getIdToken();
+      const res = await fetch(`${API}/api/profile`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw, homeState, bio })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Server error ${res.status}`);
+      }
+
+      // Update avatar and target year
+      if (firstName) {
+        document.getElementById('profileAvatar').textContent = firstName[0].toUpperCase();
+        document.getElementById('profileName').textContent = `${firstName} ${lastName}`.trim();
+      }
+      if (year) {
+        document.getElementById('profileTargetYear').textContent = `WBJEE ${year} Aspirant`;
+      }
+
+      showNotif('Profile saved successfully!');
+
+      // Bust client sessionStorage cache for profile so changes take effect immediately on navigation
+      sessionStorage.removeItem(`__sankalp_profile_${user.uid}__`);
+
+      // Re-run mandatory check with updated data
+      setTimeout(() => {
+        // Remove old marks
+        document.querySelectorAll('.req-star').forEach(s => s.remove());
+        document.querySelectorAll('.field-required').forEach(el => el.classList.remove('field-required'));
+        document.getElementById('mandatoryBanner').style.display = 'none';
+        checkMandatory(user, { firstName, lastName, email, phone, wbjeeYear: year, gender, caste, tfw, homeState });
+      }, 500);
+
+    } catch(err) {
+      console.error(err);
+      showNotif('Failed to save: ' + err.message, 'error');
+    }
+
+    btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+    btn.disabled = false;
+  }
+
+  async function changePassword() {
+    const user = auth.currentUser;
+    if (!user || !user.email) return;
+    try {
+      await auth.sendPasswordResetEmail(user.email);
+      showNotif('Password reset email sent!', 'success');
+    } catch(err) { showNotif(err.message, 'error'); }
+  }
+
+  if (window.innerWidth <= 768) {
+    document.getElementById('profileGrid').style.gridTemplateColumns = '1fr';
+  }
+
+  // ── Auth gate + load profile ─────────────────────────────────────────────
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = '../login.html'; return; }
+
+    const name = user.displayName || '';
+    const nameParts = name.split(' ');
+    document.getElementById('profileAvatar').textContent = name ? name[0].toUpperCase() : '?';
+    document.getElementById('profileName').textContent = name || 'Student';
+    document.getElementById('profileEmail').textContent = user.email || 'No email provided';
+
+    const firstName = name.split(' ')[0] || 'Student';
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = name || 'Student';
+    document.getElementById('sidebarEmail').textContent = user.email || '';
+    
+    const emailField = document.getElementById('editEmail');
+    if (!user.email) {
+      emailField.disabled = false;
+      emailField.style.opacity = '1';
+      emailField.style.cursor = 'text';
+      document.getElementById('emailNotice').textContent = "Please add your email address";
+    } else {
+      emailField.value = user.email;
+    }
+    
+    document.getElementById('editFirstName').value = nameParts[0] || '';
+    document.getElementById('editLastName').value = nameParts.slice(1).join(' ') || '';
+
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+
+        // Proactively update the sessionStorage profile cache so other pages are instantly in-sync!
+        const profileCacheKey = `__sankalp_profile_${user.uid}__`;
+        sessionStorage.setItem(profileCacheKey, JSON.stringify({
+          value: data,
+          timestamp: Date.now()
+        }));
+
+        if (data.email) {
+          emailField.value = data.email;
+          document.getElementById('profileEmail').textContent = data.email;
+        }
+        if (data.firstName) document.getElementById('editFirstName').value = data.firstName;
+        if (data.lastName)  document.getElementById('editLastName').value  = data.lastName;
+        if (data.phone)     document.getElementById('editPhone').value     = data.phone;
+        if (data.wbjeeYear) document.getElementById('editYear').value      = data.wbjeeYear;
+        if (data.gender)    document.getElementById('editGender').value    = data.gender;
+        if (data.caste)     document.getElementById('editCaste').value     = data.caste;
+        if (data.tfw)       document.getElementById('editTfw').value       = data.tfw;
+        if (data.homeState) document.getElementById('editHomeState').value = data.homeState;
+        if (data.bio)       document.getElementById('editBio').value       = data.bio;
+
         // Stats
         document.getElementById('statXP').textContent      = data.xp || 0;
         document.getElementById('statStreak').textContent  = `${data.streak || 0} days`;

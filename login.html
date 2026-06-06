@@ -257,21 +257,17 @@
       }
     }
 
-    async function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
+    async function handleGoogleStudentLogin(user) {
+      // Strict client-side block for admin email
+      if (adminEmails.includes(user.email.toLowerCase())) {
+        await auth.signOut();
+        showError('Access denied. Admin accounts must log in using the Admin Portal below.');
+        return;
+      }
+      
+      // Ensure student document exists under UID
+      const userRef = db.collection('users').doc(user.uid);
       try {
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-        
-        // Strict client-side block for admin email
-        if (adminEmails.includes(user.email.toLowerCase())) {
-          await auth.signOut();
-          showError('Access denied. Admin accounts must log in using the Admin Portal below.');
-          return;
-        }
-        
-        // Ensure student document exists under UID (never query collection to avoid permission errors)
-        const userRef = db.collection('users').doc(user.uid);
         const doc = await userRef.get();
         if (!doc.exists) {
           await userRef.set({
@@ -282,9 +278,38 @@
             xp: 0, streak: 0
           });
         }
-        window.location.href = getRedirectUrl('student');
+      } catch(e) {
+        console.warn('Firestore student doc check failed, continuing...', e);
+      }
+      window.location.href = getRedirectUrl('student');
+    }
+
+    async function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const btn = document.getElementById('googleBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner" style="width:18px;height:18px;border-width:2px"></span> Connecting...';
+      
+      try {
+        const result = await auth.signInWithPopup(provider);
+        await handleGoogleStudentLogin(result.user);
       } catch (err) {
-        showError('Google login failed. Please try again.');
+        console.error('Google login error:', err);
+        // If popup was blocked or closed, try redirect method
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+          try {
+            sessionStorage.setItem('pendingGoogleLogin', 'student');
+            await auth.signInWithRedirect(provider);
+            return; // page will redirect
+          } catch (redirectErr) {
+            console.error('Redirect login also failed:', redirectErr);
+            showError('Google login failed: ' + redirectErr.message);
+          }
+        } else {
+          showError('Google login failed: ' + (err.message || 'Unknown error. Check browser console.'));
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px" alt="Google"> Continue with Google';
       }
     }
 
@@ -363,44 +388,65 @@
       }
     }
 
-    async function loginAdminWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-        
-        const isHardcodedAdmin = adminEmails.includes(user.email.toLowerCase());
-        
-        if (!isHardcodedAdmin) {
-          // If not in adminEmails list, check Firestore role
-          try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            const role = userDoc.exists ? userDoc.data().role : 'student';
-            if (role !== 'admin') {
-              await auth.signOut();
-              showAdminError('Access denied. Your Google account is not registered as an administrator.');
-              return;
-            }
-          } catch(e) {
+    async function handleGoogleAdminLogin(user) {
+      const isHardcodedAdmin = adminEmails.includes(user.email.toLowerCase());
+      
+      if (!isHardcodedAdmin) {
+        try {
+          const userDoc = await db.collection('users').doc(user.uid).get();
+          const role = userDoc.exists ? userDoc.data().role : 'student';
+          if (role !== 'admin') {
             await auth.signOut();
             showAdminError('Access denied. Your Google account is not registered as an administrator.');
             return;
           }
+        } catch(e) {
+          await auth.signOut();
+          showAdminError('Access denied. Your Google account is not registered as an administrator.');
+          return;
         }
-        
-        // Since user is verified as admin (via email list), write their admin document directly under their UID
-        const userRef = db.collection('users').doc(user.uid);
+      }
+      
+      const userRef = db.collection('users').doc(user.uid);
+      try {
         await userRef.set({
           name: user.displayName || user.email.split('@')[0],
           email: user.email,
           role: 'admin',
           lastLogin: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        
-        window.location.href = 'admin/evaluators.html';
+      } catch(e) {
+        console.warn('Admin doc write failed, continuing...', e);
+      }
+      
+      window.location.href = 'admin/evaluators.html';
+    }
+
+    async function loginAdminWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const btn = document.getElementById('adminGoogleBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner" style="width:18px;height:18px;border-width:2px"></span> Connecting...';
+      
+      try {
+        const result = await auth.signInWithPopup(provider);
+        await handleGoogleAdminLogin(result.user);
       } catch (err) {
-        console.error(err);
-        showAdminError('Google login failed. Please try again.');
+        console.error('Admin Google login error:', err);
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+          try {
+            sessionStorage.setItem('pendingGoogleLogin', 'admin');
+            await auth.signInWithRedirect(provider);
+            return;
+          } catch (redirectErr) {
+            console.error('Redirect login also failed:', redirectErr);
+            showAdminError('Google login failed: ' + redirectErr.message);
+          }
+        } else {
+          showAdminError('Google login failed: ' + (err.message || 'Unknown error. Check browser console.'));
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px" alt="Google"> Admin Login with Google';
       }
     }
 
@@ -418,6 +464,24 @@
         showAdminError('Could not send reset email. Check your email address.');
       }
     }
+
+    // Handle redirect result (fallback for popup-blocked scenario)
+    auth.getRedirectResult().then(async (result) => {
+      if (result && result.user) {
+        const pendingType = sessionStorage.getItem('pendingGoogleLogin');
+        sessionStorage.removeItem('pendingGoogleLogin');
+        if (pendingType === 'admin') {
+          await handleGoogleAdminLogin(result.user);
+        } else {
+          await handleGoogleStudentLogin(result.user);
+        }
+      }
+    }).catch((err) => {
+      console.error('Redirect result error:', err);
+      if (err.code && err.code !== 'auth/credential-already-in-use') {
+        showError('Google login failed: ' + err.message);
+      }
+    });
 
     // Auto redirect if already logged in
     auth.onAuthStateChanged(async (user) => {

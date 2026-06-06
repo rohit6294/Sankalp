@@ -5,6 +5,7 @@
     'index.html': 'dashboard',
     'students.html': 'students',
     'content.html': 'content',
+    'notes.html': 'content',
     'tests.html': 'tests',
     'evaluators.html': 'evaluators',
     'bookings.html': 'bookings',
@@ -16,31 +17,21 @@
   };
 
   const SECTION_PAGES = {
-    dashboard: 'index.html',
     students: 'evaluators.html#studentList',
     content: 'content.html',
     tests: 'tests.html',
     evaluators: 'evaluators.html#exams',
     collegePredictor: 'evaluators.html#collegePredictor',
-    bookings: 'bookings.html',
-    announcements: 'announcements.html',
-    payments: 'payments.html',
-    analytics: 'analytics.html',
     settings: 'evaluators.html#settings',
     subAdmins: 'sub-admins.html',
   };
 
   const SECTION_ORDER = [
-    'dashboard',
     'students',
     'content',
     'tests',
     'evaluators',
     'collegePredictor',
-    'bookings',
-    'announcements',
-    'payments',
-    'analytics',
     'settings',
   ];
 

@@ -92,15 +92,11 @@
       <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
       <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
     </div>
-    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
     <a href="students.html" class="anl active"><i class="fas fa-users" style="width:16px"></i> Students</a>
     <a href="content.html" class="anl"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="notes.html" class="anl"><i class="fas fa-sticky-note" style="width:16px"></i> Notes</a>
     <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
     <a href="evaluators.html" class="anl"><i class="fas fa-calculator" style="width:16px"></i> Evaluators</a>
-    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
-    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
-    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
-    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
     <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
     <a href="../login.html" class="anl" onclick="auth.signOut()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
   </div>
@@ -179,6 +175,10 @@
       <option value="free">Free Access (Admin)</option>
       <option value="paid">Paid / Subscription</option>
       <option value="locked">Locked (No Access)</option>
+    </select>
+    <select id="filterPurchasedNote" onchange="onPurchasedNoteFilterChange()"
+      style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
+      <option value="">All Purchased Notes</option>
     </select>
     <select id="sortBy" onchange="applyFilters()"
       style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-size:13px;outline:none">
@@ -405,12 +405,16 @@ function updateStats(){
   document.getElementById('stat2025').textContent = allStudents.filter(s=>String(s.wbjeeYear)==='2025').length;
 }
 
+let purchasedNoteUserIds = new Set();
+let selectedNoteId = '';
+
 function applyFilters(){
   const q=(document.getElementById('searchInput').value||'').toLowerCase();
   const year=document.getElementById('filterYear').value;
   const status=document.getElementById('filterStatus').value;
   const predictor=document.getElementById('filterPredictor').value;
   const sort=document.getElementById('sortBy').value;
+  const purchasedNoteId=document.getElementById('filterPurchasedNote').value;
 
   filteredStudents = allStudents.filter(s=>{
     if(q && !s.name?.toLowerCase().includes(q) && !s.email?.toLowerCase().includes(q)) return false;
@@ -427,6 +431,7 @@ function applyFilters(){
       if(predictor==='paid' && !isPaid) return false;
       if(predictor==='locked' && (isFree || isPaid)) return false;
     }
+    if(purchasedNoteId && !purchasedNoteUserIds.has(s.id)) return false;
     return true;
   });
 
@@ -592,20 +597,47 @@ function viewStudent(id){
         </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-      <div style="background:rgba(79,70,229,0.08);border:1px solid rgba(79,70,229,0.15);border-radius:12px;padding:14px;text-align:center">
-        <div style="font-size:24px;font-weight:800;color:#818CF8">${xp.toLocaleString()}</div>
-        <div style="font-size:11px;color:#64748B;margin-top:2px">XP Points</div>
+    
+    <!-- Tabs inside view modal -->
+    <div style="border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:16px;display:flex;gap:12px">
+      <button onclick="switchViewStudentTab('details')" id="btn-view-details" class="tab-btn active" style="padding-bottom:8px;border-bottom:2px solid #4F46E5;font-weight:700;color:white;font-size:13px">Profile Details</button>
+      <button onclick="switchViewStudentTab('logs', '${id}')" id="btn-view-logs" class="tab-btn" style="padding-bottom:8px;border-bottom:2px solid transparent;color:#64748B;font-size:13px">Activity Logs</button>
+    </div>
+    
+    <!-- Tab Details -->
+    <div id="view-tab-details">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="background:rgba(79,70,229,0.08);border:1px solid rgba(79,70,229,0.15);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#818CF8">${xp.toLocaleString()}</div>
+          <div style="font-size:11px;color:#64748B;margin-top:2px">XP Points</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#FBBF24">${s.streak||0} 🔥</div>
+          <div style="font-size:11px;color:#64748B;margin-top:2px">Day Streak</div>
+        </div>
       </div>
-      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:12px;padding:14px;text-align:center">
-        <div style="font-size:24px;font-weight:800;color:#FBBF24">${s.streak||0} 🔥</div>
-        <div style="font-size:11px;color:#64748B;margin-top:2px">Day Streak</div>
+      <div style="background:rgba(15,23,42,0.5);border-radius:12px;padding:4px 16px">
+        ${rows.map(([k,v])=>`<div class="detail-row"><span style="font-size:13px;color:#64748B;font-weight:500">${k}</span><span style="font-size:13px;color:white;font-weight:600">${v}</span></div>`).join('')}
       </div>
     </div>
-    <div style="background:rgba(15,23,42,0.5);border-radius:12px;padding:4px 16px">
-      ${rows.map(([k,v])=>`<div class="detail-row"><span style="font-size:13px;color:#64748B;font-weight:500">${k}</span><span style="font-size:13px;color:white;font-weight:600">${v}</span></div>`).join('')}
+    
+    <!-- Tab Logs -->
+    <div id="view-tab-logs" style="display:none">
+      <div style="max-height:280px;overflow-y:auto;border:1px solid rgba(255,255,255,0.05);border-radius:10px">
+        <table class="tbl">
+          <thead><tr>
+            <th>Note</th>
+            <th>Action</th>
+            <th>Date</th>
+          </tr></thead>
+          <tbody id="studentLogsTableBody">
+            <tr><td colspan="3"><div style="text-align:center;padding:20px;color:#64748B"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="modal-footer">
+    
+    <div class="modal-footer" style="margin-top:20px">
       <button class="btn-ghost" onclick="closeModal('viewModal')">Close</button>
       <button class="btn-primary" onclick="closeModal('viewModal');openEdit('${id}')"><i class="fas fa-pen"></i> Edit Student</button>
     </div>`;
@@ -714,6 +746,101 @@ function exportCSV(){
   showToast('CSV exported!');
 }
 
+// ============ DYNAMIC LOGS & FILTERS ============
+async function loadNotesForFilter() {
+  try {
+    const snap = await db.collection('notes').orderBy('title', 'asc').get();
+    const select = document.getElementById('filterPurchasedNote');
+    select.innerHTML = '<option value="">All Purchased Notes</option>' +
+      snap.docs.map(doc => {
+        const data = doc.data();
+        return `<option value="${doc.id}">${data.title || 'Untitled'}</option>`;
+      }).join('');
+  } catch (err) {
+    console.error('Error loading notes for filter:', err);
+  }
+}
+
+async function onPurchasedNoteFilterChange() {
+  selectedNoteId = document.getElementById('filterPurchasedNote').value;
+  if (!selectedNoteId) {
+    purchasedNoteUserIds.clear();
+    applyFilters();
+    return;
+  }
+  
+  // Show loading in students table
+  document.getElementById('studentsBody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Filtering by note purchase...</div></td></tr>';
+  
+  try {
+    const snap = await db.collection('notePurchases').where('noteId', '==', selectedNoteId).get();
+    purchasedNoteUserIds.clear();
+    snap.forEach(doc => {
+      const data = doc.data();
+      if (data.userId) purchasedNoteUserIds.add(data.userId);
+    });
+    applyFilters();
+  } catch (err) {
+    console.error('Error filtering by note purchase:', err);
+    showToast('Failed to filter by note purchase.', true);
+  }
+}
+
+function switchViewStudentTab(tab, studentId) {
+  if (tab === 'details') {
+    document.getElementById('view-tab-details').style.display = 'block';
+    document.getElementById('view-tab-logs').style.display = 'none';
+    
+    document.getElementById('btn-view-details').style.borderColor = '#4F46E5';
+    document.getElementById('btn-view-details').style.color = 'white';
+    document.getElementById('btn-view-logs').style.borderColor = 'transparent';
+    document.getElementById('btn-view-logs').style.color = '#64748B';
+  } else {
+    document.getElementById('view-tab-details').style.display = 'none';
+    document.getElementById('view-tab-logs').style.display = 'block';
+    
+    document.getElementById('btn-view-logs').style.borderColor = '#4F46E5';
+    document.getElementById('btn-view-logs').style.color = 'white';
+    document.getElementById('btn-view-details').style.borderColor = 'transparent';
+    document.getElementById('btn-view-details').style.color = '#64748B';
+    
+    loadStudentActivityLogs(studentId);
+  }
+}
+
+async function loadStudentActivityLogs(studentId) {
+  const tbody = document.getElementById('studentLogsTableBody');
+  tbody.innerHTML = '<tr><td colspan="3"><div style="text-align:center;padding:20px;color:#64748B"><i class="fas fa-spinner fa-spin"></i> Loading activity logs...</div></td></tr>';
+  
+  try {
+    const snap = await db.collection('noteAccessLogs')
+      .where('userId', '==', studentId)
+      .orderBy('timestamp', 'desc')
+      .limit(100)
+      .get();
+      
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="3"><div style="text-align:center;padding:20px;color:#64748B">No note activity logged yet.</div></td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = snap.docs.map(doc => {
+      const data = doc.data();
+      const actionLabel = data.action === 'purchased' 
+        ? `<span class="badge badge-paid" style="font-size:10px">Purchased${data.amount ? ' (₹' + data.amount + ')' : ''}</span>`
+        : `<span class="badge badge-free" style="font-size:10px">Viewed</span>`;
+      return `<tr>
+        <td style="font-weight:600;color:white">${data.noteTitle || 'Untitled Note'}</td>
+        <td>${actionLabel}</td>
+        <td style="color:#64748B;font-size:12px">${fmtDate(data.timestamp)}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('Error loading student activity logs:', err);
+    tbody.innerHTML = `<tr><td colspan="3" style="color:#F87171;text-align:center;padding:20px">Error loading logs: ${err.message}</td></tr>`;
+  }
+}
+
 document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
 });
@@ -721,6 +848,7 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
 auth.onAuthStateChanged(user=>{
   if(!user){window.location.href='../login.html';return;}
   currentAdmin=user;
+  loadNotesForFilter();
   loadStudents();
 });
 </script>

@@ -3,147 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mock Tests — Sankalp Aspirant</title>
+  <title>WBJEE Mock Tests — Sankalp Aspirant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="../js/firebase-config.js"></script>
   <script src="../js/profile-check.js"></script>
 </head>
-<body style="background:#020617;color:#E2E8F0;font-family:'Inter',sans-serif">
+<body>
 
 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
 <aside class="sidebar" id="sidebar">
-  <div style="padding:24px 20px">
-    <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:32px">
-      <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
-      <div><div style="color:white;font-weight:700;font-size:16px;font-family:'Poppins',sans-serif">Sankalp</div><div style="color:#818CF8;font-size:11px">Aspirant</div></div>
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP WBJEE</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
     </a>
-    <nav>
-      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home w-5"></i> Dashboard</a>
-      <a href="courses.html" class="sidebar-link"><i class="fas fa-book-open w-5"></i> My Courses</a>
-      <a href="mock-test.html" class="sidebar-link active"><i class="fas fa-clipboard-list w-5"></i> Mock Tests</a>
-      <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note w-5"></i> Notes</a>
-      <a href="counseling.html" class="sidebar-link"><i class="fas fa-calendar-check w-5"></i> Counseling</a>
-      <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap w-5"></i> College Predictor</a>
-      <a href="#" class="sidebar-link" onclick="logout()" style="margin-top:20px"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
-    </nav>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="mock-test.html" class="sidebar-link active"><i class="fas fa-file-alt" style="width:18px"></i> Mock Tests</a>
+    <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+  <div style="position:absolute; bottom:0; left:0; right:0; padding:16px 22px; border-top:1px solid var(--ink);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="avatarSidebar" class="brand-mark" style="width:34px; height:34px; font-size:14px;">?</div>
+      <div style="overflow:hidden;">
+        <div id="sidebarName" style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading...</div>
+        <div id="sidebarEmail" style="font-size:11px; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
   </div>
 </aside>
 
-<main class="main-content" style="padding:32px">
-  <!-- Header -->
+<main class="main-content" style="padding:28px 32px">
   <div id="listView">
     <div style="margin-bottom:28px">
-      <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">Mock Tests 📝</h1>
-      <p style="color:#475569;font-size:14px;margin-top:4px">Practice under real exam conditions</p>
+      <h1 class="display-lg">WBJEE Mock Tests 🚀</h1>
+      <p style="color:var(--ink-mute);font-size:13px;margin-top:4px">Strict WBJEE pattern: +1/-0.25 (Cat 1), +2/-0.5 (Cat 2), +2/0 partial (Cat 3)</p>
     </div>
 
-    <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px">
-      <div class="glass-card p-5 text-center">
-        <div style="font-size:28px;font-weight:800;background:linear-gradient(135deg,#818CF8,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="totalAttempted">0</div>
-        <div style="font-size:13px;color:#64748B;margin-top:4px">Tests Attempted</div>
-      </div>
-      <div class="glass-card p-5 text-center">
-        <div style="font-size:28px;font-weight:800;background:linear-gradient(135deg,#34D399,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="bestScore">—</div>
-        <div style="font-size:13px;color:#64748B;margin-top:4px">Best Score</div>
-      </div>
-      <div class="glass-card p-5 text-center">
-        <div style="font-size:28px;font-weight:800;background:linear-gradient(135deg,#FCD34D,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="avgScoreTest">—</div>
-        <div style="font-size:13px;color:#64748B;margin-top:4px">Average Score</div>
-      </div>
-      <div class="glass-card p-5 text-center">
-        <div style="font-size:28px;font-weight:800;background:linear-gradient(135deg,#F87171,#EF4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent">12</div>
-        <div style="font-size:13px;color:#64748B;margin-top:4px">Available Tests</div>
-      </div>
+    <!-- Removed hardcoded subscription banner -->
+
+    <!-- Test Series Section -->
+    <div id="seriesSection" style="display:none;margin-bottom:40px">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)"><i class="fas fa-layer-group" style="color:#8B5CF6;margin-right:8px"></i> Test Series Packages</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px" id="seriesGrid"></div>
     </div>
 
-    <!-- Tests List -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px" id="testGrid"></div>
-  </div>
-
-  <!-- Test Taking View (hidden initially) -->
-  <div id="testView" style="display:none;max-width:800px;margin:0 auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
-      <div>
-        <h2 id="testTitle" style="font-size:20px;font-weight:700;font-family:'Poppins',sans-serif"></h2>
-        <div id="testMeta" style="font-size:13px;color:#64748B;margin-top:2px"></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:100px;padding:8px 16px">
-          <i class="fas fa-clock" style="color:#F87171;font-size:13px"></i>
-          <span id="timerDisplay" style="font-size:14px;font-weight:700;color:#F87171;min-width:50px">60:00</span>
-        </div>
-        <div style="font-size:13px;color:#64748B" id="questionCounter">Q 1/30</div>
-      </div>
-    </div>
-
-    <!-- Question progress -->
-    <div class="progress-bar" style="margin-bottom:24px;height:4px">
-      <div class="progress-fill" id="testProgress" style="width:0%;transition:width 0.3s"></div>
-    </div>
-
-    <!-- Question -->
-    <div class="glass-card p-8" id="questionCard">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-        <span id="qSubject" class="badge badge-primary">Physics</span>
-        <span style="font-size:13px;color:#64748B">Question <span id="qNum">1</span></span>
-      </div>
-      <h3 id="questionText" style="font-size:17px;font-weight:600;line-height:1.6;margin-bottom:24px"></h3>
-      <div id="optionsContainer" style="display:flex;flex-direction:column;gap:10px"></div>
-      <div id="explanationBox" style="display:none;margin-top:20px;padding:16px;border-radius:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)">
-        <div style="font-weight:600;color:#34D399;margin-bottom:6px"><i class="fas fa-lightbulb"></i> Explanation</div>
-        <div id="explanationText" style="font-size:14px;color:#94A3B8;line-height:1.6"></div>
-      </div>
-    </div>
-
-    <!-- Navigation -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px">
-      <button onclick="prevQuestion()" id="prevBtn" class="btn-secondary" style="opacity:0.4;pointer-events:none">
-        <i class="fas fa-arrow-left"></i> Previous
-      </button>
-      <div style="display:flex;gap:8px" id="questionDots"></div>
-      <button onclick="nextQuestion()" id="nextBtn" class="btn-primary">
-        Next <i class="fas fa-arrow-right"></i>
-      </button>
-    </div>
-    <div style="text-align:center;margin-top:16px">
-      <button onclick="submitTest()" class="btn-gold" style="padding:12px 32px">
-        <i class="fas fa-paper-plane"></i> Submit Test
-      </button>
-    </div>
-  </div>
-
-  <!-- Result View -->
-  <div id="resultView" style="display:none;max-width:600px;margin:0 auto;text-align:center">
-    <div class="glass-card p-10">
-      <div id="resultEmoji" style="font-size:64px;margin-bottom:16px">🏆</div>
-      <h2 style="font-size:28px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:8px" id="resultTitle">Test Complete!</h2>
-      <div style="font-size:56px;font-weight:900;background:linear-gradient(135deg,#818CF8,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:16px 0" id="resultScore">0%</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:24px 0">
-        <div style="background:rgba(16,185,129,0.1);border-radius:12px;padding:16px">
-          <div style="font-size:22px;font-weight:700;color:#34D399" id="correctCount">0</div>
-          <div style="font-size:12px;color:#64748B">Correct</div>
-        </div>
-        <div style="background:rgba(239,68,68,0.1);border-radius:12px;padding:16px">
-          <div style="font-size:22px;font-weight:700;color:#F87171" id="wrongCount">0</div>
-          <div style="font-size:12px;color:#64748B">Wrong</div>
-        </div>
-        <div style="background:rgba(100,116,139,0.1);border-radius:12px;padding:16px">
-          <div style="font-size:22px;font-weight:700;color:#94A3B8" id="skippedCount">0</div>
-          <div style="font-size:12px;color:#64748B">Skipped</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <button onclick="showList()" class="btn-primary"><i class="fas fa-list"></i> Back to Tests</button>
-        <button onclick="location.reload()" class="btn-secondary"><i class="fas fa-redo"></i> Retry</button>
-      </div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)"><i class="fas fa-file-alt" style="color:var(--ink-mute);margin-right:8px"></i> Individual Tests</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px" id="testGrid">
+      <div style="color:var(--ink-mute);font-size:14px;grid-column:1/-1;text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
     </div>
   </div>
 </main>
@@ -152,150 +76,185 @@
   function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
   function logout() { auth.signOut().then(() => window.location.href = '../login.html'); }
 
-  const tests = [
-    { id:'full-1', title:'Full Mock Test #1', type:'full', duration:180, questions:75, subject:'All Subjects', color:'rgba(79,70,229,0.1)', border:'rgba(79,70,229,0.3)', accent:'#818CF8', icon:'📝' },
-    { id:'phy-1', title:'Physics Chapter Test', type:'chapter', duration:60, questions:30, subject:'Physics', color:'rgba(79,70,229,0.08)', border:'rgba(79,70,229,0.25)', accent:'#818CF8', icon:'⚡' },
-    { id:'chem-1', title:'Chemistry Chapter Test', type:'chapter', duration:60, questions:30, subject:'Chemistry', color:'rgba(16,185,129,0.08)', border:'rgba(16,185,129,0.25)', accent:'#34D399', icon:'🧪' },
-    { id:'math-1', title:'Mathematics Chapter Test', type:'chapter', duration:60, questions:30, subject:'Mathematics', color:'rgba(245,158,11,0.08)', border:'rgba(245,158,11,0.25)', accent:'#FCD34D', icon:'📐' },
-    { id:'pyq-2023', title:'WBJEE 2023 PYQ', type:'pyq', duration:180, questions:80, subject:'All Subjects', color:'rgba(239,68,68,0.08)', border:'rgba(239,68,68,0.25)', accent:'#F87171', icon:'🏆' },
-    { id:'pyq-2022', title:'WBJEE 2022 PYQ', type:'pyq', duration:180, questions:80, subject:'All Subjects', color:'rgba(239,68,68,0.08)', border:'rgba(239,68,68,0.25)', accent:'#F87171', icon:'🏆' },
-  ];
+  async function apiJson(path, options = {}) {
+    const API = window.EVALUATOR_API || 'http://127.0.0.1:3000';
+    const token = await auth.currentUser.getIdToken();
+    const headers = { Authorization: `Bearer ${token}`, ...(options.headers || {}) };
+    if (options.body !== undefined && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    let response = await fetch(`${API}${path}`, { ...options, headers });
+    if (response.status === 401) {
+      const freshToken = await auth.currentUser.getIdToken(true);
+      response = await fetch(`${API}${path}`, { ...options, headers: { ...headers, Authorization: `Bearer ${freshToken}` } });
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+    return payload;
+  }
+
+  function toast(msg, type='info') {
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.innerHTML = `<i class="fas fa-${type==='error'?'exclamation-circle':'check-circle'}"></i> ${msg}`;
+    el.style = `position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--paper-soft);color:white;border:1px solid var(--rust);border-radius:8px;z-index:9999`;
+    if(type==='error') el.style.borderColor='#F87171';
+    if(type==='success') el.style.borderColor='#34D399';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 3000);
+  }
+
+  let tests = [];
+  let series = [];
+
+  async function loadTests() {
+    try {
+      const data = await apiJson('/api/tests/available');
+      tests = data.tests || [];
+      series = data.series || [];
+      renderSeries();
+      renderTests();
+    } catch(e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  function renderSeries() {
+    const sSection = document.getElementById('seriesSection');
+    const grid = document.getElementById('seriesGrid');
+    if(!series.length) { sSection.style.display = 'none'; return; }
+    
+    sSection.style.display = 'block';
+    grid.innerHTML = series.map(s => {
+      let actionBtn = s.allowed 
+        ? `<button disabled class="btn-ghost" style="width:100%;justify-content:center;color:var(--forest)"><i class="fas fa-check" style="margin-right:6px"></i> Purchased</button>`
+        : `<button onclick="buySeries('${s.id}', ${s.price})" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-unlock" style="margin-right:6px"></i> Unlock Series (₹${s.price})</button>`;
+        
+      return `
+      <div class="q-card" style="padding:24px;border:1px solid var(--rule-strong);box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-weight:700;font-size:16px;color:var(--ink)">${s.title}</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:4px">${s.description || 'Bundle of mock tests'}</div>
+          </div>
+          <span class="badge" style="background:rgba(139,92,246,0.1);color:#8B5CF6;">SERIES</span>
+        </div>
+        ${actionBtn}
+      </div>`;
+    }).join('');
+  }
 
   function renderTests() {
-    document.getElementById('testGrid').innerHTML = tests.map(t => `
-      <div class="glass-card p-6" style="background:${t.color};border-color:${t.border}">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <div style="width:48px;height:48px;border-radius:12px;background:${t.color};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;font-size:22px">${t.icon}</div>
+    const grid = document.getElementById('testGrid');
+    if(!tests.length) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#64748B">No tests found.</div>`; return; }
+    
+    grid.innerHTML = tests.map(t => {
+      let icon = t.subject === 'Physics' ? '⚡' : t.subject === 'Chemistry' ? '🧪' : t.subject === 'Mathematics' ? '📐' : '📝';
+      let accent = t.subject === 'Physics' ? '#818CF8' : t.subject === 'Chemistry' ? '#34D399' : t.subject === 'Mathematics' ? '#FCD34D' : '#F87171';
+      let color = t.subject === 'Physics' ? 'rgba(79,70,229,0.08)' : t.subject === 'Chemistry' ? 'rgba(16,185,129,0.08)' : t.subject === 'Mathematics' ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)';
+      
+      let seriesBadge = t.seriesId ? `<span style="background:rgba(139,92,246,0.15);color:#A78BFA;font-size:9px;font-weight:700;padding:2px 6px;border-radius:100px;margin-left:8px"><i class="fas fa-layer-group"></i> IN SERIES</span>` : '';
+
+      let actionBtn = '';
+      if(t.allowed) {
+        actionBtn = `<button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+      } else if (t.seriesId) {
+        const pSeries = series.find(x => x.id === t.seriesId);
+        if (pSeries && !pSeries.allowed) {
+          actionBtn = `<button onclick="buySeries('${t.seriesId}', ${pSeries.price})" class="btn-ghost" style="width:100%;justify-content:center;color:var(--rust);border-color:rgba(217,119,6,0.2)"><i class="fas fa-lock" style="margin-right:6px"></i> Buy Series to Unlock</button>`;
+        } else if (!pSeries) {
+          actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center;color:#EF4444;cursor:not-allowed"><i class="fas fa-lock" style="margin-right:6px"></i> Series Unavailable</button>`;
+        }
+      } else if (t.accessType === 'paid') {
+        actionBtn = `<button onclick="buyTest('${t.id}', ${t.price})" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-lock" style="margin-right:6px"></i> Buy Test (₹${t.price})</button>`;
+      } else if (t.accessType === 'subscription') {
+        actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center"><i class="fas fa-lock" style="margin-right:6px"></i> Requires Pass</button>`;
+      }
+
+      let badge = '';
+      if(t.accessType==='free') badge='<span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">FREE</span>';
+      else if(t.accessType==='subscription') badge='<span style="background:rgba(139,92,246,0.15);color:#A78BFA;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">WBJEE PASS</span>';
+      return `
+      <div class="q-card" style="padding:24px;border:1px solid var(--rule-strong);box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
-            <div style="font-weight:700;font-size:15px">${t.title}</div>
-            <div style="font-size:12px;color:#64748B">${t.subject}</div>
+            <div style="font-weight:700;font-size:15px;color:var(--ink)">${t.title}</div>
+            <div style="font-size:11px;color:var(--ink-mute);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em">${t.type || 'Test'} · ${t.subject}</div>
           </div>
+          ${badge}
         </div>
-        <div style="display:flex;gap:16px;margin-bottom:20px">
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#64748B"><i class="fas fa-clock" style="color:${t.accent}"></i> ${t.duration} min</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#64748B"><i class="fas fa-question-circle" style="color:${t.accent}"></i> ${t.questions} questions</div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;background:var(--paper-deep);padding:12px;border-radius:8px">
+          <div style="font-size:12px;color:var(--ink-soft);font-weight:600"><i class="fas fa-clock" style="color:var(--ink-mute);margin-right:4px"></i> ${t.durationMin || t.duration}m</div>
+          <div style="font-size:12px;color:var(--ink-soft);font-weight:600"><i class="fas fa-list-ol" style="color:var(--ink-mute);margin-right:4px"></i> ${t.totalQuestions} Qs</div>
+          <div style="font-size:12px;color:var(--ink-soft);font-weight:600;grid-column:1/-1"><i class="fas fa-layer-group" style="color:var(--ink-mute);margin-right:4px"></i> Series: <span style="color:var(--rust)">${t.seriesTitle||'None'}</span></div>
         </div>
-        <button onclick="startTest('${t.id}')" style="width:100%;padding:11px;border-radius:10px;border:1px solid ${t.border};background:transparent;color:${t.accent};font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='${t.color}'" onmouseout="this.style.background='transparent'">
-          <i class="fas fa-play"></i> Start Test
-        </button>
-      </div>`).join('');
+
+        ${actionBtn}
+      </div>`;
+    }).join('');
   }
 
-  // Sample questions
-  const questions = [
-    { q:'A charge of 2μC is placed at the origin. The electric field at a distance of 2m from the charge is:', opts:['4.5 × 10³ N/C','2.25 × 10³ N/C','9 × 10³ N/C','1.8 × 10³ N/C'], ans:0, sub:'Physics', exp:'Using E = kq/r² = (9×10⁹ × 2×10⁻⁶)/4 = 4500 N/C = 4.5 × 10³ N/C' },
-    { q:'The derivative of sin(x²) with respect to x is:', opts:['cos(x²)','2x·cos(x²)','cos(2x)','2x·sin(x²)'], ans:1, sub:'Mathematics', exp:'Using chain rule: d/dx[sin(x²)] = cos(x²)·2x = 2x·cos(x²)' },
-    { q:'Which of the following is the most stable carbocation?', opts:['Methyl','Primary','Secondary','Tertiary'], ans:3, sub:'Chemistry', exp:'Tertiary carbocations are most stable due to hyperconjugation and inductive effects from three alkyl groups.' },
-    { q:'A ball is thrown vertically upward with velocity 20 m/s. Time to reach maximum height (g=10 m/s²):', opts:['1 s','2 s','3 s','4 s'], ans:1, sub:'Physics', exp:'At max height, v=0. Using v=u-gt → 0=20-10t → t=2s' },
-    { q:'∫(1/(1+x²))dx equals:', opts:['tan⁻¹(x) + C','sin⁻¹(x) + C','sec⁻¹(x) + C','cot⁻¹(x) + C'], ans:0, sub:'Mathematics', exp:'Standard integral: ∫1/(1+x²)dx = arctan(x) + C' },
-  ];
+  // --- Payment Integration ---
+  async function handlePayment(product, productId = null) {
+    try {
+      const orderData = await apiJson('/api/payment/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ product, productId })
+      });
 
-  let current = 0, answers = {}, timerInterval = null, totalTime = 60;
+      const options = {
+        key: orderData.key_id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Sankalp Learning",
+        description: product === 'mock_test_subscription' ? "WBJEE Mock Test Pass" : "Mock Test Unlock",
+        order_id: orderData.order_id,
+        handler: async function (response) {
+          toast('Verifying payment...', 'info');
+          try {
+            await apiJson('/api/payment/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+            toast('Payment successful! Reloading...', 'success');
+            setTimeout(() => location.reload(), 1500);
+          } catch(err) {
+            toast('Payment verification failed.', 'error');
+          }
+        },
+        prefill: { name: auth.currentUser.displayName, email: auth.currentUser.email },
+        theme: { color: "#D97706" } // Using var(--rust) equivalent color
+      };
 
-  function startTest(id) {
-    const test = tests.find(t => t.id === id);
-    document.getElementById('listView').style.display = 'none';
-    document.getElementById('testView').style.display = 'block';
-    document.getElementById('testTitle').textContent = test.title;
-    document.getElementById('testMeta').textContent = `${test.questions} questions • ${test.duration} minutes`;
-    totalTime = test.duration * 60;
-    current = 0; answers = {};
-    renderQuestion();
-    startTimer(totalTime);
-    renderDots();
-  }
-
-  function renderQuestion() {
-    const q = questions[current % questions.length];
-    document.getElementById('qNum').textContent = current + 1;
-    document.getElementById('questionCounter').textContent = `Q ${current+1}/${questions.length}`;
-    document.getElementById('questionText').textContent = q.q;
-    document.getElementById('qSubject').textContent = q.sub;
-    document.getElementById('testProgress').style.width = `${((current+1)/questions.length)*100}%`;
-    document.getElementById('explanationBox').style.display = 'none';
-
-    document.getElementById('optionsContainer').innerHTML = q.opts.map((opt,i) => `
-      <div class="quiz-option" onclick="selectAnswer(${i})" id="opt_${i}" style="${answers[current] === i ? 'border-color:#4F46E5;background:rgba(79,70,229,0.15)' : ''}">
-        <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">${String.fromCharCode(65+i)}</div>
-        <span style="font-size:14px">${opt}</span>
-      </div>`).join('');
-
-    document.getElementById('prevBtn').style.opacity = current === 0 ? '0.4' : '1';
-    document.getElementById('prevBtn').style.pointerEvents = current === 0 ? 'none' : 'auto';
-  }
-
-  function selectAnswer(i) {
-    answers[current] = i;
-    document.querySelectorAll('.quiz-option').forEach((el,idx) => {
-      el.style.borderColor = idx === i ? '#4F46E5' : 'rgba(255,255,255,0.08)';
-      el.style.background = idx === i ? 'rgba(79,70,229,0.15)' : 'rgba(30,41,59,0.6)';
-    });
-    const q = questions[current % questions.length];
-    const correct = i === q.ans;
-    document.getElementById('explanationBox').style.display = 'block';
-    document.getElementById('explanationText').textContent = q.exp;
-    document.getElementById(`opt_${q.ans}`).style.borderColor = '#10B981';
-    document.getElementById(`opt_${q.ans}`).style.background = 'rgba(16,185,129,0.1)';
-    if (!correct) {
-      document.getElementById(`opt_${i}`).style.borderColor = '#EF4444';
-      document.getElementById(`opt_${i}`).style.background = 'rgba(239,68,68,0.1)';
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (response){ toast('Payment failed. Please try again.', 'error'); });
+      rzp.open();
+    } catch(err) {
+      toast(err.message, 'error');
     }
-    updateDots();
   }
 
-  function nextQuestion() { if (current < questions.length-1) { current++; renderQuestion(); updateDots(); } }
-  function prevQuestion() { if (current > 0) { current--; renderQuestion(); updateDots(); } }
-
-  function renderDots() {
-    document.getElementById('questionDots').innerHTML = questions.slice(0,Math.min(questions.length,8)).map((_,i) => `<div id="dot_${i}" style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.2s"></div>`).join('');
-    updateDots();
+  function buyTest(id, price) {
+    handlePayment('mock_test', id);
+  }
+  function buySubscription() {
+    handlePayment('mock_test_subscription');
+  }
+  function buySeries(id, price) {
+    handlePayment('mock_test_series', id);
   }
 
-  function updateDots() {
-    questions.slice(0,8).forEach((_,i) => {
-      const dot = document.getElementById(`dot_${i}`);
-      if (!dot) return;
-      dot.style.background = i === current ? '#4F46E5' : answers[i] !== undefined ? '#10B981' : 'rgba(255,255,255,0.1)';
-    });
-  }
-
-  function startTimer(seconds) {
-    clearInterval(timerInterval);
-    let remaining = seconds;
-    timerInterval = setInterval(() => {
-      remaining--;
-      const m = Math.floor(remaining/60).toString().padStart(2,'0');
-      const s = (remaining%60).toString().padStart(2,'0');
-      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
-      if (remaining <= 300) document.getElementById('timerDisplay').style.color = '#EF4444';
-      if (remaining <= 0) { clearInterval(timerInterval); submitTest(); }
-    }, 1000);
-  }
-
-  function submitTest() {
-    clearInterval(timerInterval);
-    const correct = Object.entries(answers).filter(([i,a]) => a === questions[i%questions.length].ans).length;
-    const wrong = Object.keys(answers).length - correct;
-    const skipped = questions.length - Object.keys(answers).length;
-    const pct = Math.round((correct/questions.length)*100);
-    document.getElementById('testView').style.display = 'none';
-    document.getElementById('resultView').style.display = 'block';
-    document.getElementById('resultScore').textContent = `${pct}%`;
-    document.getElementById('correctCount').textContent = correct;
-    document.getElementById('wrongCount').textContent = wrong;
-    document.getElementById('skippedCount').textContent = skipped;
-    document.getElementById('resultTitle').textContent = pct >= 80 ? 'Excellent! 🎉' : pct >= 60 ? 'Good Job! 👍' : 'Keep Practicing! 💪';
-    document.getElementById('resultEmoji').textContent = pct >= 80 ? '🏆' : pct >= 60 ? '⭐' : '📚';
-  }
-
-  function showList() {
-    document.getElementById('testView').style.display = 'none';
-    document.getElementById('resultView').style.display = 'none';
-    document.getElementById('listView').style.display = 'block';
-  }
-
-  renderTests();
-  auth.onAuthStateChanged(user => { if (!user) window.location.href = '../login.html'; });
+  auth.onAuthStateChanged(user => {
+    if (!user) { window.location.href = '../login.html'; return; }
+    const firstName = (user.displayName || 'Student').split(' ')[0];
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+    document.getElementById('sidebarEmail').textContent = user.email || '';
+    loadTests();
+  });
 </script>
 </body>
 </html>

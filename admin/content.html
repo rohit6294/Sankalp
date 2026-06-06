@@ -78,15 +78,11 @@
       <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px">S</div>
       <div><div style="color:white;font-weight:700;font-size:15px;font-family:'Poppins',sans-serif;line-height:1">Sankalp</div><div style="color:#F87171;font-size:10px;font-weight:600">ADMIN PANEL</div></div>
     </div>
-    <a href="index.html" class="anl"><i class="fas fa-chart-pie" style="width:16px"></i> Dashboard</a>
     <a href="students.html" class="anl"><i class="fas fa-users" style="width:16px"></i> Students</a>
     <a href="content.html" class="anl active"><i class="fas fa-book" style="width:16px"></i> Content</a>
+    <a href="notes.html" class="anl"><i class="fas fa-sticky-note" style="width:16px"></i> Notes</a>
     <a href="tests.html" class="anl"><i class="fas fa-clipboard-list" style="width:16px"></i> Tests</a>
     <a href="evaluators.html" class="anl"><i class="fas fa-calculator" style="width:16px"></i> Evaluators</a>
-    <a href="bookings.html" class="anl"><i class="fas fa-calendar-check" style="width:16px"></i> Bookings</a>
-    <a href="announcements.html" class="anl"><i class="fas fa-bullhorn" style="width:16px"></i> Announcements</a>
-    <a href="payments.html" class="anl"><i class="fas fa-rupee-sign" style="width:16px"></i> Payments</a>
-    <a href="analytics.html" class="anl"><i class="fas fa-chart-line" style="width:16px"></i> Analytics</a>
     <a href="settings.html" class="anl"><i class="fas fa-cog" style="width:16px"></i> Settings</a>
     <a href="../login.html" class="anl" onclick="auth.signOut()"><i class="fas fa-sign-out-alt" style="width:16px"></i> Logout</a>
   </div>
@@ -100,16 +96,16 @@
       <h1 style="font-size:22px;font-weight:700;color:white">Content Manager</h1>
       <p style="font-size:13px;color:#64748B;margin-top:2px">Manage courses, modules, notes and PYQ papers</p>
     </div>
-    <button class="btn-primary" onclick="openAddModal()">
-      <i class="fas fa-plus" style="margin-right:6px"></i><span id="addBtnLabel">Add Course</span>
-    </button>
-  </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn-primary" onclick="openAddModal()">
+        <i class="fas fa-plus" style="margin-right:6px"></i><span id="addBtnLabel">Add Course</span>
+      </button>
+    </div>
 
   <!-- Tabs -->
   <div class="glass" style="padding:8px;display:inline-flex;gap:4px;margin-bottom:24px;flex-wrap:wrap">
     <button class="tab-btn active" onclick="switchTab('courses')" id="tab-courses"><i class="fas fa-graduation-cap" style="margin-right:6px"></i>Courses</button>
     <button class="tab-btn" onclick="switchTab('modules')" id="tab-modules"><i class="fas fa-cubes" style="margin-right:6px"></i>Modules</button>
-    <button class="tab-btn" onclick="switchTab('notes')" id="tab-notes"><i class="fas fa-file-pdf" style="margin-right:6px"></i>Notes / PDFs</button>
     <button class="tab-btn" onclick="switchTab('pyq')" id="tab-pyq"><i class="fas fa-scroll" style="margin-right:6px"></i>PYQ Papers</button>
   </div>
 
@@ -138,21 +134,6 @@
         </tr></thead>
         <tbody id="modules-body">
           <tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Notes Tab -->
-  <div id="section-notes" style="display:none">
-    <div class="glass" style="overflow-x:auto">
-      <table class="tbl">
-        <thead><tr>
-          <th>Title</th><th>Subject</th><th>Chapter</th><th>File Size</th>
-          <th>Access</th><th>Price</th><th>Downloads</th><th>Actions</th>
-        </tr></thead>
-        <tbody id="notes-body">
-          <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -302,63 +283,7 @@
   </div>
 </div>
 
-<!-- ===== NOTES MODAL ===== -->
-<div class="modal-overlay" id="notesModal" style="display:none">
-  <div class="modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h2 style="font-size:18px;font-weight:700;color:white" id="notesModalTitle">Upload Note</h2>
-      <button onclick="closeModal('notesModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:#94A3B8;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <form id="notesForm" onsubmit="saveNote(event)">
-      <input type="hidden" id="noteId">
-      <div class="form-grid">
-        <div>
-          <label>Title *</label>
-          <input class="inp" type="text" id="nTitle" placeholder="e.g. Electrostatics Formula Sheet" required>
-        </div>
-        <div class="grid-2">
-          <div>
-            <label>Subject *</label>
-            <select class="inp" id="nSubject">
-              <option value="Physics">Physics</option>
-              <option value="Chemistry">Chemistry</option>
-              <option value="Mathematics">Mathematics</option>
-            </select>
-          </div>
-          <div>
-            <label>Chapter</label>
-            <input class="inp" type="text" id="nChapter" placeholder="e.g. Chapter 1">
-          </div>
-        </div>
-        <div>
-          <label>Description</label>
-          <textarea class="inp" id="nDesc" rows="2" placeholder="Brief description…"></textarea>
-        </div>
-        <div>
-          <label>Upload File (PDF / DOCX / PPTX)</label>
-          <input class="inp" type="file" id="nFile" accept=".pdf,.docx,.pptx" style="padding:8px 14px">
-          <div class="progress-bar" id="nProgressBar" style="display:none"><div class="progress-fill" id="nProgressFill" style="width:0%"></div></div>
-          <div id="nProgressText" style="font-size:11px;color:#64748B;margin-top:4px"></div>
-        </div>
-        <div>
-          <label>Access Type</label>
-          <div class="radio-group">
-            <label class="radio-opt"><input type="radio" name="nAccess" value="Free" checked onchange="togglePrice('n')"> Free</label>
-            <label class="radio-opt"><input type="radio" name="nAccess" value="Paid" onchange="togglePrice('n')"> Paid</label>
-          </div>
-        </div>
-        <div id="nPriceField" style="display:none">
-          <label>Price (₹)</label>
-          <input class="inp" type="number" id="nPrice" placeholder="99" min="0">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-cancel" onclick="closeModal('notesModal')">Cancel</button>
-        <button type="submit" class="btn-primary" id="noteSaveBtn">Upload Note</button>
-      </div>
-    </form>
-  </div>
-</div>
+
 
 <!-- ===== PYQ MODAL ===== -->
 <div class="modal-overlay" id="pyqModal" style="display:none">
@@ -434,9 +359,15 @@
 <!-- Toast -->
 <div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon" style="color:#34D399"></i><span id="toastMsg">Saved!</span></div>
 
+
+
 <script>
 let currentTab = 'courses';
 let coursesCache = [], modulesCache = [], notesCache = [], pyqCache = [];
+let allCategories = [];
+let selectedSubjectId = null;
+let selectedSectionId = null;
+let currentNoteLogs = [];
 
 // ---- Tab ----
 function switchTab(tab) {
@@ -445,6 +376,7 @@ function switchTab(tab) {
     document.getElementById('section-'+t).style.display = t===tab ? 'block' : 'none';
     document.getElementById('tab-'+t).className = 'tab-btn' + (t===tab ? ' active' : '');
   });
+  document.getElementById('manageCatBtn').style.display = tab === 'notes' ? 'inline-flex' : 'none';
   const labels = {courses:'Add Course',modules:'Add Module',notes:'Upload Note',pyq:'Upload PYQ'};
   document.getElementById('addBtnLabel').textContent = labels[tab];
 }
@@ -468,6 +400,7 @@ function openAddModal() {
   if(currentTab==='notes'){
     document.getElementById('noteId').value='';
     document.getElementById('notesForm').reset();
+    populateNotesFormDropdowns();
     document.getElementById('nPriceField').style.display='none';
     document.getElementById('nProgressBar').style.display='none';
     document.getElementById('nProgressText').textContent='';
@@ -487,7 +420,8 @@ function openAddModal() {
 function closeModal(id){ document.getElementById(id).style.display='none'; }
 
 function togglePrice(p){
-  const paid = document.querySelector(`input[name="${p}Access"]:checked`).value === 'Paid';
+  const val = document.querySelector(`input[name="${p}Access"]:checked`).value;
+  const paid = val.toLowerCase() === 'paid';
   document.getElementById(p+'PriceField').style.display = paid ? 'block' : 'none';
 }
 function updateCourseIcon(){
@@ -505,12 +439,291 @@ function showToast(msg, isErr=false){
   setTimeout(()=>t.classList.remove('show'),3200);
 }
 
+// ============ CATEGORIES & LOGS MANAGEMENT ============
+async function loadCategories() {
+  try {
+    const snap = await db.collection('noteCategories').get();
+    allCategories = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    allCategories.sort((a, b) => (a.order || 0) - (b.order || 0));
+  } catch (e) {
+    console.error('Error loading categories:', e);
+    allCategories = [];
+  }
+}
+
+function populateNotesFormDropdowns() {
+  const subSelect = document.getElementById('nSubjectCat');
+  const subjects = allCategories.filter(c => c.type === 'subject');
+  subSelect.innerHTML = '<option value="">-- Select Subject --</option>' + 
+    subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  
+  document.getElementById('nSectionCat').innerHTML = '<option value="">-- Select Section --</option>';
+  document.getElementById('nSubsectionCat').innerHTML = '<option value="">-- Select Sub-section --</option>';
+}
+
+function onSubjectChange() {
+  const subjectId = document.getElementById('nSubjectCat').value;
+  const sectionSelect = document.getElementById('nSectionCat');
+  const subSecSelect = document.getElementById('nSubsectionCat');
+  
+  sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+  subSecSelect.innerHTML = '<option value="">-- Select Sub-section --</option>';
+  
+  if (!subjectId) return;
+  
+  const sections = allCategories.filter(c => c.type === 'section' && c.parentId === subjectId);
+  sectionSelect.innerHTML = '<option value="">-- Select Section --</option>' + 
+    sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function onSectionChange() {
+  const sectionId = document.getElementById('nSectionCat').value;
+  const subSecSelect = document.getElementById('nSubsectionCat');
+  
+  subSecSelect.innerHTML = '<option value="">-- Select Sub-section --</option>';
+  
+  if (!sectionId) return;
+  
+  const subsections = allCategories.filter(c => c.type === 'subsection' && c.parentId === sectionId);
+  subSecSelect.innerHTML = '<option value="">-- Select Sub-section --</option>' + 
+    subsections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+async function openCategoryModal() {
+  await loadCategories();
+  selectedSubjectId = null;
+  selectedSectionId = null;
+  renderCategorySubjects();
+  document.getElementById('cat-sections-list').innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">Select a subject first</div>';
+  document.getElementById('cat-subsections-list').innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">Select a section first</div>';
+  document.getElementById('addSectionBtn').disabled = true;
+  document.getElementById('addSubBtn').disabled = true;
+  document.getElementById('categoryModal').style.display = 'flex';
+}
+
+function renderCategorySubjects() {
+  const list = document.getElementById('cat-subjects-list');
+  const subjects = allCategories.filter(c => c.type === 'subject');
+  if (!subjects.length) {
+    list.innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">No subjects yet</div>';
+    return;
+  }
+  list.innerHTML = subjects.map(s => `
+    <div onclick="selectSubject('${s.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:${selectedSubjectId === s.id ? 'rgba(79,70,229,0.15)' : 'rgba(255,255,255,0.02)'};border:1px solid ${selectedSubjectId === s.id ? 'rgba(79,70,229,0.3)' : 'rgba(255,255,255,0.05)'};cursor:pointer;transition:all 0.2s">
+      <span style="font-size:13px;font-weight:500;color:white">${s.name}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation(); editCategory('${s.id}', '${(s.name || '').replace(/'/g, "\\'")}')" style="color:#818CF8;font-size:11px;padding:2px 4px"><i class="fas fa-edit"></i></button>
+        <button onclick="event.stopPropagation(); deleteCategory('${s.id}')" style="color:#F87171;font-size:11px;padding:2px 4px"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectSubject(id) {
+  selectedSubjectId = id;
+  selectedSectionId = null;
+  renderCategorySubjects();
+  document.getElementById('addSectionBtn').disabled = false;
+  document.getElementById('addSubBtn').disabled = true;
+  document.getElementById('cat-subsections-list').innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">Select a section first</div>';
+  renderCategorySections();
+}
+
+function renderCategorySections() {
+  const list = document.getElementById('cat-sections-list');
+  const sections = allCategories.filter(c => c.type === 'section' && c.parentId === selectedSubjectId);
+  if (!sections.length) {
+    list.innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">No sections under this subject</div>';
+    return;
+  }
+  list.innerHTML = sections.map(s => `
+    <div onclick="selectSection('${s.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:${selectedSectionId === s.id ? 'rgba(79,70,229,0.15)' : 'rgba(255,255,255,0.02)'};border:1px solid ${selectedSectionId === s.id ? 'rgba(79,70,229,0.3)' : 'rgba(255,255,255,0.05)'};cursor:pointer;transition:all 0.2s">
+      <span style="font-size:13px;font-weight:500;color:white">${s.name}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation(); editCategory('${s.id}', '${(s.name || '').replace(/'/g, "\\'")}')" style="color:#818CF8;font-size:11px;padding:2px 4px"><i class="fas fa-edit"></i></button>
+        <button onclick="event.stopPropagation(); deleteCategory('${s.id}')" style="color:#F87171;font-size:11px;padding:2px 4px"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectSection(id) {
+  selectedSectionId = id;
+  renderCategorySections();
+  document.getElementById('addSubBtn').disabled = false;
+  renderCategorySubsections();
+}
+
+function renderCategorySubsections() {
+  const list = document.getElementById('cat-subsections-list');
+  const subsections = allCategories.filter(c => c.type === 'subsection' && c.parentId === selectedSectionId);
+  if (!subsections.length) {
+    list.innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">No sub-sections under this section</div>';
+    return;
+  }
+  list.innerHTML = subsections.map(s => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);transition:all 0.2s">
+      <span style="font-size:13px;font-weight:500;color:white">${s.name}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation(); editCategory('${s.id}', '${(s.name || '').replace(/'/g, "\\'")}')" style="color:#818CF8;font-size:11px;padding:2px 4px"><i class="fas fa-edit"></i></button>
+        <button onclick="event.stopPropagation(); deleteCategory('${s.id}')" style="color:#F87171;font-size:11px;padding:2px 4px"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function promptAddCategory(type) {
+  const name = prompt(`Enter name for the new ${type}:`);
+  if (!name || !name.trim()) return;
+  
+  let parentId = null;
+  if (type === 'section') parentId = selectedSubjectId;
+  if (type === 'subsection') parentId = selectedSectionId;
+  
+  const order = allCategories.filter(c => c.type === type && c.parentId === parentId).length + 1;
+  
+  try {
+    const data = {
+      name: name.trim(),
+      type,
+      parentId,
+      order,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('noteCategories').add(data);
+    showToast(`${type} added successfully!`);
+    await loadCategories();
+    
+    // Refresh the view
+    if (type === 'subject') renderCategorySubjects();
+    else if (type === 'section') renderCategorySections();
+    else if (type === 'subsection') renderCategorySubsections();
+    
+    // Update notes form dropdowns if open
+    populateNotesFormDropdowns();
+  } catch (err) {
+    showToast('Failed to add category: ' + err.message, true);
+  }
+}
+
+async function editCategory(id, currentName) {
+  const name = prompt('Edit category name:', currentName);
+  if (!name || !name.trim() || name.trim() === currentName) return;
+  
+  try {
+    await db.collection('noteCategories').doc(id).update({ name: name.trim() });
+    showToast('Category updated!');
+    await loadCategories();
+    
+    // Refresh the view
+    renderCategorySubjects();
+    if (selectedSubjectId) renderCategorySections();
+    if (selectedSectionId) renderCategorySubsections();
+    
+    // Update notes form dropdowns if open
+    populateNotesFormDropdowns();
+  } catch (err) {
+    showToast('Failed to update category: ' + err.message, true);
+  }
+}
+
+async function deleteCategory(id) {
+  if (!confirm('Are you sure you want to delete this category and all its children?')) return;
+  
+  try {
+    // Also delete child categories
+    const children = await db.collection('noteCategories').where('parentId', '==', id).get();
+    const batch = db.batch();
+    children.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    batch.delete(db.collection('noteCategories').doc(id));
+    await batch.commit();
+    
+    showToast('Category deleted!');
+    await loadCategories();
+    
+    if (selectedSubjectId === id) selectedSubjectId = null;
+    if (selectedSectionId === id) selectedSectionId = null;
+    
+    // Refresh the view
+    renderCategorySubjects();
+    if (selectedSubjectId) renderCategorySections();
+    else {
+      document.getElementById('cat-sections-list').innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">Select a subject first</div>';
+      document.getElementById('addSectionBtn').disabled = true;
+    }
+    
+    if (selectedSectionId) renderCategorySubsections();
+    else {
+      document.getElementById('cat-subsections-list').innerHTML = '<div style="color:#64748B;font-size:12px;text-align:center;margin-top:20px">Select a section first</div>';
+      document.getElementById('addSubBtn').disabled = true;
+    }
+    
+    // Update notes form dropdowns if open
+    populateNotesFormDropdowns();
+  } catch (err) {
+    showToast('Failed to delete category: ' + err.message, true);
+  }
+}
+
+async function viewNoteLogs(noteId, noteTitle) {
+  document.getElementById('logsModalTitle').textContent = 'Access Logs';
+  document.getElementById('logsModalSubtitle').textContent = noteTitle || 'Note Logs';
+  document.getElementById('logsTableBody').innerHTML = '<tr><td colspan="3"><div style="text-align:center;padding:20px;color:#64748B"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>';
+  document.getElementById('logsModal').style.display = 'flex';
+  
+  try {
+    const snap = await db.collection('noteAccessLogs')
+      .where('noteId', '==', noteId)
+      .orderBy('timestamp', 'desc')
+      .get();
+    
+    currentNoteLogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    filterLogsTable();
+  } catch (err) {
+    console.error('Error loading logs:', err);
+    document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="3" style="color:#F87171;text-align:center;padding:20px">Error loading logs: ${err.message}</td></tr>`;
+  }
+}
+
+function filterLogsTable() {
+  const filter = document.getElementById('logActionFilter').value;
+  const filtered = currentNoteLogs.filter(log => filter === 'all' || log.action === filter);
+  
+  document.getElementById('logsCountText').textContent = `${filtered.length} log entries`;
+  
+  const tbody = document.getElementById('logsTableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="3"><div style="text-align:center;padding:30px;color:#64748B"><i class="fas fa-history" style="font-size:24px;display:block;margin-bottom:8px"></i>No activity logs found</div></td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(log => {
+    const actionLabel = log.action === 'purchased' 
+      ? `<span class="badge badge-paid" style="font-size:10px"><i class="fas fa-rupee-sign" style="font-size:9px;margin-right:3px"></i>Purchased${log.amount ? ' (₹' + log.amount + ')' : ''}</span>`
+      : `<span class="badge badge-free" style="font-size:10px">Viewed</span>`;
+      
+    return `<tr>
+      <td>
+        <div style="font-weight:600;color:white">${log.userName || 'Unknown'}</div>
+        <div style="font-size:11px;color:#64748B">${log.userEmail || ''}</div>
+      </td>
+      <td>${actionLabel}</td>
+      <td style="color:#64748B;font-size:12px">${fmtDate(log.timestamp)}</td>
+    </tr>`;
+  }).join('');
+}
+
 // ---- Helpers ----
 function subBadge(s){
   const m={Physics:'badge-phy',Chemistry:'badge-chem',Mathematics:'badge-math'};
   return `<span class="badge ${m[s]||'badge-draft'}">${s||'—'}</span>`;
 }
-function accBadge(a){ return `<span class="badge ${a==='Paid'?'badge-paid':'badge-free'}">${a||'Free'}</span>`; }
+function accBadge(a){ 
+  const display = (a || 'free').toLowerCase() === 'paid' ? 'Paid' : 'Free';
+  return `<span class="badge ${display === 'Paid' ? 'badge-paid' : 'badge-free'}">${display}</span>`; 
+}
 function stBadge(s){ return `<span class="badge ${s==='Active'?'badge-active':'badge-draft'}">${s||'Draft'}</span>`; }
 function fmtDate(ts){
   if(!ts) return '—';
@@ -693,96 +906,6 @@ async function deleteModule(id){
   }catch(e){ showToast('Error: '+e.message,true); }
 }
 
-// ============ NOTES ============
-async function loadNotes(){
-  try{
-    const snap=await db.collection('notes').orderBy('createdAt','desc').get();
-    notesCache=snap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){ notesCache=[]; }
-  renderNotes();
-}
-function renderNotes(){
-  const tbody=document.getElementById('notes-body');
-  if(!notesCache.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-file-pdf"></i><div style="font-size:15px;font-weight:600;color:#475569">No notes uploaded yet</div></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML=notesCache.map(n=>`<tr>
-    <td><div style="font-weight:600;color:white">${n.title||'—'}</div><div style="font-size:11px;color:#64748B">${n.fileName||''}</div></td>
-    <td>${subBadge(n.subject)}</td>
-    <td style="color:#94A3B8;font-size:12px">${n.chapter||'—'}</td>
-    <td style="color:#64748B;font-size:12px">${fmtSize(n.fileSize)}</td>
-    <td>${accBadge(n.access)}</td>
-    <td style="color:#E2E8F0">${n.access==='Paid'&&n.price?'₹'+n.price:'—'}</td>
-    <td><span style="font-weight:700;color:#818CF8">${n.downloads||0}</span></td>
-    <td><div style="display:flex;gap:6px;flex-wrap:wrap">
-      ${n.fileUrl?`<a href="${n.fileUrl}" target="_blank" style="background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.2);padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center"><i class="fas fa-download"></i></a>`:''}
-      <button class="btn-edit" onclick="editNote('${n.id}')"><i class="fas fa-pen"></i></button>
-      <button class="btn-danger" onclick="deleteNote('${n.id}')"><i class="fas fa-trash"></i></button>
-    </div></td>
-  </tr>`).join('');
-}
-
-async function saveNote(e){
-  e.preventDefault();
-  const btn=document.getElementById('noteSaveBtn');
-  btn.textContent='Uploading…'; btn.disabled=true;
-  const id=document.getElementById('noteId').value;
-  const access=document.querySelector('input[name="nAccess"]:checked').value;
-  const fi=document.getElementById('nFile');
-  const data={
-    title:document.getElementById('nTitle').value.trim(),
-    subject:document.getElementById('nSubject').value,
-    chapter:document.getElementById('nChapter').value.trim(),
-    description:document.getElementById('nDesc').value.trim(),
-    access,
-    price:access==='Paid'?(parseFloat(document.getElementById('nPrice').value)||0):0,
-  };
-  try{
-    if(fi.files.length>0){
-      const file=fi.files[0];
-      const fname=Date.now()+'_'+file.name.replace(/\s+/g,'_');
-      const ref=storage.ref('notes/'+fname);
-      const task=ref.put(file);
-      const bar=document.getElementById('nProgressBar');
-      const fill=document.getElementById('nProgressFill');
-      const txt=document.getElementById('nProgressText');
-      bar.style.display='block';
-      await new Promise((res,rej)=>task.on('state_changed',
-        s=>{const p=Math.round((s.bytesTransferred/s.totalBytes)*100);fill.style.width=p+'%';txt.textContent=p+'% uploaded';},rej,res));
-      data.fileUrl=await ref.getDownloadURL();
-      data.fileName=file.name; data.fileSize=file.size;
-      bar.style.display='none'; txt.textContent='';
-    }
-    if(id){ await db.collection('notes').doc(id).update(data); showToast('Note updated!'); }
-    else{ data.downloads=0; data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); await db.collection('notes').add(data); showToast('Note uploaded!'); }
-    closeModal('notesModal'); loadNotes();
-  }catch(err){ showToast('Error: '+err.message,true); }
-  btn.textContent='Upload Note'; btn.disabled=false;
-}
-
-async function editNote(id){
-  const n=notesCache.find(x=>x.id===id); if(!n)return;
-  document.getElementById('noteId').value=id;
-  document.getElementById('nTitle').value=n.title||'';
-  document.getElementById('nSubject').value=n.subject||'Physics';
-  document.getElementById('nChapter').value=n.chapter||'';
-  document.getElementById('nDesc').value=n.description||'';
-  const acc=n.access||'Free';
-  document.querySelector(`input[name="nAccess"][value="${acc}"]`).checked=true;
-  document.getElementById('nPriceField').style.display=acc==='Paid'?'block':'none';
-  document.getElementById('nPrice').value=n.price||'';
-  document.getElementById('nProgressBar').style.display='none';
-  document.getElementById('notesModalTitle').textContent='Edit Note';
-  document.getElementById('notesModal').style.display='flex';
-}
-
-async function deleteNote(id){
-  if(!confirm('Delete this note?'))return;
-  try{ await db.collection('notes').doc(id).delete(); showToast('Note deleted'); loadNotes(); }
-  catch(e){ showToast('Error: '+e.message,true); }
-}
-
 // ============ PYQ ============
 async function loadPYQ(){
   try{
@@ -881,11 +1004,10 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
 });
 
 // Auth + init
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(async user=>{
   if(!user){window.location.href='../login.html';return;}
   loadCourses();
   loadModules();
-  loadNotes();
   loadPYQ();
 });
 </script>

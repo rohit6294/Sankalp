@@ -15,7 +15,7 @@ const storage = typeof firebase.storage === 'function' ? firebase.storage() : nu
 
 // Evaluator API base URL (detect localhost vs production)
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  window.EVALUATOR_API = 'http://localhost:3000';
+  window.EVALUATOR_API = 'http://127.0.0.1:3000';
 } else {
   window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
 }

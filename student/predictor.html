@@ -346,11 +346,23 @@
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
     <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="mock-test.html" class="sidebar-link"><i class="fas fa-file-alt" style="width:18px"></i> Mock Tests</a>
     <a href="predictor.html" class="sidebar-link active"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
     <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
+  <!-- User info at bottom -->
+  <div style="position:absolute; bottom:0; left:0; right:0; padding:16px 22px; border-top:1px solid var(--ink);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="avatarSidebar" class="brand-mark" style="width:34px; height:34px; font-size:14px;">?</div>
+      <div style="overflow:hidden;">
+        <div id="sidebarName" style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading...</div>
+        <div id="sidebarEmail" style="font-size:11px; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
+  </div>
 </aside>
 
 <!-- Main content -->
@@ -816,12 +828,17 @@
             setUnlockButtonIdle();
           }
         },
-        prefill: {
-          name: currentUser.displayName || '',
-          email: currentUser.email || '',
-        },
-        theme: {
-          color: '#4F46E5'
+        prefill: { name: currentUser.displayName, email: currentUser.email },
+        theme: { color: "#4F46E5" },
+        config: {
+          display: {
+            blocks: {
+              upi: { name: "Pay via UPI (PhonePe, GPay, etc.)", instruments: [{ method: "upi" }] },
+              other: { name: "Other Payment Modes", instruments: [{ method: "card" }, { method: "netbanking" }, { method: "wallet" }] }
+            },
+            sequence: ["block.upi", "block.other"],
+            preferences: { show_default_blocks: true }
+          }
         },
         modal: {
           ondismiss: function () {
@@ -1048,6 +1065,12 @@
     }
     currentUser = user;
     currentToken = null;
+
+    const firstName = (user.displayName || 'Student').split(' ')[0];
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+    document.getElementById('sidebarEmail').textContent = user.email || '';
+
     await checkAccessAndInit();
   });
 </script>

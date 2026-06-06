@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Viewer — Sankalp Aspirant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/profile-check.js"></script>
+  <style>
+    body { background:#020617; color:#E2E8F0; font-family:'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    .exam-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: rgba(15,23,42,0.95); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .exam-main { display: flex; flex: 1; overflow: hidden; }
+    .exam-content { flex: 1; padding: 32px; overflow-y: auto; }
+    .exam-sidebar { width: 320px; background: rgba(15,23,42,0.6); border-left: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; }
+    .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 16px; overflow-y: auto; flex: 1; }
+    
+    .q-btn { width: 100%; aspect-ratio: 1; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+    .q-btn:hover { background: rgba(255,255,255,0.1); }
+    
+    /* Palette States */
+    .q-btn.current { border-color: #4F46E5; background: rgba(79,70,229,0.15); border-width: 2px; }
+    .q-btn.answered { background: #10B981; color: white; border-color: #059669; }
+    .q-btn.marked { background: #8B5CF6; color: white; border-color: #7C3AED; }
+    .q-btn.marked-answered { background: #8B5CF6; color: white; border-color: #7C3AED; position: relative; }
+    .q-btn.marked-answered::after { content: ''; position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; background: #10B981; border-radius: 50%; }
+    .q-btn.not-answered { background: #EF4444; color: white; border-color: #DC2626; }
+    
+    .opt-box { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; background: rgba(30,41,59,0.4); }
+    .opt-box:hover { background: rgba(30,41,59,0.8); border-color: rgba(255,255,255,0.15); }
+    .opt-box.selected { border-color: #4F46E5; background: rgba(79,70,229,0.1); }
+    .opt-box .chk { width: 20px; height: 20px; border-radius: 4px; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .opt-box.selected .chk { background: #4F46E5; border-color: #4F46E5; }
+    
+    @media(max-width: 768px) {
+      .exam-main { flex-direction: column; }
+      .exam-sidebar { width: 100%; height: 200px; border-left: none; border-top: 1px solid rgba(255,255,255,0.05); }
+    }
+
+    #warningOverlay { display:none; position:fixed; inset:0; background:rgba(220,38,38,0.95); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; }
+  </style>
+</head>
+<body>
+
+<!-- Warning Overlay -->
+<div id="warningOverlay">
+  <i class="fas fa-exclamation-triangle" style="font-size:64px;color:white;margin-bottom:20px"></i>
+  <h1 style="font-size:28px;font-weight:800;color:white;margin-bottom:10px">WARNING!</h1>
+  <p style="font-size:16px;color:rgba(255,255,255,0.9);max-width:500px;margin-bottom:30px">You have switched tabs or minimized the browser during the exam. This is strictly prohibited. If you do this again, your exam will be automatically submitted.</p>
+  <button onclick="dismissWarning()" class="btn-primary" style="background:white;color:#DC2626;border:none">I Understand, Return to Exam</button>
+</div>
+
+<header class="exam-header">
+  <div>
+    <h1 id="testTitle" style="font-size:18px;font-weight:700;margin-bottom:2px">Loading Test...</h1>
+    <div id="candidateName" style="font-size:12px;color:#94A3B8">Candidate</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);padding:8px 16px;border-radius:100px;display:flex;align-items:center;gap:8px">
+      <i class="fas fa-clock" style="color:#F87171"></i>
+      <span id="timerDisplay" style="font-size:18px;font-weight:700;color:#F87171;font-variant-numeric:tabular-nums">--:--:--</span>
+    </div>
+    <button onclick="submitExamPrompt()" class="btn-primary" style="background:#10B981;border-color:#059669"><i class="fas fa-paper-plane"></i> Submit</button>
+  </div>
+</header>
+
+<div class="exam-main" id="examContainer" style="display:none">
+  <div class="exam-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <h2 style="font-size:20px;font-weight:700">Question <span id="qNum">1</span></h2>
+        <span id="catBadge" class="badge" style="background:rgba(52,211,153,0.1);color:#34D399;border:1px solid rgba(52,211,153,0.2)">Category 1 (+1, -0.25)</span>
+      </div>
+      <div id="qSubject" style="font-size:14px;color:#94A3B8;font-weight:600">Physics</div>
+    </div>
+    
+    <div class="glass-card" style="padding:24px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);margin-bottom:32px">
+      <div id="qText" style="font-size:16px;line-height:1.6;margin-bottom:24px"></div>
+      <div id="optionsContainer"></div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;gap:12px">
+        <button onclick="markForReview()" class="btn-ghost" style="color:#A78BFA;border-color:rgba(139,92,246,0.3)"><i class="fas fa-bookmark"></i> Mark for Review</button>
+        <button onclick="clearResponse()" class="btn-ghost" style="color:#F87171;border-color:rgba(239,68,68,0.3)"><i class="fas fa-eraser"></i> Clear</button>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button onclick="prevQuestion()" class="btn-secondary" id="btnPrev"><i class="fas fa-arrow-left"></i> Prev</button>
+        <button onclick="nextQuestion()" class="btn-primary" id="btnNext">Save & Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+  
+  <aside class="exam-sidebar">
+    <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Question Palette</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:#94A3B8">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:#10B981;border-radius:2px"></div> Answered</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:#EF4444;border-radius:2px"></div> Not Answered</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:#8B5CF6;border-radius:2px"></div> Marked</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);border-radius:2px"></div> Not Visited</div>
+      </div>
+    </div>
+    <div class="palette-grid" id="paletteGrid"></div>
+  </aside>
+</div>
+
+<!-- Results View -->
+<div id="resultsView" style="display:none;align-items:center;justify-content:center;height:100vh;padding:24px">
+  <div class="glass-card p-10 text-center" style="max-width:600px;width:100%">
+    <div style="font-size:64px;margin-bottom:16px">🏆</div>
+    <h2 style="font-size:24px;font-weight:700;margin-bottom:8px">Exam Submitted Successfully!</h2>
+    <p style="color:#94A3B8;margin-bottom:24px">Your responses have been evaluated by our WBJEE Grading Engine.</p>
+    
+    <div style="font-size:14px;color:#64748B;margin-bottom:8px">Your WBJEE Score</div>
+    <div style="font-size:56px;font-weight:800;background:linear-gradient(135deg,#34D399,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:32px" id="finalScore">0</div>
+    
+    <button onclick="window.location.href='mock-test.html'" class="btn-primary" style="padding:12px 32px">Return to Dashboard</button>
+  </div>
+</div>
+
+<script>
+  let testId = new URLSearchParams(window.location.search).get('id');
+  let testData = null;
+  let questions = [];
+  
+  // State
+  let currentIdx = 0;
+  let responses = {}; // qId -> [selected indices]
+  let status = {}; // qId -> 'not_visited', 'answered', 'not_answered', 'marked', 'marked_answered'
+  
+  // Timer & Security
+  let remainingSeconds = 0;
+  let timerInterval = null;
+  let tabViolations = 0;
+  let maxViolations = 3;
+
+  async function apiJson(path, options = {}) {
+    const API = window.EVALUATOR_API || 'http://127.0.0.1:3000';
+    const token = await auth.currentUser.getIdToken();
+    const headers = { Authorization: `Bearer ${token}`, ...(options.headers || {}) };
+    if (options.body !== undefined && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    let response = await fetch(`${API}${path}`, { ...options, headers });
+    if (response.status === 401) {
+      const freshToken = await auth.currentUser.getIdToken(true);
+      response = await fetch(`${API}${path}`, { ...options, headers: { ...headers, Authorization: `Bearer ${freshToken}` } });
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+    return payload;
+  }
+
+  function toast(msg, type='info') {
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.innerHTML = `<i class="fas fa-${type==='error'?'exclamation-circle':'check-circle'}"></i> ${msg}`;
+    el.style = `position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--paper-soft);color:white;border:1px solid var(--rust);border-radius:8px;z-index:9999`;
+    if(type==='error') el.style.borderColor='#F87171';
+    if(type==='success') el.style.borderColor='#34D399';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 3000);
+  }
+
+  async function loadTest() {
+    if(!testId) { toast('No test ID provided', 'error'); return; }
+    try {
+      const res = await apiJson(`/api/tests/${testId}`);
+      testData = res.test;
+      questions = res.questions;
+      
+      document.getElementById('testTitle').textContent = testData.title;
+      document.getElementById('candidateName').textContent = `Candidate: ${auth.currentUser.displayName}`;
+      
+      // Initialize status
+      questions.forEach(q => status[q.id] = 'not_visited');
+      
+      remainingSeconds = testData.durationMin * 60;
+      startTimer();
+      
+      document.getElementById('examContainer').style.display = 'flex';
+      setupVisibilityListener();
+      
+      // First question
+      status[questions[0].id] = 'not_answered';
+      renderQuestion();
+      renderPalette();
+    } catch(err) {
+      toast(err.message, 'error');
+      setTimeout(()=> window.location.href='mock-test.html', 2000);
+    }
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      if(remainingSeconds <= 0) {
+        clearInterval(timerInterval);
+        autoSubmit();
+        return;
+      }
+      remainingSeconds--;
+      
+      const h = Math.floor(remainingSeconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((remainingSeconds % 3600) / 60).toString().padStart(2, '0');
+      const s = (remainingSeconds % 60).toString().padStart(2, '0');
+      
+      document.getElementById('timerDisplay').textContent = `${h}:${m}:${s}`;
+      if(remainingSeconds <= 300) { // 5 mins
+        document.getElementById('timerDisplay').style.animation = 'pulse 1s infinite alternate';
+      }
+    }, 1000);
+  }
+
+  function renderQuestion() {
+    const q = questions[currentIdx];
+    document.getElementById('qNum').textContent = currentIdx + 1;
+    document.getElementById('qSubject').textContent = q.subject;
+    document.getElementById('qText').innerHTML = q.text.replace(/\n/g, '<br>');
+    
+    // Category Badge
+    const badge = document.getElementById('catBadge');
+    if(q.category === 1) {
+      badge.textContent = "Category 1 (+1, -0.25)";
+      badge.style.background = "rgba(52,211,153,0.1)"; badge.style.color = "#34D399"; badge.style.borderColor = "rgba(52,211,153,0.2)";
+    } else if(q.category === 2) {
+      badge.textContent = "Category 2 (+2, -0.5)";
+      badge.style.background = "rgba(96,165,250,0.1)"; badge.style.color = "#60A5FA"; badge.style.borderColor = "rgba(96,165,250,0.2)";
+    } else {
+      badge.textContent = "Category 3 (+2, Partial, 0 Neg)";
+      badge.style.background = "rgba(244,114,182,0.1)"; badge.style.color = "#F472B6"; badge.style.borderColor = "rgba(244,114,182,0.2)";
+    }
+
+    const selected = responses[q.id] || [];
+    
+    document.getElementById('optionsContainer').innerHTML = q.options.map((opt, i) => {
+      const isSel = selected.includes(i);
+      return `
+        <div class="opt-box ${isSel?'selected':''}" onclick="toggleOption(${i})">
+          <div class="chk">${isSel ? '<i class="fas fa-check" style="font-size:10px;color:white"></i>' : ''}</div>
+          <div style="font-size:15px">${opt}</div>
+        </div>
+      `;
+    }).join('');
+    
+    document.getElementById('btnPrev').disabled = currentIdx === 0;
+    document.getElementById('btnPrev').style.opacity = currentIdx === 0 ? '0.5' : '1';
+  }
+
+  function toggleOption(optIdx) {
+    const q = questions[currentIdx];
+    let selected = responses[q.id] || [];
+    
+    if(q.category === 3) {
+      if(selected.includes(optIdx)) selected = selected.filter(x => x !== optIdx);
+      else selected.push(optIdx);
+    } else {
+      selected = [optIdx]; // Cat 1 & 2 are single correct
+    }
+    
+    responses[q.id] = selected;
+    renderQuestion();
+  }
+
+  function clearResponse() {
+    const q = questions[currentIdx];
+    delete responses[q.id];
+    status[q.id] = 'not_answered';
+    renderQuestion();
+    renderPalette();
+  }
+
+  function markForReview() {
+    const q = questions[currentIdx];
+    const hasAns = (responses[q.id] && responses[q.id].length > 0);
+    status[q.id] = hasAns ? 'marked_answered' : 'marked';
+    nextQuestion(true); // skip saving status locally as answered
+  }
+
+  function nextQuestion(skipStatusUpdate = false) {
+    if(!skipStatusUpdate) {
+      const q = questions[currentIdx];
+      const hasAns = (responses[q.id] && responses[q.id].length > 0);
+      if(hasAns) status[q.id] = 'answered';
+      else if(status[q.id] !== 'marked') status[q.id] = 'not_answered';
+    }
+    
+    if(currentIdx < questions.length - 1) {
+      currentIdx++;
+      if(status[questions[currentIdx].id] === 'not_visited') status[questions[currentIdx].id] = 'not_answered';
+      renderQuestion();
+      renderPalette();
+    } else {
+      renderPalette(); // Just update UI
+      toast("You've reached the last question.", "info");
+    }
+  }
+
+  function prevQuestion() {
+    if(currentIdx > 0) {
+      const q = questions[currentIdx];
+      const hasAns = (responses[q.id] && responses[q.id].length > 0);
+      if(hasAns && status[q.id] !== 'marked_answered') status[q.id] = 'answered';
+      
+      currentIdx--;
+      renderQuestion();
+      renderPalette();
+    }
+  }
+
+  function renderPalette() {
+    document.getElementById('paletteGrid').innerHTML = questions.map((q, i) => {
+      let cls = 'q-btn';
+      if(i === currentIdx) cls += ' current';
+      
+      const st = status[q.id];
+      if(st === 'answered') cls += ' answered';
+      else if(st === 'not_answered') cls += ' not-answered';
+      else if(st === 'marked') cls += ' marked';
+      else if(st === 'marked_answered') cls += ' marked-answered';
+      
+      return `<button class="${cls}" onclick="jumpTo(${i})">${i+1}</button>`;
+    }).join('');
+  }
+
+  function jumpTo(idx) {
+    // Save current status before jumping
+    const q = questions[currentIdx];
+    const hasAns = (responses[q.id] && responses[q.id].length > 0);
+    if(hasAns && !status[q.id].includes('marked')) status[q.id] = 'answered';
+    else if(!hasAns && !status[q.id].includes('marked')) status[q.id] = 'not_answered';
+    
+    currentIdx = idx;
+    if(status[questions[currentIdx].id] === 'not_visited') status[questions[currentIdx].id] = 'not_answered';
+    renderQuestion();
+    renderPalette();
+  }
+
+  // --- Security ---
+  function setupVisibilityListener() {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === 'hidden') {
+        tabViolations++;
+        if(tabViolations >= maxViolations) {
+          autoSubmit();
+        } else {
+          document.getElementById('warningOverlay').style.display = 'flex';
+        }
+      }
+    });
+  }
+  function dismissWarning() { document.getElementById('warningOverlay').style.display = 'none'; }
+
+  // --- Submission ---
+  function submitExamPrompt() {
+    if(confirm('Are you sure you want to submit the exam? You cannot undo this.')) {
+      autoSubmit();
+    }
+  }
+
+  async function autoSubmit() {
+    clearInterval(timerInterval);
+    document.getElementById('examContainer').style.display = 'none';
+    
+    const toastEl = document.createElement('div');
+    toastEl.style = "position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:700;";
+    toastEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:16px;color:#4F46E5"></i> Auto-grading WBJEE Mock Test...';
+    document.body.appendChild(toastEl);
+    
+    try {
+      const res = await apiJson(`/api/tests/${testId}/submit`, {
+        method: 'POST',
+        body: JSON.stringify({ answers: responses, tabViolations })
+      });
+      
+      toastEl.remove();
+      document.getElementById('resultsView').style.display = 'flex';
+      document.getElementById('finalScore').textContent = res.score.toFixed(2);
+      
+    } catch(err) {
+      toastEl.remove();
+      toast('Failed to submit: ' + err.message, 'error');
+    }
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (!user) { window.location.href = '../login.html'; return; }
+    loadTest();
+  });
+</script>
+</body>
+</html>

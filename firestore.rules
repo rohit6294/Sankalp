@@ -162,6 +162,34 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /noteCategories/{id} {
+      allow read: if signedIn();
+      allow write: if canEdit('content');
+    }
+
+    match /notePurchases/{id} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || canView('content')
+        );
+      allow write: if false;
+    }
+
+    match /noteAccessLogs/{id} {
+      allow read: if canView('content');
+      allow write: if false;
+    }
+
+    match /noteOrders/{id} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || canView('payments')
+        );
+      allow write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

@@ -79,6 +79,8 @@
   <nav style="padding:8px 0;">
     <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
     <a href="evaluators.html" class="sidebar-link"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> WBJEE Tests</a>
     <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
     <a href="evaluators.html#studentList" class="sidebar-link" id="sidebarStudentListBtn"><i class="fas fa-users" style="width:18px"></i> Student List</a>
     <a href="evaluators.html#collegePredictor" class="sidebar-link" id="sidebarCollegePredictorBtn"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
@@ -164,16 +166,11 @@
 <script>
 const API_BASE = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
 const FALLBACK_SECTIONS = [
-  { key:'dashboard', label:'Dashboard', editable:false },
   { key:'students', label:'Students', editable:true },
   { key:'content', label:'Content', editable:true },
   { key:'tests', label:'Tests', editable:true },
   { key:'evaluators', label:'Evaluators', editable:true },
   { key:'collegePredictor', label:'College Predictor', editable:true },
-  { key:'bookings', label:'Bookings', editable:true },
-  { key:'announcements', label:'Announcements', editable:true },
-  { key:'payments', label:'Payments', editable:false, extras:['transactions'] },
-  { key:'analytics', label:'Analytics', editable:false },
   { key:'settings', label:'Settings', editable:true }
 ];
 let currentUser = null;

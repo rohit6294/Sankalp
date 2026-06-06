@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes Manager — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/admin-guard.js"></script>
+  <style>
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { padding: 12px 14px; font-size: 11px; font-weight: 700; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--ink); text-align: left; }
+    .tbl td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--rule); vertical-align: middle; color: var(--ink-soft); }
+    .tbl tr:hover td { background: var(--paper-soft); }
+    .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge-phy { background: rgba(59,130,246,0.1); color: #2563EB; }
+    .badge-chem { background: rgba(168,85,247,0.1); color: #9333EA; }
+    .badge-math { background: rgba(16,185,129,0.1); color: var(--forest); }
+    .badge-free { background: rgba(16,185,129,0.1); color: var(--forest); }
+    .badge-paid { background: rgba(245,158,11,0.1); color: #D97706; }
+    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
+    .toast.show { opacity: 1; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+    .modal-box { background: var(--paper); border: 1px solid var(--ink); padding: 24px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-mute); font-size: 13px; }
+    .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; opacity: 0.5; }
+    .radio-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .radio-opt { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 14px; border: 1px solid var(--rule); transition: all 0.2s; font-size: 13px; font-family: var(--font-sans); }
+    .radio-opt:hover { border-color: var(--ink); background: var(--paper-soft); }
+    .form-grid { display: grid; gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .progress-bar { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; background: var(--rust); border-radius: 3px; transition: width 0.3s; }
+  </style>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar sidebar-ink" id="adminSidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">Admin Panel</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
+    <a href="evaluators.html" class="sidebar-link"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="notes.html" class="sidebar-link active"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> WBJEE Tests</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
+    <a href="students.html" class="sidebar-link"><i class="fas fa-users" style="width:18px"></i> Student List</a>
+    <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
+    <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:28px 32px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="display-lg">Notes & Study Materials</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage categories and upload PDFs, PPTs, DOCs, or images</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="openCategoryModal()">
+        <i class="fas fa-sitemap" style="margin-right:6px"></i>Manage Categories
+      </button>
+      <button class="btn-rust" onclick="openAddModal()">
+        <i class="fas fa-upload" style="margin-right:6px"></i>Upload Note
+      </button>
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--ink); background:var(--paper-soft); padding:24px;" style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr>
+        <th>Title</th><th>Subject</th><th>Section</th><th>Sub-section</th><th>File Details</th>
+        <th>Access</th><th>Price</th><th>Views</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="notes-body">
+        <tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Upload Note Modal -->
+<div class="modal-overlay" id="notesModal">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 class="display-sm" id="notesModalTitle">Upload Note</h2>
+      <button onclick="closeModal('notesModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:var(--ink-mute);cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <form id="notesForm" onsubmit="saveNote(event)">
+      <input type="hidden" id="noteId">
+      <div class="form-grid">
+        <div>
+          <label class="input-label">Subject *</label>
+          <select class="input-field" id="nSubjectCat" onchange="onSubjectChange()" required>
+            <option value="">-- Select Subject --</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label class="input-label">Section *</label>
+            <select class="input-field" id="nSectionCat" onchange="onSectionChange()" required>
+              <option value="">-- Select Section --</option>
+            </select>
+          </div>
+          <div>
+            <label class="input-label">Sub-section *</label>
+            <select class="input-field" id="nSubsectionCat" required>
+              <option value="">-- Select Sub-section --</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="input-label">Title *</label>
+          <input class="input-field" type="text" id="nTitle" placeholder="e.g. Electrostatics Formula Sheet" required>
+        </div>
+        <div>
+          <label class="input-label">Description</label>
+          <textarea class="input-field" id="nDesc" rows="2" placeholder="Brief description…"></textarea>
+        </div>
+        <div>
+          <label class="input-label">Upload File (PDF / PPT / DOC / Images — max 30MB)</label>
+          <input class="input-field" type="file" id="nFile" accept=".pdf,.pptx,.ppt,.docx,.doc,.jpg,.jpeg,.png,.gif,.webp" multiple style="padding:8px 14px">
+          <div class="progress-bar" id="nProgressBar" style="display:none"><div class="progress-fill" id="nProgressFill" style="width:0%"></div></div>
+          <div id="nProgressText" style="font-size:11px;color:var(--ink-mute);margin-top:4px"></div>
+        </div>
+        <div>
+          <label class="input-label">Access Type</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="nAccess" value="free" checked onchange="togglePrice('n')"> Free</label>
+            <label class="radio-opt"><input type="radio" name="nAccess" value="paid" onchange="togglePrice('n')"> Paid</label>
+          </div>
+        </div>
+        <div id="nPriceField" style="display:none">
+          <label class="input-label">Price (₹)</label>
+          <input class="input-field" type="number" id="nPrice" placeholder="99" min="1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeModal('notesModal')">Cancel</button>
+        <button type="submit" class="btn-rust" id="noteSaveBtn">Upload Note</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Manage Categories Modal -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal-box" style="max-width:850px; width:95%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 class="display-sm">Manage Categories</h2>
+      <button onclick="closeModal('categoryModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:var(--ink-mute);cursor:pointer;font-size:16px">✕</button>
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;min-height:350px">
+      <!-- Subjects Column -->
+      <div style="display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,0.05);padding-right:15px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <label class="input-label" style="margin-bottom:0">1. Subjects *</label>
+          <button class="btn-rust" style="padding:4px 8px;font-size:11px" onclick="promptAddCategory('subject')">+ Add</button>
+        </div>
+        <div id="cat-subjects-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      
+      <!-- Sections Column -->
+      <div style="display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,0.05);padding-right:15px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <label class="input-label" style="margin-bottom:0">2. Sections *</label>
+          <button class="btn-rust" id="addSectionBtn" style="padding:4px 8px;font-size:11px" onclick="promptAddCategory('section')" disabled>+ Add</button>
+        </div>
+        <div id="cat-sections-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+          <div style="color:#475569;font-size:12px;text-align:center;margin-top:20px">Select a subject first</div>
+        </div>
+      </div>
+      
+      <!-- Sub-sections Column -->
+      <div style="display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <label class="input-label" style="margin-bottom:0">3. Sub-sections *</label>
+          <button class="btn-rust" id="addSubBtn" style="padding:4px 8px;font-size:11px" onclick="promptAddCategory('subsection')" disabled>+ Add</button>
+        </div>
+        <div id="cat-subsections-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+          <div style="color:#475569;font-size:12px;text-align:center;margin-top:20px">Select a section first</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer" style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.05)">
+      <button type="button" class="btn-ghost" onclick="closeModal('categoryModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Access Logs Modal -->
+<div class="modal-overlay" id="logsModal">
+  <div class="modal-box" style="max-width:650px; width:95%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <h2 class="display-sm" id="logsModalTitle">Access Logs</h2>
+        <p style="font-size:12px;color:var(--ink-mute);margin-top:2px" id="logsModalSubtitle">Note Title</p>
+      </div>
+      <button onclick="closeModal('logsModal')" style="background:rgba(255,255,255,0.05);border:none;width:32px;height:32px;border-radius:8px;color:var(--ink-mute);cursor:pointer;font-size:16px">✕</button>
+    </div>
+    
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <select id="logActionFilter" onchange="filterLogsTable()" class="input-field" style="max-width:180px;padding:6px 12px;font-size:12px">
+        <option value="all">All Actions</option>
+        <option value="viewed">Views Only</option>
+        <option value="purchased">Purchases Only</option>
+      </select>
+      <span style="font-size:12px;color:var(--ink-mute)" id="logsCountText">0 log entries</span>
+    </div>
+    
+    <div style="max-height:300px;overflow-y:auto;border:1px solid rgba(255,255,255,0.05);border-radius:10px">
+      <table class="tbl">
+        <thead><tr>
+          <th>Student</th>
+          <th>Action</th>
+          <th>Date</th>
+        </tr></thead>
+        <tbody id="logsTableBody">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="modal-footer" style="margin-top:20px">
+      <button type="button" class="btn-ghost" onclick="closeModal('logsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon" style="color:#34D399"></i><span id="toastMsg">Saved!</span></div>
+
+<script>
+let notesCache = [];
+let allCategories = [];
+let selectedSubjectId = null;
+let selectedSectionId = null;
+let currentNoteLogs = [];
+
+async function apiJson(path, options = {}) {
+  const API = window.EVALUATOR_API || 'http://127.0.0.1:3000';
+  const token = await firebase.auth().currentUser.getIdToken();
+  const headers = { Authorization: `Bearer ${token}`, ...(options.headers || {}) };
+  if (options.body !== undefined && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  let response = await fetch(`${API}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    const freshToken = await firebase.auth().currentUser.getIdToken(true);
+    response = await fetch(`${API}${path}`, { ...options, headers: { ...headers, Authorization: `Bearer ${freshToken}` } });
+  }
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  return payload;
+}
+
+function openAddModal() {
+  document.getElementById('noteId').value = '';
+  document.getElementById('notesForm').reset();
+  populateNotesFormDropdowns();
+  document.getElementById('nPriceField').style.display = 'none';
+  document.getElementById('nProgressBar').style.display = 'none';
+  document.getElementById('nProgressText').textContent = '';
+  document.getElementById('notesModalTitle').textContent = 'Upload Note';
+  document.getElementById('notesModal').style.display = 'flex';
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function togglePrice(p) {
+  const val = document.querySelector(`input[name="${p}Access"]:checked`).value;
+  const paid = val.toLowerCase() === 'paid';
+  document.getElementById(p + 'PriceField').style.display = paid ? 'block' : 'none';
+}
+
+function showToast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  const ic = document.getElementById('toastIcon');
+  ic.className = isErr ? 'fas fa-times-circle' : 'fas fa-check-circle';
+  ic.style.color = isErr ? '#F87171' : '#34D399';
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ============ CATEGORIES ============
+async function loadCategories() {
+  try {
+    const data = await apiJson('/api/notes/categories');
+    allCategories = (data.categories || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+  } catch (e) {
+    console.error('Error loading categories:', e);
+    allCategories = [];
+  }
+}
+
+function populateNotesFormDropdowns() {
+  const subSelect = document.getElementById('nSubjectCat');
+  const subjects = allCategories.filter(c => c.type === 'subject');
+  subSelect.innerHTML = '<option value="">-- Select Subject --</option>' + 
+    subjects.map(s => `<option value="${s.id}">${s.name || ''}</option>`).join('');
+  
+  document.getElementById('nSectionCat').innerHTML = '<option value="">-- Select Section --</option>';
+  document.getElementById('nSubsectionCat').innerHTML = '<option value="">-- Select Sub-section --</option>';
+}
+
+function onSubjectChange() {
+  const subjectId = document.getElementById('nSubjectCat').value;
+  const sectionSelect = document.getElementById('nSectionCat');
+  const subSecSelect = document.getElementById('nSubsectionCat');
+  
+  sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+  subSecSelect.innerHTML = '<option value="">-- Select Sub-section --</option>';
+  
+  if (!subjectId) return;
+  
+  const sections = allCategories.filter(c => c.type === 'section' && c.parentId === subjectId);
+  sectionSelect.innerHTML = '<option value="">-- Select Section --</option>' + 
+    sections.map(s => `<option value="${s.id}">${s.name || ''}</option>`).join('');
+}
+
+function onSectionChange() {
+  const sectionId = document.getElementById('nSectionCat').value;
+  const subSecSelect = document.getElementById('nSubsectionCat');
+  
+  subSecSelect.innerHTML = '<option value="">-- Select Sub-section --</option>';
+  
+  if (!sectionId) return;
+  
+  const subsections = allCategories.filter(c => c.type === 'subsection' && c.parentId === sectionId);
+  subSecSelect.innerHTML = '<option value="">-- Select Sub-section --</option>' + 
+    subsections.map(s => `<option value="${s.id}">${s.name || ''}</option>`).join('');
+}
+
+async function openCategoryModal() {
+  await loadCategories();
+  selectedSubjectId = null;
+  selectedSectionId = null;
+  renderCategorySubjects();
+  document.getElementById('cat-sections-list').innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">Select a subject first</div>';
+  document.getElementById('cat-subsections-list').innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">Select a section first</div>';
+  document.getElementById('addSectionBtn').disabled = true;
+  document.getElementById('addSubBtn').disabled = true;
+  document.getElementById('categoryModal').style.display = 'flex';
+}
+
+function renderCategorySubjects() {
+  const list = document.getElementById('cat-subjects-list');
+  const subjects = allCategories.filter(c => c.type === 'subject');
+  if (!subjects.length) {
+    list.innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">No subjects yet</div>';
+    return;
+  }
+  list.innerHTML = subjects.map(s => `
+    <div onclick="selectSubject('${s.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:${selectedSubjectId === s.id ? 'rgba(79,70,229,0.15)' : 'rgba(255,255,255,0.02)'};border:1px solid ${selectedSubjectId === s.id ? 'rgba(79,70,229,0.3)' : 'rgba(255,255,255,0.05)'};cursor:pointer;transition:all 0.2s">
+      <span style="font-size:13px;font-weight:500;color:var(--ink)">${s.name || ''}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation(); editCategory('${s.id}', '${(s.name || '').replace(/'/g, "\\'")}')" style="color:#818CF8;font-size:11px;padding:2px 4px"><i class="fas fa-edit"></i></button>
+        <button onclick="event.stopPropagation(); deleteCategory('${s.id}')" style="color:#F87171;font-size:11px;padding:2px 4px"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectSubject(id) {
+  selectedSubjectId = id;
+  selectedSectionId = null;
+  renderCategorySubjects();
+  document.getElementById('addSectionBtn').disabled = false;
+  document.getElementById('addSubBtn').disabled = true;
+  document.getElementById('cat-subsections-list').innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">Select a section first</div>';
+  renderCategorySections();
+}
+
+function renderCategorySections() {
+  const list = document.getElementById('cat-sections-list');
+  const sections = allCategories.filter(c => c.type === 'section' && c.parentId === selectedSubjectId);
+  if (!sections.length) {
+    list.innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">No sections under this subject</div>';
+    return;
+  }
+  list.innerHTML = sections.map(s => `
+    <div onclick="selectSection('${s.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:${selectedSectionId === s.id ? 'rgba(79,70,229,0.15)' : 'rgba(255,255,255,0.02)'};border:1px solid ${selectedSectionId === s.id ? 'rgba(79,70,229,0.3)' : 'rgba(255,255,255,0.05)'};cursor:pointer;transition:all 0.2s">
+      <span style="font-size:13px;font-weight:500;color:var(--ink)">${s.name || ''}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation(); editCategory('${s.id}', '${(s.name || '').replace(/'/g, "\\'")}')" style="color:#818CF8;font-size:11px;padding:2px 4px"><i class="fas fa-edit"></i></button>
+        <button onclick="event.stopPropagation(); deleteCategory('${s.id}')" style="color:#F87171;font-size:11px;padding:2px 4px"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectSection(id) {
+  selectedSectionId = id;
+  renderCategorySections();
+  document.getElementById('addSubBtn').disabled = false;
+  renderCategorySubsections();
+}
+
+function renderCategorySubsections() {
+  const list = document.getElementById('cat-subsections-list');
+  const subsections = allCategories.filter(c => c.type === 'subsection' && c.parentId === selectedSectionId);
+  if (!subsections.length) {
+    list.innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">No sub-sections under this section</div>';
+    return;
+  }
+  list.innerHTML = subsections.map(s => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);transition:all 0.2s">
+      <span style="font-size:13px;font-weight:500;color:var(--ink)">${s.name || ''}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation(); editCategory('${s.id}', '${(s.name || '').replace(/'/g, "\\'")}')" style="color:#818CF8;font-size:11px;padding:2px 4px"><i class="fas fa-edit"></i></button>
+        <button onclick="event.stopPropagation(); deleteCategory('${s.id}')" style="color:#F87171;font-size:11px;padding:2px 4px"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function promptAddCategory(type) {
+  const name = prompt(`Enter name for the new ${type}:`);
+  if (!name || !name.trim()) return;
+  
+  let parentId = null;
+  if (type === 'section') parentId = selectedSubjectId;
+  if (type === 'subsection') parentId = selectedSectionId;
+  
+  const order = allCategories.filter(c => c.type === type && c.parentId === parentId).length + 1;
+  
+  try {
+    await apiJson('/api/notes/categories', {
+      method: 'POST',
+      body: JSON.stringify({ name: name.trim(), type, parentId, order })
+    });
+    showToast(`${type} added successfully!`);
+    await loadCategories();
+    
+    if (type === 'subject') renderCategorySubjects();
+    else if (type === 'section') renderCategorySections();
+    else if (type === 'subsection') renderCategorySubsections();
+    
+    populateNotesFormDropdowns();
+  } catch (err) {
+    showToast('Failed to add category: ' + err.message, true);
+  }
+}
+
+async function editCategory(id, currentName) {
+  const name = prompt('Edit category name:', currentName);
+  if (!name || !name.trim() || name.trim() === currentName) return;
+  
+  try {
+    await apiJson(`/api/notes/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name: name.trim() })
+    });
+    showToast('Category updated!');
+    await loadCategories();
+    
+    renderCategorySubjects();
+    if (selectedSubjectId) renderCategorySections();
+    if (selectedSectionId) renderCategorySubsections();
+    
+    populateNotesFormDropdowns();
+  } catch (err) {
+    showToast('Failed to update category: ' + err.message, true);
+  }
+}
+
+async function deleteCategory(id) {
+  if (!confirm('Are you sure you want to delete this category and all its children?')) return;
+  
+  try {
+    await apiJson(`/api/notes/categories/${id}`, { method: 'DELETE' });
+    
+    showToast('Category deleted!');
+    await loadCategories();
+    
+    if (selectedSubjectId === id) selectedSubjectId = null;
+    if (selectedSectionId === id) selectedSectionId = null;
+    
+    renderCategorySubjects();
+    if (selectedSubjectId) renderCategorySections();
+    else {
+      document.getElementById('cat-sections-list').innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">Select a subject first</div>';
+      document.getElementById('addSectionBtn').disabled = true;
+    }
+    
+    if (selectedSectionId) renderCategorySubsections();
+    else {
+      document.getElementById('cat-subsections-list').innerHTML = '<div style="color:var(--ink-mute);font-size:12px;text-align:center;margin-top:20px">Select a section first</div>';
+      document.getElementById('addSubBtn').disabled = true;
+    }
+    
+    populateNotesFormDropdowns();
+  } catch (err) {
+    showToast('Failed to delete category: ' + err.message, true);
+  }
+}
+
+// ============ ACCESS LOGS ============
+async function viewNoteLogs(noteId, noteTitle) {
+  document.getElementById('logsModalTitle').textContent = 'Access Logs';
+  document.getElementById('logsModalSubtitle').textContent = noteTitle || 'Note Logs';
+  document.getElementById('logsTableBody').innerHTML = '<tr><td colspan="3"><div style="text-align:center;padding:20px;color:var(--ink-mute)"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>';
+  document.getElementById('logsModal').style.display = 'flex';
+  
+  try {
+    const data = await apiJson(`/api/notes/logs/${noteId}`);
+    currentNoteLogs = data.logs || [];
+    filterLogsTable();
+  } catch (err) {
+    console.error('Error loading logs:', err);
+    document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="3" style="color:#F87171;text-align:center;padding:20px">Error loading logs: ${err.message}</td></tr>`;
+  }
+}
+
+function filterLogsTable() {
+  const filter = document.getElementById('logActionFilter').value;
+  const filtered = currentNoteLogs.filter(log => filter === 'all' || log.action === filter);
+  
+  document.getElementById('logsCountText').textContent = `${filtered.length} log entries`;
+  
+  const tbody = document.getElementById('logsTableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="3"><div style="text-align:center;padding:30px;color:var(--ink-mute)"><i class="fas fa-history" style="font-size:24px;display:block;margin-bottom:8px"></i>No activity logs found</div></td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(log => {
+    const actionLabel = log.action === 'purchased' 
+      ? `<span class="badge badge-paid" style="font-size:10px"><i class="fas fa-rupee-sign" style="font-size:9px;margin-right:3px"></i>Purchased${log.amount ? ' (₹' + log.amount + ')' : ''}</span>`
+      : `<span class="badge badge-free" style="font-size:10px">Viewed</span>`;
+      
+    return `<tr>
+      <td>
+        <div style="font-weight:600;color:var(--ink)">${log.userName || 'Unknown'}</div>
+        <div style="font-size:11px;color:var(--ink-mute)">${log.userEmail || ''}</div>
+      </td>
+      <td>${actionLabel}</td>
+      <td style="color:var(--ink-mute);font-size:12px">${fmtDate(log.timestamp)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============ HELPERS ============
+function subBadge(s){
+  const m={Physics:'badge-phy',Chemistry:'badge-chem',Mathematics:'badge-math'};
+  return `<span class="badge ${m[s]||'badge-draft'}">${s||'—'}</span>`;
+}
+function accBadge(a){ 
+  const display = (a || 'free').toLowerCase() === 'paid' ? 'Paid' : 'Free';
+  return `<span class="badge ${display === 'Paid' ? 'badge-paid' : 'badge-free'}">${display}</span>`; 
+}
+function fmtDate(ts){
+  if(!ts) return '—';
+  try{ const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'}); }catch(e){ return '—'; }
+}
+function fmtSize(b){
+  if(!b) return '—';
+  return b>1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB';
+}
+
+// ============ NOTES CRUD ============
+async function loadNotes() {
+  try {
+    const data = await apiJson('/api/notes/all');
+    notesCache = data.notes || [];
+  } catch (e) {
+    console.error('Error loading notes:', e);
+    notesCache = [];
+  }
+  renderNotes();
+}
+
+function renderNotes() {
+  const tbody = document.getElementById('notes-body');
+  if (!notesCache.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-file-pdf"></i><div style="font-size:15px;font-weight:600;color:#475569">No notes uploaded yet</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = notesCache.map(n => `<tr>
+    <td><div style="font-weight:600;color:var(--ink)">${n.title || '—'}</div><div style="font-size:11px;color:var(--ink-mute)">${n.fileName || ''}</div></td>
+    <td>${subBadge(n.subject)}</td>
+    <td style="color:var(--ink-mute);font-size:12px">${n.sectionName || '—'}</td>
+    <td style="color:var(--ink-mute);font-size:12px">${n.subsectionName || '—'}</td>
+    <td style="color:var(--ink-mute);font-size:12px">${fmtSize(n.fileSize)}</td>
+    <td>${accBadge(n.access)}</td>
+    <td style="color:#E2E8F0">${(n.access || '').toLowerCase() === 'paid' && n.price ? '₹' + n.price : '—'}</td>
+    <td><span style="font-weight:700;color:#818CF8">${n.viewCount || 0}</span></td>
+    <td><div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${n.fileUrl ? `<a href="${n.fileUrl}" target="_blank" style="background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.2);padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center"><i class="fas fa-download"></i></a>` : ''}
+      <button class="btn-ghost" style="background:rgba(245,158,11,0.15);color:#FBBF24;border-color:rgba(245,158,11,0.2)" onclick="viewNoteLogs('${n.id}', '${(n.title || '').replace(/'/g, "\\'")}')" title="View Logs"><i class="fas fa-history"></i></button>
+      <button class="btn-ghost" onclick="editNote('${n.id}')"><i class="fas fa-pen"></i></button>
+      <button class="btn-ghost" style="color:#ef4444;" onclick="deleteNote('${n.id}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// Image compression function
+async function compressImage(file) {
+  // Only compress images
+  if (!file.type.startsWith('image/')) return file;
+  
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        // Max dimensions for readability (e.g. good enough for handwritten text)
+        const MAX_WIDTH = 1600;
+        const MAX_HEIGHT = 1600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Compress at 80% quality (keeps text very sharp while crushing file size)
+        canvas.toBlob((blob) => {
+          if(!blob) { resolve(file); return; } // fallback
+          // Create new file object
+          const newFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          resolve(newFile);
+        }, 'image/jpeg', 0.80);
+      };
+      img.onerror = () => resolve(file); // fallback on error
+    };
+    reader.onerror = () => resolve(file);
+  });
+}
+
+async function saveNote(e) {
+  e.preventDefault();
+  const btn = document.getElementById('noteSaveBtn');
+  btn.textContent = 'Uploading…'; btn.disabled = true;
+  const id = document.getElementById('noteId').value;
+  const access = document.querySelector('input[name="nAccess"]:checked').value;
+  const fi = document.getElementById('nFile');
+  
+  const subjectId = document.getElementById('nSubjectCat').value;
+  const sectionId = document.getElementById('nSectionCat').value;
+  const subsectionId = document.getElementById('nSubsectionCat').value;
+  
+  const subjectEl = document.getElementById('nSubjectCat');
+  const subjectName = subjectEl.options[subjectEl.selectedIndex].text;
+  
+  const sectionEl = document.getElementById('nSectionCat');
+  const sectionName = sectionEl.options[sectionEl.selectedIndex].text;
+  
+  const subsectionEl = document.getElementById('nSubsectionCat');
+  const subsectionName = subsectionEl.options[subsectionEl.selectedIndex].text;
+  
+  const data = {
+    title: document.getElementById('nTitle').value.trim(),
+    subject: subjectName,
+    subjectId,
+    sectionName,
+    sectionId,
+    subsectionName,
+    subsectionId,
+    description: document.getElementById('nDesc').value.trim(),
+    access,
+    price: access === 'paid' ? (parseFloat(document.getElementById('nPrice').value) || 0) : 0,
+    status: 'active'
+  };
+  
+  try {
+    if (fi.files.length > 0) {
+      for (let i = 0; i < fi.files.length; i++) {
+        let file = fi.files[i];
+        
+        // Auto-compress if it's an image
+        if (file.type.startsWith('image/')) {
+          file = await compressImage(file);
+        }
+
+        if (file.size > 30 * 1024 * 1024) {
+          showToast(`File ${file.name} exceeds 30MB limit. Skipping.`, true);
+          continue;
+        }
+        
+        const fname = Date.now() + '_' + file.name.replace(/\s+/g, '_');
+        const ref = storage.ref('notes/' + fname);
+        const task = ref.put(file);
+        const bar = document.getElementById('nProgressBar');
+        const fill = document.getElementById('nProgressFill');
+        const txt = document.getElementById('nProgressText');
+        bar.style.display = 'block';
+        await new Promise((res, rej) => task.on('state_changed',
+          s => { const p = Math.round((s.bytesTransferred / s.totalBytes) * 100); fill.style.width = p + '%'; txt.textContent = `Uploading ${file.name}: ${p}%`; }, rej, res));
+        
+        const fileUrl = await ref.getDownloadURL();
+        const ext = file.name.split('.').pop().toLowerCase();
+        let fileType = 'other';
+        if (ext === 'pdf') fileType = 'pdf';
+        else if (['ppt', 'pptx'].includes(ext)) fileType = 'ppt';
+        else if (['doc', 'docx'].includes(ext)) fileType = 'doc';
+        else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) fileType = 'image';
+        
+        let fileData = { ...data, fileUrl, fileName: file.name, fileSize: file.size, fileType };
+        
+        if (fi.files.length > 1 && !id) {
+          fileData.title = data.title + ` (${i+1})`;
+        }
+        
+        if (id) {
+          await apiJson(`/api/notes/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(fileData)
+          });
+          showToast('Note updated!');
+          break; // if updating an existing note, we only apply the first file
+        } else {
+          fileData.viewCount = 0; 
+          fileData.purchaseCount = 0;
+          await apiJson('/api/notes', {
+            method: 'POST',
+            body: JSON.stringify(fileData)
+          });
+          showToast(`Uploaded ${file.name}!`); 
+        }
+        
+        bar.style.display = 'none'; txt.textContent = '';
+      }
+    } else if (!id) {
+      showToast('Please select a file to upload.', true);
+      btn.textContent = 'Upload Note'; btn.disabled = false;
+      return;
+    } else {
+      await apiJson(`/api/notes/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      showToast('Note updated!');
+    }
+    
+    closeModal('notesModal');
+    loadNotes();
+  } catch (err) {
+    document.getElementById('nProgressBar').style.display = 'none';
+    document.getElementById('nProgressText').textContent = '';
+    showToast('Error: ' + err.message, true);
+  }
+  btn.textContent = 'Upload Note'; btn.disabled = false;
+}
+
+async function editNote(id) {
+  const n = notesCache.find(x => x.id === id); if (!n) return;
+  document.getElementById('noteId').value = id;
+  document.getElementById('nTitle').value = n.title || '';
+  
+  await loadCategories();
+  populateNotesFormDropdowns();
+  
+  if (n.subjectId) {
+    document.getElementById('nSubjectCat').value = n.subjectId;
+    onSubjectChange();
+    if (n.sectionId) {
+      document.getElementById('nSectionCat').value = n.sectionId;
+      onSectionChange();
+      if (n.subsectionId) {
+        document.getElementById('nSubsectionCat').value = n.subsectionId;
+      }
+    }
+  }
+  
+  document.getElementById('nDesc').value = n.description || '';
+  const acc = n.access || 'free';
+  document.querySelector(`input[name="nAccess"][value="${acc}"]`).checked = true;
+  document.getElementById('nPriceField').style.display = acc === 'paid' ? 'block' : 'none';
+  document.getElementById('nPrice').value = n.price || '';
+  document.getElementById('nProgressBar').style.display = 'none';
+  document.getElementById('notesModalTitle').textContent = 'Edit Note';
+  document.getElementById('notesModal').style.display = 'flex';
+}
+
+async function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  try {
+    await apiJson(`/api/notes/${id}`, { method: 'DELETE' });
+    showToast('Note deleted');
+    loadNotes();
+  } catch (e) {
+    showToast('Error: ' + e.message, true);
+  }
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(ev) { if (ev.target === this) this.style.display = 'none'; });
+});
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  await loadCategories();
+  populateNotesFormDropdowns();
+  loadNotes();
+});
+
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function logout() {
+  auth.signOut();
+}
+</script>
+</body>
+</html>

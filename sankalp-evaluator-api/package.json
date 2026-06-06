@@ -4,6 +4,7 @@
   "description": "WBJEE response sheet evaluator + rank predictor API for Sankalp Aspirant",
   "main": "src/server.js",
   "scripts": {
+    "postinstall": "npm rebuild sqlite3 --build-from-source",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --test tests/*.test.js"

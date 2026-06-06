@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — Sankalp WBJEE</title>
+  <meta name="description" content="Get in touch with Sankalp WBJEE support. Reach out to us for doubt-clearing sessions, counseling questions, or account support.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .input-group { margin-bottom: 20px; }
+    .inp-text { width: 100%; padding: 12px 14px; background: var(--paper-soft); border: 1px solid var(--ink); color: var(--ink); border-radius: 4px; font-family: var(--font-sans); outline: none; transition: border-color 0.2s; font-size: 14px; }
+    .inp-text:focus { border-color: var(--rust); }
+    .toast-msg { display: none; margin-top: 16px; padding: 12px 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; color: #10B981; font-weight: 600; font-size: 13px; text-align: center; }
+  </style>
+</head>
+<body style="background: var(--paper-deep); color: var(--ink); font-family: var(--font-sans);">
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-inner">
+    <span>Volume 1 · Edition 1</span>
+    <span class="hide-mobile">· Filed under: Platform Support ·</span>
+    <span>Est. 2026 · Bengal, India</span>
+    <span class="hide-mobile">· Help Desk ·</span>
+    <span class="hide-mobile">Active Contact</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">WBJEE Prep · Est. 2026</div>
+      </span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="wbjee-marks-calculator.html" class="nav-link">Marks Calculator</a>
+      <a href="wbjee-college-predictor.html" class="nav-link">College Predictor</a>
+      <a href="pricing.html" class="nav-link">Pricing</a>
+      <a href="login.html" class="nav-link">Sign In</a>
+    </div>
+    <a href="register.html" class="btn-ink btn-sm">Join Sankalp</a>
+    <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu">
+      <i class="fas fa-bars" id="menuIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<main style="padding: 64px 24px; max-width: 800px; margin: 0 auto; line-height: 1.7;">
+  <div style="margin-bottom: 40px; border-bottom: 1px solid var(--ink); padding-bottom: 24px;">
+    <span class="section-label">— Reach Out</span>
+    <h1 class="display-lg" style="margin-top: 12px; margin-bottom: 8px;">Contact Us</h1>
+    <p style="color: var(--ink-mute); font-size: 13px;">Typically responds within 24 hours</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px;" class="grid-2-collapse">
+    
+    <!-- Left details -->
+    <div>
+      <h2 class="display-sm" style="color: var(--ink); margin-bottom: 16px;">Support details</h2>
+      <p style="margin-bottom: 24px; color: var(--ink-soft); font-size: 14px;">If you are an enrolled student experiencing issue with mock test payments or notes access, please contact us directly using the details below:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+          <div style="color: var(--rust); font-size: 18px; margin-top: 2px;"><i class="fas fa-envelope"></i></div>
+          <div>
+            <div style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;">Email Support</div>
+            <a href="mailto:support@sankalplearning.in" style="color: var(--ink-soft); font-size: 14px; text-decoration: underline;">support@sankalplearning.in</a>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+          <div style="color: var(--rust); font-size: 18px; margin-top: 2px;"><i class="fab fa-youtube"></i></div>
+          <div>
+            <div style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;">YouTube Channel</div>
+            <a href="https://youtube.com/@sankalp_wbjee12" target="_blank" rel="noopener" style="color: var(--ink-soft); font-size: 14px; text-decoration: underline;">@sankalp_wbjee12</a>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+          <div style="color: var(--rust); font-size: 18px; margin-top: 2px;"><i class="fas fa-clock"></i></div>
+          <div>
+            <div style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;">Office Hours</div>
+            <p style="color: var(--ink-soft); font-size: 14px;">Monday – Saturday<br>10:00 AM – 7:00 PM IST</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Form -->
+    <div style="border: 1px solid var(--ink); padding: 28px; background: var(--paper-soft);">
+      <h2 class="display-sm" style="color: var(--ink); margin-bottom: 16px;">Send Message</h2>
+      <form id="contactForm" onsubmit="submitContact(event)">
+        <div class="input-group">
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:6px; text-transform:uppercase;">Your Name *</label>
+          <input class="inp-text" type="text" id="contactName" placeholder="Arjun Das" required>
+        </div>
+        <div class="input-group">
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:6px; text-transform:uppercase;">Your Email *</label>
+          <input class="inp-text" type="email" id="contactEmail" placeholder="arjun@example.com" required>
+        </div>
+        <div class="input-group">
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:6px; text-transform:uppercase;">Message *</label>
+          <textarea class="inp-text" id="contactMessage" rows="4" placeholder="How can we help you..." required></textarea>
+        </div>
+        <button type="submit" class="btn-rust btn-lg" style="width: 100%; justify-content: center;">Send Message</button>
+        <div class="toast-msg" id="contactToast">Message sent successfully! We will get back to you shortly.</div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer-ink">
+  <div class="footer-bottom" style="margin-top:0;">
+    <span>© 2026 Sankalp WBJEE · All rights reserved</span>
+    <span class="footer-stamp">Compliance</span>
+    <span>
+      <a href="privacy-policy.html">Privacy Policy</a> · 
+      <a href="terms.html">Terms & Conditions</a> · 
+      <a href="disclaimer.html">Disclaimer</a> · 
+      <a href="contact.html">Contact Us</a> · 
+      <a href="about.html">About Us</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  function toggleNav() {
+    const links = document.getElementById('navLinks');
+    const icon = document.getElementById('menuIcon');
+    const open = links.classList.toggle('open');
+    icon.className = open ? 'fas fa-times' : 'fas fa-bars';
+  }
+
+  function submitContact(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    // Simulate sending message
+    setTimeout(() => {
+      document.getElementById('contactName').value = '';
+      document.getElementById('contactEmail').value = '';
+      document.getElementById('contactMessage').value = '';
+      
+      btn.textContent = 'Send Message';
+      btn.disabled = false;
+      
+      const toast = document.getElementById('contactToast');
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }, 1200);
+  }
+</script>
+</body>
+</html>

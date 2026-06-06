@@ -133,6 +133,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /pinnedNotes/{pinId} {
+      allow read, update, delete: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
     match /exams/{examId} {
       allow read: if signedIn();
       allow write: if false;

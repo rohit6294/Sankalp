@@ -202,6 +202,8 @@
     try{ const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'}); }catch(e){ return '—'; }
   }
 
+  let pinnedPages = {};
+  
   // ============ CATEGORIES & ACCESS LOGS ============
   async function loadData() {
     try {
@@ -227,6 +229,19 @@
         // If Firestore query fails, we'll just show everything as unpurchased
         console.warn('Could not fetch purchase records directly, falling back to empty:', purErr);
         purchasesCache = [];
+      }
+      
+      // 4. Fetch pinned pages
+      try {
+        const pinsSnap = await db.collection('pinnedNotes').where('userId', '==', currentUser.uid).get();
+        pinnedPages = {};
+        pinsSnap.forEach(doc => {
+          const data = doc.data();
+          pinnedPages[`${data.noteId}_${data.page}`] = data;
+        });
+      } catch (pinsErr) {
+        console.warn('Could not fetch pinned pages:', pinsErr);
+        pinnedPages = {};
       }
       
       renderCategoryTree();
@@ -473,7 +488,7 @@
     document.body.style.overflow = '';
   }
 
-  async function openSecureViewer(noteId, fileUrl, title, subject, sectionName, subsectionName, fileType, files) {
+  async function openSecureViewer(noteId, fileUrl, title, subject, sectionName, subsectionName, fileType, files, targetPage = null) {
     const viewer = document.getElementById('secureViewer');
     viewer.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -540,6 +555,7 @@
             const viewport = page.getViewport({ scale: 1.5 });
             
             const pageWrapper = document.createElement('div');
+            pageWrapper.id = 'page-wrapper-' + i;
             pageWrapper.style.position = 'relative';
             pageWrapper.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
             pageWrapper.style.borderRadius = '8px';
@@ -548,13 +564,50 @@
             pageWrapper.style.margin = '0 auto 20px auto';
             pageWrapper.style.width = viewport.width + 'px';
             pageWrapper.style.height = viewport.height + 'px';
+            pageWrapper.style.pointerEvents = 'auto';
             
             const canvas = document.createElement('canvas');
             canvas.width = viewport.width;
             canvas.height = viewport.height;
             canvas.style.display = 'block';
+            canvas.style.pointerEvents = 'none';
             pageWrapper.appendChild(canvas);
             
+            // absolute pin button
+            const pinBtn = document.createElement('button');
+            pinBtn.style.position = 'absolute';
+            pinBtn.style.top = '12px';
+            pinBtn.style.right = '12px';
+            pinBtn.style.background = 'rgba(15, 23, 42, 0.85)';
+            pinBtn.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+            pinBtn.style.color = '#E2E8F0';
+            pinBtn.style.padding = '8px 12px';
+            pinBtn.style.borderRadius = '6px';
+            pinBtn.style.fontSize = '12px';
+            pinBtn.style.fontWeight = '600';
+            pinBtn.style.cursor = 'pointer';
+            pinBtn.style.zIndex = '10';
+            pinBtn.style.display = 'flex';
+            pinBtn.style.alignItems = 'center';
+            pinBtn.style.gap = '6px';
+            pinBtn.style.transition = 'all 0.2s';
+            
+            const isPinned = pinnedPages[`${noteId}_${i}`];
+            if (isPinned) {
+              pinBtn.style.background = 'var(--rust)';
+              pinBtn.style.borderColor = 'var(--rust)';
+              pinBtn.style.color = 'white';
+              pinBtn.innerHTML = `<i class="fa-solid fa-thumbtack" style="transform: rotate(45deg);"></i> <span>Pinned</span>`;
+            } else {
+              pinBtn.innerHTML = `<i class="fa-solid fa-thumbtack"></i> <span>Pin Page</span>`;
+            }
+            
+            pinBtn.onclick = async (e) => {
+              e.stopPropagation();
+              await togglePinPage(noteId, i, title, subject, sectionName, pinBtn);
+            };
+            
+            pageWrapper.appendChild(pinBtn);
             pagesContainer.appendChild(pageWrapper);
             
             const renderContext = {
@@ -565,12 +618,59 @@
           }
         } else if (type === 'image') {
           const imgWrapper = document.createElement('div');
-          imgWrapper.innerHTML = `
-            <div style="max-width:100%; text-align:center; margin:0 auto 20px auto; box-shadow:0 4px 20px rgba(0,0,0,0.5); border-radius:8px; overflow:hidden">
-              <img src="${url}" style="max-width:100%; display:block; pointer-events:none" />
-            </div>
-          `;
-          pagesContainer.appendChild(imgWrapper.firstElementChild);
+          imgWrapper.id = 'page-wrapper-1';
+          imgWrapper.style.position = 'relative';
+          imgWrapper.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+          imgWrapper.style.borderRadius = '8px';
+          imgWrapper.style.overflow = 'hidden';
+          imgWrapper.style.background = 'white';
+          imgWrapper.style.margin = '0 auto 20px auto';
+          imgWrapper.style.maxWidth = '100%';
+          imgWrapper.style.pointerEvents = 'auto';
+          
+          const img = document.createElement('img');
+          img.src = url;
+          img.style.maxWidth = '100%';
+          img.style.display = 'block';
+          img.style.pointerEvents = 'none';
+          imgWrapper.appendChild(img);
+          
+          // absolute pin button
+          const pinBtn = document.createElement('button');
+          pinBtn.style.position = 'absolute';
+          pinBtn.style.top = '12px';
+          pinBtn.style.right = '12px';
+          pinBtn.style.background = 'rgba(15, 23, 42, 0.85)';
+          pinBtn.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+          pinBtn.style.color = '#E2E8F0';
+          pinBtn.style.padding = '8px 12px';
+          pinBtn.style.borderRadius = '6px';
+          pinBtn.style.fontSize = '12px';
+          pinBtn.style.fontWeight = '600';
+          pinBtn.style.cursor = 'pointer';
+          pinBtn.style.zIndex = '10';
+          pinBtn.style.display = 'flex';
+          pinBtn.style.alignItems = 'center';
+          pinBtn.style.gap = '6px';
+          pinBtn.style.transition = 'all 0.2s';
+          
+          const isPinned = pinnedPages[`${noteId}_1`];
+          if (isPinned) {
+            pinBtn.style.background = 'var(--rust)';
+            pinBtn.style.borderColor = 'var(--rust)';
+            pinBtn.style.color = 'white';
+            pinBtn.innerHTML = `<i class="fa-solid fa-thumbtack" style="transform: rotate(45deg);"></i> <span>Pinned</span>`;
+          } else {
+            pinBtn.innerHTML = `<i class="fa-solid fa-thumbtack"></i> <span>Pin Page</span>`;
+          }
+          
+          pinBtn.onclick = async (e) => {
+            e.stopPropagation();
+            await togglePinPage(noteId, 1, title, subject, sectionName, pinBtn);
+          };
+          
+          imgWrapper.appendChild(pinBtn);
+          pagesContainer.appendChild(imgWrapper);
         } else {
           const encodedUrl = encodeURIComponent(url);
           const docWrapper = document.createElement('div');
@@ -581,6 +681,12 @@
           `;
           pagesContainer.appendChild(docWrapper.firstElementChild);
         }
+      }
+      
+      if (targetPage && targetPage > 0) {
+        setTimeout(() => {
+          scrollToPage(targetPage);
+        }, 600);
       }
     } catch (err) {
       console.error('Failed to render secure note:', err);
@@ -593,7 +699,7 @@
     }
   }
 
-  async function viewNote(noteId, _fileUrl, title, subject, sectionName, subsectionName, fileType) {
+  async function viewNote(noteId, _fileUrl, title, subject, sectionName, subsectionName, fileType, targetPage = null) {
     try {
       // Always fetch the fileUrl securely through the API
       const accessData = await apiJson(`/api/notes/access/${noteId}`);
@@ -601,10 +707,77 @@
         toast('You do not have access to this note.', 'error');
         return;
       }
-      openSecureViewer(noteId, accessData.fileUrl, title, subject, sectionName, subsectionName, fileType, accessData.files);
+      await openSecureViewer(noteId, accessData.fileUrl, title, subject, sectionName, subsectionName, fileType, accessData.files, targetPage);
     } catch (err) {
       console.error('Failed to get note access:', err);
       toast('Failed to load note: ' + (err.message || 'Unknown error'), 'error');
+    }
+  }
+
+  async function togglePinPage(noteId, pageNo, title, subject, sectionName, button) {
+    const pinKey = `${noteId}_${pageNo}`;
+    const docId = `${currentUser.uid}_${pinKey}`;
+    const pinRef = db.collection('pinnedNotes').doc(docId);
+    
+    const isPinned = !!pinnedPages[pinKey];
+    
+    try {
+      if (isPinned) {
+        await pinRef.delete();
+        delete pinnedPages[pinKey];
+        button.style.background = 'rgba(15, 23, 42, 0.85)';
+        button.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        button.style.color = '#E2E8F0';
+        button.innerHTML = `<i class="fa-solid fa-thumbtack"></i> <span>Pin Page</span>`;
+        toast('Page bookmark removed.', 'info');
+      } else {
+        const pinData = {
+          userId: currentUser.uid,
+          noteId,
+          page: pageNo,
+          noteTitle: title,
+          chapter: subject || sectionName || 'General',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await pinRef.set(pinData);
+        pinnedPages[pinKey] = pinData;
+        button.style.background = 'var(--rust)';
+        button.style.borderColor = 'var(--rust)';
+        button.style.color = 'white';
+        button.innerHTML = `<i class="fa-solid fa-thumbtack" style="transform: rotate(45deg);"></i> <span>Pinned</span>`;
+        toast('Page bookmarked successfully!', 'success');
+      }
+    } catch (err) {
+      console.error('Failed to toggle page pin:', err);
+      toast('Failed to update page bookmark.', 'error');
+    }
+  }
+
+  function scrollToPage(pageNo) {
+    const el = document.getElementById('page-wrapper-' + pageNo);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.style.outline = '3px solid var(--rust)';
+      setTimeout(() => {
+        el.style.outline = 'none';
+      }, 2000);
+    }
+  }
+
+  async function checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const noteId = params.get('noteId');
+    const page = parseInt(params.get('page'));
+    
+    if (noteId) {
+      const note = notesCache.find(n => n.id === noteId);
+      if (note) {
+        const subjectName = note.subject || (allCategories.find(c => c.id === note.subjectId) || {}).name || '';
+        const sectionName = note.sectionName || (allCategories.find(c => c.id === note.sectionId) || {}).name || '';
+        const subsectionName = note.subsectionName || (allCategories.find(c => c.id === note.subsectionId) || {}).name || '';
+        
+        await viewNote(noteId, '', note.title, subjectName, sectionName, subsectionName, note.fileType, page);
+      }
     }
   }
 
@@ -637,6 +810,7 @@
     document.getElementById('sidebarEmail').textContent = user.email || '';
     
     await loadData();
+    await checkUrlParams();
   });
 </script>
 </body>

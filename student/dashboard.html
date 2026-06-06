@@ -224,6 +224,16 @@
         </div>
       </div>
 
+      <!-- Quick Review Bookmarks Widget -->
+      <div id="bookmarksWidget" style="border:1px solid var(--ink); padding:28px; margin-bottom:24px; background:var(--paper-soft);">
+        <h2 style="font-size:15px; font-weight:700; margin-bottom:16px; font-family:var(--font-display);"><i class="fas fa-thumbtack" style="color:var(--rust); margin-right:6px"></i> Quick Review Bookmarks</h2>
+        <div id="bookmarksList" style="display:flex; flex-direction:column; gap:12px;">
+          <div style="font-size:12px; color:var(--ink-mute); text-align:center; padding:16px;">
+            No page bookmarks yet. Click the pin icon on any note page to save it here!
+          </div>
+        </div>
+      </div>
+
       <!-- Upcoming tests -->
       <div style="border:1px solid var(--ink); padding:28px; background:var(--paper-soft);">
         <h2 style="font-size:15px; font-weight:700; margin-bottom:16px; font-family:var(--font-display);">Upcoming Mock Tests</h2>
@@ -320,6 +330,68 @@
         }, 500);
       }
     } catch (e) { console.error(e); }
+
+    // Fetch mock test submissions to update stats
+    try {
+      const API = window.EVALUATOR_API || 'http://127.0.0.1:3000';
+      const token = await user.getIdToken();
+      let response = await fetch(`${API}/api/tests/my-submissions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.status === 401) {
+        const freshToken = await user.getIdToken(true);
+        response = await fetch(`${API}/api/tests/my-submissions`, {
+          headers: { Authorization: `Bearer ${freshToken}` }
+        });
+      }
+      const data = await response.json();
+      if (data.ok && data.submissions) {
+        const subs = data.submissions;
+        document.getElementById('testsTaken').textContent = subs.length;
+        if (subs.length > 0) {
+          const sum = subs.reduce((acc, s) => acc + (s.scoreDetails?.totalScore || 0), 0);
+          const avg = sum / subs.length;
+          document.getElementById('avgScore').textContent = avg.toFixed(2);
+        } else {
+          document.getElementById('avgScore').textContent = '—';
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load submissions for dashboard stats:', err);
+    }
+
+    // Load pinned bookmarks
+    try {
+      const pinsSnap = await db.collection('pinnedNotes').where('userId', '==', user.uid).get();
+      const listContainer = document.getElementById('bookmarksList');
+      if (!pinsSnap.empty) {
+        listContainer.innerHTML = '';
+        const pins = [];
+        pinsSnap.forEach(doc => {
+          pins.push({ id: doc.id, ...doc.data() });
+        });
+        pins.sort((a,b) => {
+          const timeA = a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || 0);
+          const timeB = b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || 0);
+          return timeB - timeA;
+        });
+        
+        pins.slice(0, 5).forEach(pin => {
+          const item = document.createElement('div');
+          item.style = 'background:var(--paper); border:1px solid var(--rule); padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; gap:12px;';
+          item.innerHTML = `
+            <div style="min-width:0; flex:1;">
+              <div style="font-size:13px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.noteTitle}</div>
+              <div style="font-size:11px; color:var(--ink-mute); margin-top:2px;">${pin.chapter} · Page ${pin.page}</div>
+            </div>
+            <a href="notes.html?noteId=${pin.noteId}&page=${pin.page}" class="btn-rust btn-sm" style="flex-shrink:0; padding:6px 12px; font-size:11px; display:flex; align-items:center; gap:4px; text-decoration:none;"><i class="fas fa-arrow-right"></i> Revise</a>
+          `;
+          listContainer.appendChild(item);
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load pinned bookmarks:', err);
+    }
   });
 </script>
 </body>

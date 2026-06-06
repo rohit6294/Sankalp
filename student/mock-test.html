@@ -69,8 +69,28 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px" id="testGrid">
       <div style="color:var(--ink-mute);font-size:14px;grid-column:1/-1;text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
     </div>
+
+    <!-- Completed Tests Section -->
+    <div id="completedSection" style="margin-top:40px;display:none;">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)"><i class="fas fa-clipboard-check" style="color:#10B981;margin-right:8px"></i> Completed Tests</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px" id="completedGrid"></div>
+    </div>
   </div>
 </main>
+
+<!-- Retake Confirm Modal -->
+<div id="retakeModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#0F172A; border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:28px; width:100%; max-width:480px; text-align:center;">
+    <div style="font-size:48px; margin-bottom:16px; color:#F59E0B;">⚠️</div>
+    <h3 style="font-size:20px; font-weight:700; color:white; margin-bottom:12px;">Test Already Completed</h3>
+    <p style="font-size:14px; color:#94A3B8; line-height:1.6; margin-bottom:24px;">You have already submitted responses for this mock test. Would you like to view your solutions & explanations or retake the test from scratch?</p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button id="btnViewPrev" class="btn-rust" style="justify-content:center; width:100%;"><i class="fas fa-lightbulb" style="margin-right:6px"></i> View Previous Solutions</button>
+      <button id="btnRetake" class="btn-ghost" style="justify-content:center; width:100%; border-color:rgba(217,119,6,0.4); color:#D97706;"><i class="fas fa-redo" style="margin-right:6px"></i> Retake Test</button>
+      <button onclick="closeRetakeModal()" class="btn-ghost" style="justify-content:center; width:100%; border-color:rgba(255,255,255,0.1); color:#94A3B8;">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
   function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
@@ -101,14 +121,23 @@
 
   let tests = [];
   let series = [];
+  let completedSubmissions = [];
 
   async function loadTests() {
     try {
-      const data = await apiJson('/api/tests/available');
-      tests = data.tests || [];
-      series = data.series || [];
+      const [testsData, subsData] = await Promise.all([
+        apiJson('/api/tests/available'),
+        apiJson('/api/tests/my-submissions').catch(err => {
+          console.error('Failed to load submissions:', err);
+          return { submissions: [] };
+        })
+      ]);
+      tests = testsData.tests || [];
+      series = testsData.series || [];
+      completedSubmissions = subsData.submissions || [];
       renderSeries();
       renderTests();
+      renderCompletedTests();
     } catch(e) {
       toast(e.message, 'error');
     }
@@ -152,7 +181,12 @@
 
       let actionBtn = '';
       if(t.allowed) {
-        actionBtn = `<button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+        const hasTaken = completedSubmissions.some(sub => sub.testId === t.id);
+        if (hasTaken) {
+          actionBtn = `<button onclick="confirmRetakeOrResults('${t.id}')" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+        } else {
+          actionBtn = `<button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+        }
       } else if (t.seriesId) {
         const pSeries = series.find(x => x.id === t.seriesId);
         if (pSeries && !pSeries.allowed) {
@@ -188,6 +222,72 @@
         ${actionBtn}
       </div>`;
     }).join('');
+  }
+
+  function renderCompletedTests() {
+    const section = document.getElementById('completedSection');
+    const grid = document.getElementById('completedGrid');
+    if(!completedSubmissions.length) { section.style.display = 'none'; return; }
+    
+    section.style.display = 'block';
+    grid.innerHTML = completedSubmissions.map(sub => {
+      let formattedDate = '';
+      if (sub.submittedAt) {
+        const d = new Date(sub.submittedAt);
+        formattedDate = d.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+      } else {
+        formattedDate = 'Recently';
+      }
+      
+      const score = sub.scoreDetails ? (sub.scoreDetails.totalScore || 0).toFixed(2) : '0.00';
+      const violTag = sub.tabViolations > 0 
+        ? `<span style="background:rgba(239,68,68,0.1);color:#EF4444;font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px;margin-left:8px"><i class="fas fa-exclamation-triangle"></i> ${sub.tabViolations} switches</span>` 
+        : '';
+        
+      return `
+      <div class="q-card" style="padding:24px;border:1px solid var(--rule-strong);box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--ink)">${sub.testTitle || 'Mock Test'}</div>
+            <div style="font-size:11px;color:var(--ink-mute);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em">${sub.subject}</div>
+          </div>
+          <span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">COMPLETED</span>
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:20px;background:var(--paper-deep);padding:12px;border-radius:8px">
+          <div style="font-size:12px;color:var(--ink-soft);font-weight:600"><i class="fas fa-trophy" style="color:#F59E0B;margin-right:4px"></i> Score: <span style="color:#10B981;font-weight:700">${score}</span></div>
+          <div style="font-size:12px;color:var(--ink-soft);font-weight:600"><i class="fas fa-calendar-alt" style="color:var(--ink-mute);margin-right:4px"></i> Taken on: ${formattedDate}</div>
+          ${violTag ? `<div style="font-size:12px;color:var(--ink-soft);font-weight:600;display:flex;align-items:center;">${violTag}</div>` : ''}
+        </div>
+
+        <button onclick="window.location.href='exam-results.html?id=${sub.id}'" class="btn-ghost" style="width:100%;justify-content:center;border-color:rgba(255,255,255,0.1);color:var(--ink)"><i class="fas fa-lightbulb" style="margin-right:6px"></i> View Solutions</button>
+      </div>`;
+    }).join('');
+  }
+
+  function confirmRetakeOrResults(testId) {
+    const subs = completedSubmissions.filter(s => s.testId === testId);
+    if (subs.length === 0) {
+      window.location.href = `exam-viewer.html?id=${testId}`;
+      return;
+    }
+    // Sort by submittedAt descending to get latest submission ID
+    subs.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    const latestSubId = subs[0].id;
+    
+    document.getElementById('btnViewPrev').onclick = () => {
+      window.location.href = `exam-results.html?id=${latestSubId}`;
+    };
+    document.getElementById('btnRetake').onclick = () => {
+      window.location.href = `exam-viewer.html?id=${testId}`;
+    };
+    
+    const modal = document.getElementById('retakeModal');
+    modal.style.display = 'flex';
+  }
+  
+  function closeRetakeModal() {
+    document.getElementById('retakeModal').style.display = 'none';
   }
 
   // --- Payment Integration ---

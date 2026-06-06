@@ -117,7 +117,8 @@ router.post('/:id/questions', verifyToken, requirePermission('content', 'edit'),
         options: q.options || [], // Array of {text, image}
         correctOptions: q.correctOptions || [], // Array of indices like [0, 2]
         category: Number(q.category) || 1, // 1, 2, or 3
-        subject: q.subject || testDoc.data().subject
+        subject: q.subject || testDoc.data().subject,
+        explanation: q.explanation || null
       });
     });
     
@@ -333,6 +334,107 @@ router.post('/:id/submit', verifyToken, async (req, res) => {
     res.json({ ok: true, score: totalScore, submissionId: submissionRef.id });
   } catch (err) {
     res.status(500).json({ error: 'submit_failed', message: err.message });
+  }
+});
+
+// GET /api/tests/my-submissions — fetch all mock test submissions for student
+router.get('/my-submissions', verifyToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const snap = await db.collection('mockTestSubmissions')
+      .where('userId', '==', uid)
+      .orderBy('submittedAt', 'desc')
+      .get();
+      
+    const submissions = [];
+    const testIds = new Set();
+    
+    snap.forEach(doc => {
+      const data = doc.data();
+      submissions.push({
+        id: doc.id,
+        testId: data.testId,
+        scoreDetails: data.scoreDetails,
+        tabViolations: data.tabViolations || 0,
+        submittedAt: data.submittedAt ? (data.submittedAt.toDate ? data.submittedAt.toDate() : data.submittedAt) : null
+      });
+      if (data.testId) testIds.add(data.testId);
+    });
+    
+    // Fetch test metadata in parallel
+    const testMap = {};
+    if (testIds.size > 0) {
+      const testPromises = Array.from(testIds).map(async (tid) => {
+        const tDoc = await db.collection('mockTests').doc(tid).get();
+        if (tDoc.exists) {
+          testMap[tid] = {
+            title: tDoc.data().title,
+            subject: tDoc.data().subject,
+            durationMin: tDoc.data().durationMin
+          };
+        }
+      });
+      await Promise.all(testPromises);
+    }
+    
+    const joined = submissions.map(sub => ({
+      ...sub,
+      testTitle: testMap[sub.testId]?.title || 'Unknown Test',
+      subject: testMap[sub.testId]?.subject || '',
+      durationMin: testMap[sub.testId]?.durationMin || 0
+    }));
+    
+    res.json({ ok: true, submissions: joined });
+  } catch (err) {
+    res.status(500).json({ error: 'fetch_failed', message: err.message });
+  }
+});
+
+// GET /api/tests/submissions/:id — fetch single submission details for solution review
+router.get('/submissions/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subDoc = await db.collection('mockTestSubmissions').doc(id).get();
+    if (!subDoc.exists) return res.status(404).json({ error: 'not_found', message: 'Submission not found.' });
+    
+    const subData = subDoc.data();
+    
+    // Verification
+    const isContentAdmin = req.user.permissions?.content?.view;
+    if (!isContentAdmin && subData.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'access_denied', message: 'You do not own this submission.' });
+    }
+    
+    // Fetch test details
+    const testDoc = await db.collection('mockTests').doc(subData.testId).get();
+    const testData = testDoc.exists ? testDoc.data() : {};
+    
+    // Fetch all questions with answers & explanations
+    const qsSnap = await db.collection('mockTestQuestions').where('testId', '==', subData.testId).get();
+    const questions = [];
+    qsSnap.forEach(doc => {
+      questions.push({ id: doc.id, ...doc.data() });
+    });
+    
+    res.json({
+      ok: true,
+      submission: {
+        id: subDoc.id,
+        testId: subData.testId,
+        answers: subData.answers,
+        scoreDetails: subData.scoreDetails,
+        tabViolations: subData.tabViolations || 0,
+        submittedAt: subData.submittedAt ? (subData.submittedAt.toDate ? subData.submittedAt.toDate() : subData.submittedAt) : null
+      },
+      test: {
+        title: testData.title,
+        subject: testData.subject,
+        durationMin: testData.durationMin
+      },
+      questions
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'fetch_failed', message: err.message });
   }
 });
 

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock Test Solutions — Sankalp Aspirant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/profile-check.js"></script>
+  <style>
+    body { background:#0a0f1d; color:#E2E8F0; font-family:'Plus Jakarta Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .main-container { max-width: 960px; width: 100%; margin: 32px auto; padding: 0 24px; flex: 1; }
+    
+    .stats-card { background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-box { text-align: center; border-right: 1px solid rgba(255,255,255,0.06); }
+    .stat-box:last-child { border-right: none; }
+    .stat-val { font-family: var(--font-display); font-size: 28px; font-weight: 800; margin-top: 4px; }
+    
+    .q-card { background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    
+    /* Option States */
+    .opt-box { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 12px; pointer-events: none; background: rgba(15,23,42,0.4); }
+    .opt-box.correct-selected { border-color: #10B981; background: rgba(16,185,129,0.08); }
+    .opt-box.incorrect-selected { border-color: #EF4444; background: rgba(239,68,68,0.08); }
+    .opt-box.correct-unselected { border-color: #10B981; border-style: dashed; background: rgba(16,185,129,0.02); }
+    
+    .chk { width: 20px; height: 20px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .correct-selected .chk { background: #10B981; border-color: #10B981; }
+    .incorrect-selected .chk { background: #EF4444; border-color: #EF4444; }
+    .correct-unselected .chk { border-color: #10B981; border-style: dashed; }
+    
+    .solution-box { background: rgba(10,116,245,0.05); border-left: 4px solid #0A74F5; padding: 18px; border-radius: 0 8px 8px 0; margin-top: 20px; }
+    
+    /* Dark theme buttons */
+    .exam-btn-secondary {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: #E2E8F0 !important;
+      padding: 10px 20px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      transition: all 0.2s !important;
+      text-decoration: none !important;
+    }
+    .exam-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div style="display:flex; align-items:center; gap:16px;">
+    <a href="mock-test.html" class="exam-btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+    <div>
+      <h1 id="testTitle" style="font-size:18px;font-weight:700;margin-bottom:2px">Mock Test Solutions</h1>
+      <div id="testSubject" style="font-size:12px;color:#94A3B8">Physics</div>
+    </div>
+  </div>
+  <div id="submissionDate" style="font-size:12px;color:#94A3B8">Submitted: —</div>
+</header>
+
+<main class="main-container">
+  <!-- Stats overview -->
+  <div class="stats-card">
+    <div class="stat-box">
+      <div class="eyebrow" style="color:#94A3B8; font-size:11px;">FINAL SCORE</div>
+      <div class="stat-val text-emerald-400" id="statScore">0.00</div>
+    </div>
+    <div class="stat-box">
+      <div class="eyebrow" style="color:#94A3B8; font-size:11px;">CATEGORY 1</div>
+      <div class="stat-val text-blue-400" id="statCat1">0.00</div>
+    </div>
+    <div class="stat-box">
+      <div class="eyebrow" style="color:#94A3B8; font-size:11px;">CATEGORY 2</div>
+      <div class="stat-val text-indigo-400" id="statCat2">0.00</div>
+    </div>
+    <div class="stat-box">
+      <div class="eyebrow" style="color:#94A3B8; font-size:11px;">CATEGORY 3</div>
+      <div class="stat-val text-pink-400" id="statCat3">0.00</div>
+    </div>
+    <div class="stat-box">
+      <div class="eyebrow" style="color:#94A3B8; font-size:11px;">TAB SWITCHES</div>
+      <div class="stat-val" id="statViolations" style="color:#EF4444">0</div>
+    </div>
+  </div>
+
+  <!-- Questions solutions list -->
+  <h2 style="font-size:18px; font-weight:700; margin-bottom:20px;">Questions & Solutions</h2>
+  <div id="questionsContainer">
+    <div style="text-align:center; padding:48px; color:#64748B;"><i class="fas fa-spinner fa-spin fa-2x"></i><div style="margin-top:12px">Loading solutions...</div></div>
+  </div>
+</main>
+
+<script>
+  let subId = new URLSearchParams(window.location.search).get('id');
+  let currentUser = null;
+
+  async function apiJson(path, options = {}) {
+    const API = window.EVALUATOR_API || 'http://127.0.0.1:3000';
+    const token = await currentUser.getIdToken();
+    const headers = { Authorization: `Bearer ${token}`, ...(options.headers || {}) };
+    if (options.body !== undefined && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    let response = await fetch(`${API}${path}`, { ...options, headers });
+    if (response.status === 401) {
+      const freshToken = await currentUser.getIdToken(true);
+      response = await fetch(`${API}${path}`, { ...options, headers: { ...headers, Authorization: `Bearer ${freshToken}` } });
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+    return payload;
+  }
+
+  async function loadSubmissionDetails() {
+    if (!subId) {
+      document.getElementById('questionsContainer').innerHTML = '<div style="text-align:center;color:#EF4444;font-weight:700;padding:48px">No submission ID specified.</div>';
+      return;
+    }
+    try {
+      const res = await apiJson(`/api/tests/submissions/${subId}`);
+      
+      const sub = res.submission;
+      const test = res.test;
+      const questions = res.questions;
+      
+      // Populate metadata
+      document.getElementById('testTitle').textContent = `${test.title} — Solutions`;
+      document.getElementById('testSubject').textContent = test.subject;
+      
+      if (sub.submittedAt) {
+        const d = new Date(sub.submittedAt);
+        document.getElementById('submissionDate').textContent = 'Submitted: ' + d.toLocaleDateString('en-IN', {day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+      }
+      
+      // Populate stats
+      const sd = sub.scoreDetails || {};
+      document.getElementById('statScore').textContent = (sd.totalScore || 0).toFixed(2);
+      document.getElementById('statCat1').textContent = (sd.scoreCat1 || 0).toFixed(2);
+      document.getElementById('statCat2').textContent = (sd.scoreCat2 || 0).toFixed(2);
+      document.getElementById('statCat3').textContent = (sd.scoreCat3 || 0).toFixed(2);
+      document.getElementById('statViolations').textContent = sub.tabViolations || 0;
+      if (sub.tabViolations > 0) {
+        document.getElementById('statViolations').classList.add('text-red-500');
+        document.getElementById('statViolations').style.animation = 'pulse 1s infinite alternate';
+      } else {
+        document.getElementById('statViolations').style.color = '#94A3B8';
+      }
+      
+      // Render questions
+      renderQuestionsList(questions, sub.answers);
+      
+    } catch (err) {
+      console.error(err);
+      document.getElementById('questionsContainer').innerHTML = `<div style="text-align:center;color:#EF4444;font-weight:700;padding:48px">Error loading submission details: ${err.message}</div>`;
+    }
+  }
+
+  function renderQuestionsList(questions, studentAnswers) {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+    
+    questions.forEach((q, index) => {
+      const selected = studentAnswers[q.id] || []; // Student answers array
+      const correct = q.correctOptions || []; // Correct options indices
+      const cat = q.category || 1;
+      
+      // Determine score for this question (WBJEE marking logic)
+      let questionScore = 0;
+      let scoreText = '';
+      let isCorrect = false;
+      let isPartiallyCorrect = false;
+      
+      if (cat === 1 || cat === 2) {
+        if (selected.length === 1 && selected[0] === correct[0]) {
+          questionScore = cat === 1 ? 1 : 2;
+          isCorrect = true;
+        } else if (selected.length > 0) {
+          questionScore = cat === 1 ? -0.25 : -0.5;
+        }
+      } else if (cat === 3) {
+        if (selected.length > 0) {
+          const hasIncorrect = selected.some(sel => !correct.includes(sel));
+          if (!hasIncorrect) {
+            const x = correct.length;
+            const y = selected.length;
+            questionScore = (y / x) * 2;
+            if (y === x) isCorrect = true;
+            else isPartiallyCorrect = true;
+          }
+        }
+      }
+      
+      if (isCorrect) scoreText = `<span class="text-emerald-400 font-bold">+${questionScore.toFixed(2)} (Correct)</span>`;
+      else if (isPartiallyCorrect) scoreText = `<span class="text-amber-400 font-bold">+${questionScore.toFixed(2)} (Partial)</span>`;
+      else if (selected.length === 0) scoreText = `<span class="text-slate-400">0.00 (Unattempted)</span>`;
+      else scoreText = `<span class="text-red-400 font-bold">${questionScore.toFixed(2)} (Incorrect)</span>`;
+      
+      const qCard = document.createElement('div');
+      qCard.className = 'q-card';
+      
+      // Subject category header
+      let badgeText = cat === 1 ? 'Category 1 (+1, -0.25)' : cat === 2 ? 'Category 2 (+2, -0.5)' : 'Category 3 (+2, Partial, 0 Neg)';
+      let badgeStyle = cat === 1 ? 'background:rgba(52,211,153,0.1);color:#34D399;border-color:rgba(52,211,153,0.2)' : cat === 2 ? 'background:rgba(96,165,250,0.1);color:#60A5FA;border-color:rgba(96,165,250,0.2)' : 'background:rgba(244,114,182,0.1);color:#F472B6;border-color:rgba(244,114,182,0.2)';
+      
+      // Render options list
+      const optionsHtml = q.options.map((opt, optIdx) => {
+        const isSel = selected.includes(optIdx);
+        const isCorr = correct.includes(optIdx);
+        
+        let optClass = '';
+        let iconHtml = '';
+        
+        if (isSel && isCorr) {
+          optClass = 'correct-selected';
+          iconHtml = '<i class="fas fa-check" style="font-size:10px;color:white"></i>';
+        } else if (isSel && !isCorr) {
+          optClass = 'incorrect-selected';
+          iconHtml = '<i class="fas fa-times" style="font-size:10px;color:white"></i>';
+        } else if (!isSel && isCorr) {
+          optClass = 'correct-unselected';
+          iconHtml = '<i class="fas fa-check" style="font-size:10px;color:#10B981"></i>';
+        }
+        
+        return `
+          <div class="opt-box ${optClass}">
+            <div class="chk">${iconHtml}</div>
+            <div style="font-size:14px">${opt}</div>
+          </div>
+        `;
+      }).join('');
+      
+      const explanationText = q.explanation 
+        ? q.explanation.replace(/\n/g, '<br>')
+        : `<strong>Explanation:</strong> Under standard WBJEE ${badgeText} rules, correct options receive full marks. For Category 3 select-multiple questions, partial credit is awarded as 2 × (correct marked / total actual correct), provided no incorrect choices are made. Review your response sheet coordinates for direct validation.`;
+      
+      qCard.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-weight:800;font-size:16px;color:white">Question ${index + 1}</span>
+            <span class="badge" style="${badgeStyle}">${badgeText}</span>
+          </div>
+          <div style="font-size:13px;font-weight:600">${scoreText}</div>
+        </div>
+        <p style="font-size:15px;line-height:1.6;margin-bottom:20px;color:#CBD5E1">${q.text.replace(/\n/g, '<br>')}</p>
+        <div>
+          ${optionsHtml}
+        </div>
+        <div class="solution-box">
+          <div style="font-size:12px;font-weight:700;color:#0A74F5;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px"><i class="fas fa-lightbulb"></i> Solution & Explanation</div>
+          <p style="font-size:13px;color:#E2E8F0;line-height:1.6">${explanationText}</p>
+        </div>
+      `;
+      
+      container.appendChild(qCard);
+    });
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (!user) { window.location.href = '../login.html'; return; }
+    currentUser = user;
+    loadSubmissionDetails();
+  });
+</script>
+</body>
+</html>

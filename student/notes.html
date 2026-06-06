@@ -513,8 +513,10 @@
     ctx.textAlign = 'center';
     ctx.fillText(watermarkText, 0, 0);
     
+    const watermarkDataUrl = canvas.toDataURL();
+    
     const watermarkGrid = document.getElementById('viewerWatermark');
-    watermarkGrid.style.backgroundImage = `url(${canvas.toDataURL()})`;
+    watermarkGrid.style.backgroundImage = `url(${watermarkDataUrl})`;
     watermarkGrid.style.backgroundRepeat = 'repeat';
     watermarkGrid.style.display = 'block';
     
@@ -607,6 +609,16 @@
               await togglePinPage(noteId, i, title, subject, sectionName, pinBtn);
             };
             
+            // Watermark overlay
+            const wmOverlay = document.createElement('div');
+            wmOverlay.style.position = 'absolute';
+            wmOverlay.style.inset = '0';
+            wmOverlay.style.pointerEvents = 'none';
+            wmOverlay.style.zIndex = '5'; // Above canvas (0), below pinBtn (10)
+            wmOverlay.style.backgroundImage = `url(${watermarkDataUrl})`;
+            wmOverlay.style.backgroundRepeat = 'repeat';
+            pageWrapper.appendChild(wmOverlay);
+            
             pageWrapper.appendChild(pinBtn);
             pagesContainer.appendChild(pageWrapper);
             
@@ -668,6 +680,16 @@
             e.stopPropagation();
             await togglePinPage(noteId, 1, title, subject, sectionName, pinBtn);
           };
+          
+          // Watermark overlay
+          const wmOverlay = document.createElement('div');
+          wmOverlay.style.position = 'absolute';
+          wmOverlay.style.inset = '0';
+          wmOverlay.style.pointerEvents = 'none';
+          wmOverlay.style.zIndex = '5'; // Above img (0), below pinBtn (10)
+          wmOverlay.style.backgroundImage = `url(${watermarkDataUrl})`;
+          wmOverlay.style.backgroundRepeat = 'repeat';
+          imgWrapper.appendChild(wmOverlay);
           
           imgWrapper.appendChild(pinBtn);
           pagesContainer.appendChild(imgWrapper);

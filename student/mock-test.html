@@ -95,9 +95,6 @@
     const el = document.createElement('div');
     el.className = `notification ${type}`;
     el.innerHTML = `<i class="fas fa-${type==='error'?'exclamation-circle':'check-circle'}"></i> ${msg}`;
-    el.style = `position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--paper-soft);color:white;border:1px solid var(--rust);border-radius:8px;z-index:9999`;
-    if(type==='error') el.style.borderColor='#F87171';
-    if(type==='success') el.style.borderColor='#34D399';
     document.body.appendChild(el);
     setTimeout(()=>el.remove(), 3000);
   }

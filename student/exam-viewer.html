@@ -14,10 +14,10 @@
   <script src="../js/profile-check.js"></script>
   <style>
     body { background:#0a0f1d; color:#E2E8F0; font-family:'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-    .exam-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .exam-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; z-index: 10; }
     .exam-main { display: flex; flex: 1; overflow: hidden; }
-    .exam-content { flex: 1; padding: 32px; overflow-y: auto; background: #0b0f19; }
-    .exam-sidebar { width: 320px; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; }
+    .exam-content { flex: 1; padding: 32px; overflow-y: auto; background: #0b0f19; position: relative; }
+    .exam-sidebar { width: 320px; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; position: relative; z-index: 10; }
     .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 16px; overflow-y: auto; flex: 1; align-content: start; }
     
     .q-btn { width: 100%; aspect-ratio: 1; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; color: #94A3B8; }
@@ -37,6 +37,127 @@
     .opt-box .chk { width: 20px; height: 20px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
     .opt-box.selected .chk { background: #0A74F5; border-color: #0A74F5; }
     
+    /* Self-contained dark theme buttons to prevent leaking styles from style.css */
+    .exam-btn-primary {
+      background: #0A74F5 !important;
+      color: white !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 700 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+      border: 1px solid #0A74F5 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      transition: all 0.2s !important;
+      text-decoration: none !important;
+    }
+    .exam-btn-primary:hover:not(:disabled) {
+      background: #0059E3 !important;
+      border-color: #0059E3 !important;
+      box-shadow: 0 4px 12px rgba(10, 116, 245, 0.3) !important;
+    }
+    .exam-btn-primary:disabled {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+    }
+
+    .exam-btn-success {
+      background: #10B981 !important;
+      color: white !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 700 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+      border: 1px solid #10B981 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      transition: all 0.2s !important;
+      text-decoration: none !important;
+    }
+    .exam-btn-success:hover {
+      background: #059669 !important;
+      border-color: #059669 !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    .exam-btn-secondary {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: #E2E8F0 !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      transition: all 0.2s !important;
+    }
+    .exam-btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    .exam-btn-secondary:disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+    }
+
+    .exam-btn-ghost {
+      background: transparent !important;
+      color: #94A3B8 !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+      border: 1px solid transparent !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      transition: all 0.2s !important;
+    }
+    .exam-btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: white !important;
+    }
+
+    /* Fixed notification toast */
+    .notification {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      top: auto !important;
+      left: auto !important;
+      z-index: 99999 !important;
+      background: #0f172a !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: white !important;
+      border-radius: 8px !important;
+      padding: 12px 20px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      font-family: inherit !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      max-width: 380px !important;
+      animation: slideInUp 0.3s ease !important;
+    }
+    .notification.success { border-color: #10B981 !important; }
+    .notification.error { border-color: #EF4444 !important; }
+    .notification.info { border-color: #0A74F5 !important; }
+
+    @keyframes slideInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     @media(max-width: 768px) {
       .exam-main { flex-direction: column; }
       .exam-sidebar { width: 100%; height: 220px; border-left: none; border-top: 1px solid rgba(255,255,255,0.06); }
@@ -51,7 +172,7 @@
   <i class="fas fa-exclamation-triangle" style="font-size:64px;color:white;margin-bottom:20px"></i>
   <h1 style="font-size:28px;font-weight:800;color:white;margin-bottom:10px">WARNING!</h1>
   <p style="font-size:16px;color:rgba(255,255,255,0.9);max-width:500px;margin-bottom:30px">You have switched tabs or minimized the browser during the exam. This is strictly prohibited. If you do this again, your exam will be automatically submitted.</p>
-  <button onclick="dismissWarning()" class="btn-primary" style="background:white;color:#DC2626;border:none">I Understand, Return to Exam</button>
+  <button onclick="dismissWarning()" class="exam-btn-secondary" style="background:white !important;color:#DC2626 !important;border:none !important">I Understand, Return to Exam</button>
 </div>
 
 <header class="exam-header">
@@ -64,20 +185,20 @@
       <i class="fas fa-clock" style="color:#F87171"></i>
       <span id="timerDisplay" style="font-size:18px;font-weight:700;color:#F87171;font-variant-numeric:tabular-nums">--:--:--</span>
     </div>
-    <button onclick="submitExamPrompt()" class="btn-primary" style="background:#10B981;border-color:#059669"><i class="fas fa-paper-plane"></i> Submit</button>
+    <button onclick="submitExamPrompt()" class="exam-btn-success"><i class="fas fa-paper-plane"></i> Submit Test</button>
   </div>
 </header>
 
 <!-- PRE-EXAM INSTRUCTIONS & CHECKS VIEW -->
 <div id="instructionsContainer" style="display:none; flex-direction:column; align-items:center; justify-content:center; flex:1; overflow-y:auto; padding:32px 24px;">
-  <div class="glass-card" style="max-width:700px; width:100%; padding:32px; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+  <div style="max-width:700px; width:100%; padding:32px; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
     <h2 style="font-size:22px; font-weight:800; color:white; font-family:'Plus Jakarta Sans',sans-serif; margin-bottom:6px;">Exam Instructions & Readiness Checks</h2>
     <p style="font-size:13px; color:#94A3B8; margin-bottom:24px;">Please read the instructions and ensure all system checks pass before starting.</p>
     
     <!-- Rules section -->
     <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); padding:16px; border-radius:10px; margin-bottom:24px; font-size:13px; color:#CBD5E1; line-height:1.6;">
       <h4 style="font-weight:700; color:white; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="fas fa-info-circle" style="color:#0A74F5;"></i> Strict Exam Rules</h4>
-      <ul style="padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+      <ul style="padding-left:18px; display:flex; flex-direction:column; gap:6px; list-style-type: disc;">
         <li><strong>Time Limit:</strong> This exam is strictly time-bound. Once started, the timer cannot be paused.</li>
         <li><strong>Tab & Window Tracking:</strong> Do not switch tabs, open new windows, or minimize the browser. Doing so will trigger warnings and lead to automatic submission.</li>
         <li><strong>Single Account:</strong> You must not attempt this test from multiple accounts or copy the questions.</li>
@@ -109,7 +230,7 @@
             <div style="font-size:11px; color:#94A3B8;" id="fsStatusText">Required</div>
           </div>
         </div>
-        <button onclick="requestFullscreenAndVerify()" id="fsActionBtn" class="btn-sm" style="background:#F59E0B; color:white; border-radius:6px; font-size:11px; padding:4px 8px; border:none; cursor:pointer;">Enter</button>
+        <button onclick="requestFullscreenAndVerify()" id="fsActionBtn" style="background:#F59E0B; color:white; border-radius:6px; font-size:11px; padding:4px 10px; border:none; cursor:pointer; font-weight:600;">Enter</button>
       </div>
     </div>
     
@@ -120,7 +241,7 @@
     </label>
     
     <!-- Action Button -->
-    <button onclick="startExamActual()" id="startExamBtn" class="btn-primary" style="width:100%; padding:14px; justify-content:center; font-size:15px; font-weight:700; opacity:0.5; cursor:not-allowed;" disabled>
+    <button onclick="startExamActual()" id="startExamBtn" class="exam-btn-primary" style="width:100%; padding:14px; justify-content:center; font-size:15px; font-weight:700; opacity:0.5; cursor:not-allowed;" disabled>
       <i class="fas fa-play"></i> Start Mock Test
     </button>
   </div>
@@ -128,7 +249,10 @@
 
 <div class="exam-main" id="examContainer" style="display:none">
   <div class="exam-content">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <!-- Diagonal Watermark Overlay -->
+    <div id="examWatermark" style="position:absolute;top:0;bottom:0;left:0;right:0;pointer-events:none;z-index:0;opacity:0.03;overflow:hidden;"></div>
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;position:relative;z-index:1">
       <div style="display:flex;align-items:center;gap:12px">
         <h2 style="font-size:20px;font-weight:700">Question <span id="qNum">1</span></h2>
         <span id="catBadge" class="badge" style="background:rgba(52,211,153,0.1);color:#34D399;border:1px solid rgba(52,211,153,0.2)">Category 1 (+1, -0.25)</span>
@@ -136,19 +260,19 @@
       <div id="qSubject" style="font-size:14px;color:#94A3B8;font-weight:600">Physics</div>
     </div>
     
-    <div class="glass-card" style="padding:24px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);margin-bottom:32px">
+    <div style="padding:24px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);margin-bottom:32px;border-radius:12px;position:relative;z-index:1">
       <div id="qText" style="font-size:16px;line-height:1.6;margin-bottom:24px"></div>
       <div id="optionsContainer"></div>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:relative;z-index:1">
       <div style="display:flex;gap:12px">
-        <button onclick="markForReview()" class="btn-ghost" style="color:#A78BFA;border-color:rgba(139,92,246,0.3)"><i class="fas fa-bookmark"></i> Mark for Review</button>
-        <button onclick="clearResponse()" class="btn-ghost" style="color:#F87171;border-color:rgba(239,68,68,0.3)"><i class="fas fa-eraser"></i> Clear</button>
+        <button onclick="markForReview()" class="exam-btn-ghost" style="color:#A78BFA !important"><i class="fas fa-bookmark"></i> Mark for Review</button>
+        <button onclick="clearResponse()" class="exam-btn-ghost" style="color:#F87171 !important"><i class="fas fa-eraser"></i> Clear</button>
       </div>
       <div style="display:flex;gap:12px">
-        <button onclick="prevQuestion()" class="btn-secondary" id="btnPrev"><i class="fas fa-arrow-left"></i> Prev</button>
-        <button onclick="nextQuestion()" class="btn-primary" id="btnNext">Save & Next <i class="fas fa-arrow-right"></i></button>
+        <button onclick="prevQuestion()" class="exam-btn-secondary" id="btnPrev"><i class="fas fa-arrow-left"></i> Prev</button>
+        <button onclick="nextQuestion()" class="exam-btn-primary" id="btnNext">Save & Next <i class="fas fa-arrow-right"></i></button>
       </div>
     </div>
   </div>
@@ -169,7 +293,7 @@
 
 <!-- Results View -->
 <div id="resultsView" style="display:none;align-items:center;justify-content:center;height:100vh;padding:24px">
-  <div class="glass-card p-10 text-center" style="max-width:600px;width:100%">
+  <div style="max-width:600px;width:100%;padding:40px;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.5);text-align:center">
     <div style="font-size:64px;margin-bottom:16px">🏆</div>
     <h2 style="font-size:24px;font-weight:700;margin-bottom:8px">Exam Submitted Successfully!</h2>
     <p style="color:#94A3B8;margin-bottom:24px">Your responses have been evaluated by our WBJEE Grading Engine.</p>
@@ -177,7 +301,7 @@
     <div style="font-size:14px;color:#64748B;margin-bottom:8px">Your WBJEE Score</div>
     <div style="font-size:56px;font-weight:800;background:linear-gradient(135deg,#34D399,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:32px" id="finalScore">0</div>
     
-    <button onclick="window.location.href='mock-test.html'" class="btn-primary" style="padding:12px 32px">Return to Dashboard</button>
+    <button onclick="window.location.href='mock-test.html'" class="exam-btn-primary" style="padding:12px 32px">Return to Dashboard</button>
   </div>
 </div>
 
@@ -216,9 +340,6 @@
     const el = document.createElement('div');
     el.className = `notification ${type}`;
     el.innerHTML = `<i class="fas fa-${type==='error'?'exclamation-circle':'check-circle'}"></i> ${msg}`;
-    el.style = `position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--paper-soft);color:white;border:1px solid var(--rust);border-radius:8px;z-index:9999`;
-    if(type==='error') el.style.borderColor='#F87171';
-    if(type==='success') el.style.borderColor='#34D399';
     document.body.appendChild(el);
     setTimeout(()=>el.remove(), 3000);
   }
@@ -310,6 +431,28 @@
       return;
     }
     
+    // Set up dynamic watermark
+    const userName = auth.currentUser?.displayName || 'Student';
+    const userEmail = auth.currentUser?.email || '';
+    const watermarkText = `${userName} (${userEmail}) Sankalp Learning`;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.035)'; // faint white watermark on dark background
+    ctx.translate(160, 100);
+    ctx.rotate(-20 * Math.PI / 180);
+    ctx.textAlign = 'center';
+    ctx.fillText(watermarkText, 0, 0);
+    
+    const watermarkGrid = document.getElementById('examWatermark');
+    if (watermarkGrid) {
+      watermarkGrid.style.backgroundImage = `url(${canvas.toDataURL()})`;
+      watermarkGrid.style.backgroundRepeat = 'repeat';
+    }
+
     document.getElementById('instructionsContainer').style.display = 'none';
     document.getElementById('examContainer').style.display = 'flex';
     setupVisibilityListener();

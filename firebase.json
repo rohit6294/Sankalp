@@ -20,6 +20,28 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/admin",
+        "destination": "/admin/evaluators.html",
+        "type": 302
+      },
+      {
+        "source": "/admin/index.html",
+        "destination": "/admin/evaluators.html",
+        "type": 302
+      },
+      {
+        "source": "/admin/students.html",
+        "destination": "/admin/evaluators.html#studentList",
+        "type": 302
+      },
+      {
+        "source": "/admin/settings.html",
+        "destination": "/admin/evaluators.html#settings",
+        "type": 302
+      }
+    ],
     "headers": [
       {
         "source": "**/*.html",

@@ -418,7 +418,7 @@
     </div>
 
     <!-- Stat Cards -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:24px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:24px;">
       <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
         <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">Total Students</div>
         <div id="slStatTotal" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--ink);">0</div>
@@ -432,8 +432,12 @@
         <div id="slStat2026" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--rust);">0</div>
       </div>
       <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
-        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">WBJEE 2025</div>
-        <div id="slStat2025" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:var(--ink);">0</div>
+        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">WBJEE 2027</div>
+        <div id="slStat2027" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:#3B82F6;">0</div>
+      </div>
+      <div style="border:1px solid var(--ink); background:var(--paper); padding:18px; border-radius:4px;">
+        <div class="eyebrow" style="font-size:10px; color:var(--ink-mute);">WBJEE 2028</div>
+        <div id="slStat2028" style="font-family:var(--font-display); font-weight:800; font-size:28px; margin-top:6px; color:#8B5CF6;">0</div>
       </div>
     </div>
 
@@ -449,6 +453,7 @@
         <option value="2025">WBJEE 2025</option>
         <option value="2026">WBJEE 2026</option>
         <option value="2027">WBJEE 2027</option>
+        <option value="2028">WBJEE 2028</option>
       </select>
       <select id="slFilterGender" onchange="slApplyFilters()" style="padding:10px 14px; border:1px solid var(--ink); font-size:13px; background:var(--paper); color:var(--ink); outline:none; font-family:var(--font-sans);">
         <option value="">All Genders</option>
@@ -2973,11 +2978,13 @@ function slUpdateStats() {
   const total = slAllStudents.length;
   const completed = slAllStudents.filter(s => s.name && s.phone && s.gender).length;
   const y2026 = slAllStudents.filter(s => String(s.wbjeeYear) === '2026').length;
-  const y2025 = slAllStudents.filter(s => String(s.wbjeeYear) === '2025').length;
+  const y2027 = slAllStudents.filter(s => String(s.wbjeeYear) === '2027').length;
+  const y2028 = slAllStudents.filter(s => String(s.wbjeeYear) === '2028').length;
   document.getElementById('slStatTotal').textContent = total;
   document.getElementById('slStatCompleted').textContent = completed;
   document.getElementById('slStat2026').textContent = y2026;
-  document.getElementById('slStat2025').textContent = y2025;
+  document.getElementById('slStat2027').textContent = y2027;
+  document.getElementById('slStat2028').textContent = y2028;
 }
 
 function slApplyFilters() {

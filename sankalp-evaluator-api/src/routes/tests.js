@@ -1,6 +1,6 @@
 const express = require('express');
 const { db, admin } = require('../firebase');
-const { verifyToken, requirePermission } = require('../auth');
+const { verifyToken, requirePermission, getAdminProfile } = require('../auth');
 
 const router = express.Router();
 
@@ -140,9 +140,10 @@ router.get('/available', verifyToken, async (req, res) => {
       tests.push({ id: doc.id, ...doc.data() });
     });
     
-    // Determine access for students
+    // Determine access for students / admins
     const uid = req.user.uid;
-    const isContentAdmin = req.user.permissions?.content?.view;
+    const profile = await getAdminProfile(req.user);
+    const isContentAdmin = profile ? (profile.permissions?.content?.view === true) : false;
     
     // Fetch user's subscription and purchases in parallel
     const [subDoc, purchasesSnap] = await Promise.all([
@@ -203,7 +204,8 @@ router.get('/:id', verifyToken, async (req, res) => {
     const testData = testDoc.data();
     
     // Check Access (unless Admin)
-    const isContentAdmin = req.user.permissions?.content?.view;
+    const profile = await getAdminProfile(req.user);
+    const isContentAdmin = profile ? (profile.permissions?.content?.view === true) : false;
     if (!isContentAdmin) {
       if (testData.status === 'inactive' || testData.status === 'draft') {
         const subsSnap = await db.collection('mockTestSubmissions')
@@ -455,7 +457,8 @@ router.get('/submissions/:id', verifyToken, async (req, res) => {
     const subData = subDoc.data();
     
     // Verification
-    const isContentAdmin = req.user.permissions?.content?.view;
+    const profile = await getAdminProfile(req.user);
+    const isContentAdmin = profile ? (profile.permissions?.content?.view === true) : false;
     if (!isContentAdmin && subData.userId !== req.user.uid) {
       return res.status(403).json({ error: 'access_denied', message: 'You do not own this submission.' });
     }

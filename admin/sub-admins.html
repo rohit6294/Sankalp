@@ -166,12 +166,17 @@
 <script>
 const API_BASE = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
 const FALLBACK_SECTIONS = [
-  { key:'students', label:'Students', editable:true },
-  { key:'content', label:'Content', editable:true },
-  { key:'tests', label:'Tests', editable:true },
-  { key:'evaluators', label:'Evaluators', editable:true },
-  { key:'collegePredictor', label:'College Predictor', editable:true },
-  { key:'settings', label:'Settings', editable:true }
+  { key: 'dashboard', label: 'Dashboard', editable: false },
+  { key: 'students', label: 'Students', editable: true },
+  { key: 'content', label: 'Content', editable: true },
+  { key: 'tests', label: 'Tests', editable: true },
+  { key: 'evaluators', label: 'Evaluators', editable: true },
+  { key: 'collegePredictor', label: 'College Predictor', editable: true },
+  { key: 'bookings', label: 'Bookings', editable: true },
+  { key: 'announcements', label: 'Announcements', editable: true },
+  { key: 'payments', label: 'Payments', editable: false, extras: ['transactions'] },
+  { key: 'analytics', label: 'Analytics', editable: false },
+  { key: 'settings', label: 'Settings', editable: true }
 ];
 let currentUser = null;
 let currentToken = null;
@@ -251,7 +256,15 @@ function renderPermissionRows() {
       <div class="perm-row" data-perm-row="${section.key}">
         <div>
           <div class="perm-title">${escapeHtml(section.label)}</div>
-          <div class="perm-note">${section.key === 'payments' ? 'Payments page and optional transaction log.' : section.key === 'collegePredictor' ? 'View predictor results; edit controls data upload and paywall.' : 'Controls page visibility and write actions.'}</div>
+          <div class="perm-note">${
+            section.key === 'payments' ? 'Payments page and optional transaction log.' : 
+            section.key === 'collegePredictor' ? 'View predictor results; edit controls data upload and paywall.' : 
+            section.key === 'announcements' ? 'Broadcast announcement notifications to students.' :
+            section.key === 'bookings' ? 'Manage counseling session bookings and slots.' :
+            section.key === 'analytics' ? 'View stats and dashboard summaries.' :
+            section.key === 'dashboard' ? 'Access default dashboard analytics.' :
+            'Controls page visibility and write actions.'
+          }</div>
         </div>
         <label class="toggle-cell">
           <input type="checkbox" data-section="${section.key}" data-action="view" onchange="syncPermissionRow('${section.key}')">

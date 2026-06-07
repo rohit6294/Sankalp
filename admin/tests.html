@@ -319,6 +319,19 @@
     }
   }
 
+  async function updateTestStatus(id, status) {
+    try {
+      await apiJson(`/api/tests/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+      });
+      toast('Test status updated!', 'success');
+      loadTests();
+    } catch(e) {
+      toast(e.message, 'error');
+    }
+  }
+
   async function loadSeries() {
     try {
       const data = await apiJson('/api/tests/series');
@@ -400,6 +413,14 @@
           <div style="font-size:12px;color:var(--ink-soft);font-weight:600"><i class="fas fa-clock" style="color:var(--ink-mute);margin-right:4px"></i> ${t.durationMin}m</div>
           <div style="font-size:12px;color:var(--ink-soft);font-weight:600"><i class="fas fa-list-ol" style="color:var(--ink-mute);margin-right:4px"></i> ${t.totalQuestions} Qs</div>
           <div style="font-size:12px;color:var(--ink-soft);font-weight:600;grid-column:1/-1"><i class="fas fa-layer-group" style="color:var(--ink-mute);margin-right:4px"></i> Series: <span style="color:var(--rust)">${t.seriesTitle||'None'}</span></div>
+          <div style="font-size:12px;color:var(--ink-soft);font-weight:600;grid-column:1/-1;display:flex;align-items:center;gap:6px">
+            <i class="fas fa-toggle-on" style="color:var(--ink-mute)"></i> Status:
+            <select onchange="updateTestStatus('${t.id}', this.value)" style="background:var(--paper);border:1px solid var(--rule-strong);border-radius:4px;color:var(--ink);padding:2px 6px;font-size:12px;cursor:pointer;">
+              <option value="draft" ${t.status === 'draft' ? 'selected' : ''}>Draft</option>
+              <option value="active" ${t.status === 'active' || !t.status ? 'selected' : ''}>Active</option>
+              <option value="inactive" ${t.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+            </select>
+          </div>
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="openEditor('${t.id}', '${t.title.replace(/'/g, "\\'")}')" class="btn-rust" style="flex:1;justify-content:center"><i class="fas fa-pen" style="margin-right:6px"></i> Edit</button>

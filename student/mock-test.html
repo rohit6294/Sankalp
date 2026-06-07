@@ -222,31 +222,50 @@
             </div>
           `;
           
-          actionBtn = `
-            <div style="display:flex;flex-direction:column;gap:8px;width:100%">
-              <button onclick="window.location.href='exam-results.html?id=${sub.id}'" class="btn-rust" style="width:100%;justify-content:center;background:transparent;border-color:var(--rust);color:var(--rust);"><i class="fas fa-lightbulb" style="margin-right:6px"></i> View Solutions</button>
-              <button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-ghost" style="width:100%;justify-content:center;color:var(--ink-mute);border-color:transparent;padding:6px;"><i class="fas fa-redo" style="margin-right:6px"></i> Retake Test</button>
-            </div>
-          `;
+          if (t.status === 'inactive') {
+            actionBtn = `
+              <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+                <button onclick="window.location.href='exam-results.html?id=${sub.id}'" class="btn-rust" style="width:100%;justify-content:center;background:transparent;border-color:var(--rust);color:var(--rust);"><i class="fas fa-lightbulb" style="margin-right:6px"></i> View Solutions</button>
+                <button disabled class="btn-ghost" style="width:100%;justify-content:center;color:var(--ink-mute);border-color:transparent;padding:6px;cursor:not-allowed;"><i class="fas fa-redo" style="margin-right:6px"></i> Retakes Closed</button>
+              </div>
+            `;
+          } else {
+            actionBtn = `
+              <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+                <button onclick="window.location.href='exam-results.html?id=${sub.id}'" class="btn-rust" style="width:100%;justify-content:center;background:transparent;border-color:var(--rust);color:var(--rust);"><i class="fas fa-lightbulb" style="margin-right:6px"></i> View Solutions</button>
+                <button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-ghost" style="width:100%;justify-content:center;color:var(--ink-mute);border-color:transparent;padding:6px;"><i class="fas fa-redo" style="margin-right:6px"></i> Retake Test</button>
+              </div>
+            `;
+          }
         } else {
-          actionBtn = `<button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+          if (t.status === 'inactive') {
+            actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center;color:var(--ink-mute);border-color:var(--rule-strong);cursor:not-allowed;"><i class="fas fa-ban" style="margin-right:6px"></i> Exam Closed</button>`;
+          } else {
+            actionBtn = `<button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+          }
         }
-      } else if (t.seriesId) {
-        const pSeries = series.find(x => x.id === t.seriesId);
-        if (pSeries && !pSeries.allowed) {
-          actionBtn = `<button onclick="buySeries('${t.seriesId}', ${pSeries.price})" class="btn-ghost" style="width:100%;justify-content:center;color:var(--rust);border-color:rgba(217,119,6,0.2)"><i class="fas fa-lock" style="margin-right:6px"></i> Buy Series to Unlock</button>`;
-        } else if (!pSeries) {
-          actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center;color:#EF4444;cursor:not-allowed"><i class="fas fa-lock" style="margin-right:6px"></i> Series Unavailable</button>`;
+      } else {
+        if (t.status === 'inactive') {
+          actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center;color:var(--ink-mute);border-color:var(--rule-strong);cursor:not-allowed;"><i class="fas fa-ban" style="margin-right:6px"></i> Exam Closed</button>`;
+        } else if (t.seriesId) {
+          const pSeries = series.find(x => x.id === t.seriesId);
+          if (pSeries && !pSeries.allowed) {
+            actionBtn = `<button onclick="buySeries('${t.seriesId}', ${pSeries.price})" class="btn-ghost" style="width:100%;justify-content:center;color:var(--rust);border-color:rgba(217,119,6,0.2)"><i class="fas fa-lock" style="margin-right:6px"></i> Buy Series to Unlock</button>`;
+          } else if (!pSeries) {
+            actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center;color:#EF4444;cursor:not-allowed"><i class="fas fa-lock" style="margin-right:6px"></i> Series Unavailable</button>`;
+          }
+        } else if (t.accessType === 'paid') {
+          actionBtn = `<button onclick="buyTest('${t.id}', ${t.price})" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-lock" style="margin-right:6px"></i> Buy Test (₹${t.price})</button>`;
+        } else if (t.accessType === 'subscription') {
+          actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center"><i class="fas fa-lock" style="margin-right:6px"></i> Requires Pass</button>`;
         }
-      } else if (t.accessType === 'paid') {
-        actionBtn = `<button onclick="buyTest('${t.id}', ${t.price})" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-lock" style="margin-right:6px"></i> Buy Test (₹${t.price})</button>`;
-      } else if (t.accessType === 'subscription') {
-        actionBtn = `<button disabled class="btn-ghost" style="width:100%;justify-content:center"><i class="fas fa-lock" style="margin-right:6px"></i> Requires Pass</button>`;
       }
 
       let badge = '';
       if (completionBadge) {
         badge = completionBadge;
+      } else if (t.status === 'inactive') {
+        badge = '<span style="background:rgba(239,68,68,0.15);color:#F87171;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px"><i class="fas fa-lock" style="margin-right:4px"></i> CLOSED</span>';
       } else if(t.accessType==='free') {
         badge='<span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">FREE</span>';
       } else if(t.accessType==='subscription') {

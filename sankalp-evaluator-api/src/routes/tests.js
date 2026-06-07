@@ -162,16 +162,18 @@ router.get('/available', verifyToken, async (req, res) => {
       }
     });
     
-    const finalTests = tests.map(t => {
-      let allowed = false;
-      if (isContentAdmin) allowed = true;
-      else if (t.accessType === 'free') allowed = true;
-      else if (hasActiveSub) allowed = true; // global pass unlocks everything
-      else if (t.accessType === 'paid' && purchasedIds.has(t.id)) allowed = true;
-      else if (t.seriesId && purchasedSeriesIds.has(t.seriesId)) allowed = true;
-      
-      return { ...t, allowed };
-    });
+    const finalTests = tests
+      .filter(t => isContentAdmin || t.status !== 'draft')
+      .map(t => {
+        let allowed = false;
+        if (isContentAdmin) allowed = true;
+        else if (t.accessType === 'free') allowed = true;
+        else if (hasActiveSub) allowed = true; // global pass unlocks everything
+        else if (t.accessType === 'paid' && purchasedIds.has(t.id)) allowed = true;
+        else if (t.seriesId && purchasedSeriesIds.has(t.seriesId)) allowed = true;
+        
+        return { ...t, allowed };
+      });
     
     // Fetch available series
     const seriesSnap = await db.collection('mockTestSeries').orderBy('createdAt', 'desc').get();
@@ -202,7 +204,19 @@ router.get('/:id', verifyToken, async (req, res) => {
     
     // Check Access (unless Admin)
     const isContentAdmin = req.user.permissions?.content?.view;
-    if (!isContentAdmin && testData.accessType !== 'free') {
+    if (!isContentAdmin) {
+      if (testData.status === 'inactive' || testData.status === 'draft') {
+        const subsSnap = await db.collection('mockTestSubmissions')
+          .where('testId', '==', id)
+          .where('userId', '==', req.user.uid)
+          .limit(1)
+          .get();
+        if (subsSnap.empty) {
+          return res.status(403).json({ error: 'test_inactive', message: 'This test is currently inactive/closed. You cannot start a new attempt.' });
+        }
+      }
+      
+      if (testData.accessType !== 'free') {
       let allowed = false;
       // Global Pass check
       const subDoc = await db.collection('subscriptions').doc(req.user.uid).get();
@@ -224,6 +238,7 @@ router.get('/:id', verifyToken, async (req, res) => {
       
       if (!allowed) return res.status(403).json({ error: 'access_denied', message: 'You must purchase this test or its series to view it.' });
     }
+  }
     
     // Fetch Questions
     const qsSnap = await db.collection('mockTestQuestions').where('testId', '==', id).get();
@@ -251,6 +266,13 @@ router.post('/:id/submit', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { answers, tabViolations } = req.body; // answers format: { questionId: [selectedIndices...] }
+    
+    const testDoc = await db.collection('mockTests').doc(id).get();
+    if (!testDoc.exists) return res.status(404).json({ error: 'not_found' });
+    const testData = testDoc.data();
+    if (testData.status === 'inactive' || testData.status === 'draft') {
+      return res.status(403).json({ error: 'test_inactive', message: 'This test is closed. New submissions are not accepted.' });
+    }
     
     // Fetch all correct answers to grade
     const qsSnap = await db.collection('mockTestQuestions').where('testId', '==', id).get();
@@ -369,7 +391,6 @@ router.get('/my-submissions', verifyToken, async (req, res) => {
     const uid = req.user.uid;
     const snap = await db.collection('mockTestSubmissions')
       .where('userId', '==', uid)
-      .orderBy('submittedAt', 'desc')
       .get();
       
     const submissions = [];
@@ -386,6 +407,14 @@ router.get('/my-submissions', verifyToken, async (req, res) => {
       });
       if (data.testId) testIds.add(data.testId);
     });
+
+    // Sort in memory by submittedAt descending
+    submissions.sort((a, b) => {
+      const tA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const tB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return tB - tA;
+    });
+    
     
     // Fetch test metadata in parallel
     const testMap = {};
@@ -473,7 +502,6 @@ router.get('/:id/submissions', verifyToken, requirePermission('content', 'view')
     const { id } = req.params;
     const snap = await db.collection('mockTestSubmissions')
       .where('testId', '==', id)
-      .orderBy('submittedAt', 'desc')
       .get();
       
     const submissions = [];
@@ -513,9 +541,43 @@ router.get('/:id/submissions', verifyToken, requirePermission('content', 'view')
       studentEmail: usersMap[sub.userId]?.email || '—'
     }));
     
+    // Sort in memory by submittedAt descending
+    joined.sort((a, b) => {
+      const tA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const tB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return tB - tA;
+    });
+    
     res.json({ ok: true, submissions: joined });
   } catch (err) {
     res.status(500).json({ error: 'fetch_failed', message: err.message });
+  }
+});
+
+// PUT /api/tests/:id — update test details/status (Admin)
+router.put('/:id', verifyToken, requirePermission('content', 'edit'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, title, type, subject, durationMin, accessType, price, seriesId, chapter } = req.body;
+    
+    const testDoc = await db.collection('mockTests').doc(id).get();
+    if (!testDoc.exists) return res.status(404).json({ error: 'not_found' });
+    
+    const updates = {};
+    if (status !== undefined) updates.status = status;
+    if (title !== undefined) updates.title = title;
+    if (type !== undefined) updates.type = type;
+    if (subject !== undefined) updates.subject = subject;
+    if (durationMin !== undefined) updates.durationMin = Number(durationMin);
+    if (accessType !== undefined) updates.accessType = accessType;
+    if (price !== undefined) updates.price = Number(price);
+    if (seriesId !== undefined) updates.seriesId = seriesId;
+    if (chapter !== undefined) updates.chapter = chapter;
+    
+    await db.collection('mockTests').doc(id).update(updates);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'update_failed', message: err.message });
   }
 });
 

@@ -135,7 +135,7 @@
   </div>
   
   <!-- Diagonal Watermark Grid Overlay -->
-  <div id="viewerWatermark" style="position:fixed;top:60px;bottom:0;left:0;right:0;pointer-events:none;z-index:50;opacity:0.1;overflow:hidden;"></div>
+  <div id="viewerWatermark" style="position:fixed;top:60px;bottom:0;left:0;right:0;pointer-events:none;z-index:50;opacity:1;overflow:hidden;"></div>
   
   <!-- Focus Lost Overlay -->
   <div id="focusLostOverlay" onclick="restoreViewerFocus()" style="display:none;position:absolute;top:60px;bottom:0;left:0;right:0;background:rgba(2, 6, 23, 0.75);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;cursor:pointer">
@@ -521,10 +521,10 @@
     canvas.width = 320;
     canvas.height = 200;
     const ctx = canvas.getContext('2d');
-    ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = 'rgba(79, 70, 229, 0.08)'; // var(--rust) with opacity
+    ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = 'rgba(201, 78, 31, 0.18)'; // brand rust (#c94e1f) with 18% opacity
     ctx.translate(160, 100);
-    ctx.rotate(-20 * Math.PI / 180);
+    ctx.rotate(-22 * Math.PI / 180);
     ctx.textAlign = 'center';
     ctx.fillText(watermarkText, 0, 0);
     

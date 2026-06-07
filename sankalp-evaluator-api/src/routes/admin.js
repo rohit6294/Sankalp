@@ -597,41 +597,126 @@ router.put('/settings/email_automations', requirePermission('settings', 'edit'),
   }
 });
 
+// Fetch metadata for announcements filter dropdowns (years and mock test series)
+router.get('/announcement-meta', requirePermission('announcements', 'view'), async (req, res) => {
+  try {
+    // 1. Fetch all mock test series
+    const seriesSnap = await db.collection('mockTestSeries').orderBy('title', 'asc').get();
+    const series = [];
+    seriesSnap.forEach(doc => {
+      const data = doc.data();
+      series.push({ id: doc.id, title: data.title || doc.id });
+    });
+
+    // 2. Fetch all users to collect unique wbjeeYear
+    const usersSnap = await db.collection('users').get();
+    const yearsSet = new Set();
+    usersSnap.forEach(doc => {
+      const data = doc.data();
+      if (data.wbjeeYear) {
+        const yr = String(data.wbjeeYear).trim();
+        if (yr && yr !== '—') {
+          yearsSet.add(yr);
+        }
+      }
+    });
+    const years = Array.from(yearsSet).sort();
+
+    res.json({ ok: true, series, years });
+  } catch (err) {
+    res.status(500).json({ error: 'meta_failed', message: err.message });
+  }
+});
+
 // Broadcast announcement via email
 router.post('/broadcast-announcement', requirePermission('announcements', 'edit'), async (req, res) => {
-  const { title, message, target } = req.body || {};
+  const { title, message, targetType, targetValue } = req.body || {};
   if (!title || !message) return res.status(400).json({ error: 'missing_fields' });
 
   try {
-    // Determine audience
-    let query = db.collection('users');
-    if (target && target !== 'All Students') {
-      query = query.where('wbjeeYear', '==', target);
-    }
+    let emails = [];
     
-    const snap = await query.get();
-    const emails = [];
-    snap.forEach(doc => {
-      const data = doc.data();
-      if (data.email) emails.push(data.email);
-    });
+    if (targetType === 'all') {
+      const snap = await db.collection('users').get();
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data.email) emails.push(data.email.trim());
+      });
+    } else if (targetType === 'year') {
+      if (!targetValue) return res.status(400).json({ error: 'missing_target_value', message: 'Target year is required.' });
+      const snap = await db.collection('users').where('wbjeeYear', '==', String(targetValue).trim()).get();
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data.email) emails.push(data.email.trim());
+      });
+    } else if (targetType === 'series') {
+      if (!targetValue) return res.status(400).json({ error: 'missing_target_value', message: 'Mock Test Series selection is required.' });
+      const snap = await db.collection('purchases')
+        .where('product', '==', 'mock_test_series')
+        .where('productId', '==', String(targetValue).trim())
+        .where('status', '==', 'success')
+        .get();
+      
+      const userIds = new Set();
+      snap.forEach(doc => {
+        const pData = doc.data();
+        if (pData && pData.userId) userIds.add(pData.userId);
+      });
+
+      if (userIds.size > 0) {
+        const usersSnap = await db.collection('users').get();
+        usersSnap.forEach(doc => {
+          if (userIds.has(doc.id)) {
+            const data = doc.data();
+            if (data.email) emails.push(data.email.trim());
+          }
+        });
+      }
+    } else {
+      return res.status(400).json({ error: 'invalid_target_type', message: 'Invalid target type specified.' });
+    }
+
+    // Deduplicate emails
+    emails = Array.from(new Set(emails)).filter(Boolean);
 
     if (emails.length === 0) {
-      return res.json({ ok: true, sentCount: 0 });
+      return res.json({ ok: true, recipientCount: 0 });
     }
 
-    // Send emails asynchronously to prevent blocking the UI
-    for (let i = 0; i < emails.length; i += 50) {
-      const batch = emails.slice(i, i + 50);
-      Promise.all(batch.map(email => sendEmail({
-        to: email,
-        subject: `Announcement: ${title} - Sankalp Learning`,
-        text: `Hello,\n\nA new announcement has been posted on Sankalp Learning:\n\n${title}\n\n${message}\n\nPlease log in to the portal for more details.\n\nBest regards,\nSankalp Learning Team`
-      }))).catch(console.error);
-      sentCount += batch.length;
-    }
+    // Trigger sending process in the background and return immediately to prevent client timeouts
+    let sentCount = 0;
+    
+    const sendBatch = async () => {
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 8px;">
+          <h2 style="color: #C94E1F; margin-top: 0;">${title}</h2>
+          <div style="white-space: pre-wrap; font-size: 14px;">${message}</div>
+          <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 20px 0;">
+          <p style="font-size: 12px; color: #777777; margin-bottom: 0;">You received this email because you are a registered student at Sankalp Learning.<br><strong>Sankalp Learning Team</strong></p>
+        </div>
+      `;
 
-    res.json({ ok: true, sentCount });
+      for (const email of emails) {
+        try {
+          const resEmail = await sendEmail({
+            to: email,
+            subject: title,
+            text: message,
+            html: emailHtml
+          });
+          if (resEmail.success) {
+            sentCount++;
+          }
+        } catch (err) {
+          console.error(`Failed to send broadcast email to ${email}:`, err);
+        }
+      }
+      console.log(`Broadcast completed. Sent ${sentCount}/${emails.length} successfully.`);
+    };
+
+    sendBatch();
+
+    res.json({ ok: true, message: `Broadcast started for ${emails.length} students.`, recipientCount: emails.length });
   } catch (e) {
     console.error('Broadcast failed:', e);
     res.status(500).json({ error: 'broadcast_failed', message: e.message });

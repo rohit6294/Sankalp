@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/admin-guard.js"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; }
+    .toast.show { opacity: 1; }
+    .radio-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .radio-opt { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 14px; border: 1px solid var(--rule); transition: all 0.2s; font-size: 13px; font-family: var(--font-sans); }
+    .radio-opt:hover { border-color: var(--ink); background: var(--paper-soft); }
+    .form-grid { display: grid; gap: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar sidebar-ink" id="adminSidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">Admin Panel</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
+    <a href="evaluators.html" class="sidebar-link"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> WBJEE Tests</a>
+    <a href="announcements.html" class="sidebar-link active"><i class="fas fa-bullhorn" style="width:18px"></i> Announcements</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
+    <a href="evaluators.html#studentList" class="sidebar-link" id="sidebarStudentListBtn"><i class="fas fa-users" style="width:18px"></i> Student List</a>
+    <a href="evaluators.html#collegePredictor" class="sidebar-link" id="sidebarCollegePredictorBtn"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
+    <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:28px 32px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="display-lg">Announcements & Broadcasts</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Draft and send rich email announcements to specific segments of students.</p>
+    </div>
+  </div>
+
+  <div class="max-w-3xl" style="border:1px solid var(--ink); background:var(--paper-soft); padding:32px; border-radius: 8px;">
+    <form id="broadcastForm" onsubmit="sendBroadcast(event)">
+      <div class="form-grid">
+        
+        <div>
+          <label class="input-label">Announcement Title / Subject *</label>
+          <input class="input-field" type="text" id="subject" placeholder="e.g. 📢 Important Updates for WBJEE Mock Test tomorrow!" required>
+        </div>
+
+        <div>
+          <label class="input-label">Audience Category *</label>
+          <select class="input-field" id="targetType" onchange="onTargetTypeChange()" required>
+            <option value="all">All Registered Students</option>
+            <option value="year">Filter by Target WBJEE Year</option>
+            <option value="series">Filter by Mock Test Series Purchase</option>
+          </select>
+        </div>
+
+        <!-- Target Year Dropdown Container -->
+        <div id="yearSelectContainer" style="display: none;">
+          <label class="input-label">Select WBJEE Year *</label>
+          <select class="input-field" id="targetYear">
+            <option value="">-- Select Year --</option>
+          </select>
+        </div>
+
+        <!-- Test Series Dropdown Container -->
+        <div id="seriesSelectContainer" style="display: none;">
+          <label class="input-label">Select Mock Test Series *</label>
+          <select class="input-field" id="targetSeries">
+            <option value="">-- Select Mock Test Series --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="input-label">Message Content * (Emojis and symbols supported)</label>
+          <textarea class="input-field" id="message" rows="12" placeholder="Write your announcement text here..." required></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:16px;">
+          <button type="submit" class="btn-rust" id="submitBtn">
+            <i class="fas fa-paper-plane" style="margin-right:8px"></i> Send Broadcast
+          </button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</main>
+
+<!-- Custom Toast Notifications -->
+<div class="toast" id="toast"></div>
+
+<script>
+let metaCache = null;
+
+// Initialize toast notifications
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#EF4444' : 'var(--ink)';
+  t.style.color = isError ? '#FFFFFF' : 'var(--paper)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// Sidebar toggle
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+// Sign out
+function logout() {
+  auth.signOut().then(() => {
+    window.location.href = '../login.html';
+  });
+}
+
+// Handle Target Filter Changes
+function onTargetTypeChange() {
+  const type = document.getElementById('targetType').value;
+  const yearContainer = document.getElementById('yearSelectContainer');
+  const seriesContainer = document.getElementById('seriesSelectContainer');
+  
+  const targetYear = document.getElementById('targetYear');
+  const targetSeries = document.getElementById('targetSeries');
+
+  // Hide both initially
+  yearContainer.style.display = 'none';
+  seriesContainer.style.display = 'none';
+  targetYear.required = false;
+  targetSeries.required = false;
+
+  if (type === 'year') {
+    yearContainer.style.display = 'block';
+    targetYear.required = true;
+  } else if (type === 'series') {
+    seriesContainer.style.display = 'block';
+    targetSeries.required = true;
+  }
+}
+
+// Load metadata lists from API
+async function loadMetadata() {
+  try {
+    const data = await apiJson('/api/admin/announcement-meta');
+    metaCache = data;
+    
+    // Populate Years
+    const yearSelect = document.getElementById('targetYear');
+    yearSelect.innerHTML = '<option value="">-- Select Year --</option>';
+    if (data.years && data.years.length > 0) {
+      data.years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = `WBJEE ${y}`;
+        yearSelect.appendChild(opt);
+      });
+    }
+
+    // Populate Mock Test Series
+    const seriesSelect = document.getElementById('targetSeries');
+    seriesSelect.innerHTML = '<option value="">-- Select Mock Test Series --</option>';
+    if (data.series && data.series.length > 0) {
+      data.series.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.title;
+        seriesSelect.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.error('Failed to load filter metadata:', err);
+    showToast('Failed to load audience filter categories', true);
+  }
+}
+
+// Handle Form Submission
+async function sendBroadcast(event) {
+  event.preventDefault();
+  
+  const title = document.getElementById('subject').value.trim();
+  const message = document.getElementById('message').value.trim();
+  const targetType = document.getElementById('targetType').value;
+  
+  let targetValue = '';
+  if (targetType === 'year') {
+    targetValue = document.getElementById('targetYear').value;
+  } else if (targetType === 'series') {
+    targetValue = document.getElementById('targetSeries').value;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  const oldText = btn.innerHTML;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px"></i> Initiating...';
+
+  try {
+    const res = await apiJson('/api/admin/broadcast-announcement', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        message,
+        targetType,
+        targetValue
+      })
+    });
+
+    if (res.ok) {
+      showToast(`Broadcast successfully initiated to ${res.recipientCount || 0} students!`);
+      document.getElementById('broadcastForm').reset();
+      onTargetTypeChange(); // Reset visibility of filters
+    } else {
+      showToast('Error: ' + (res.message || 'Failed to send broadcast'), true);
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oldText;
+  }
+}
+
+// Check Authentication Status and Initialize
+auth.onAuthStateChanged(async user => {
+  if (!user) { 
+    window.location.href = '../login.html'; 
+    return; 
+  }
+  await loadMetadata();
+});
+</script>
+</body>
+</html>

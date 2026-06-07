@@ -108,7 +108,7 @@ router.post('/:id/questions', verifyToken, requirePermission('content', 'edit'),
     });
     
     // Add new questions
-    questions.forEach(q => {
+    questions.forEach((q, index) => {
       const qRef = db.collection('mockTestQuestions').doc();
       batch.set(qRef, {
         testId: id,
@@ -118,7 +118,8 @@ router.post('/:id/questions', verifyToken, requirePermission('content', 'edit'),
         correctOptions: q.correctOptions || [], // Array of indices like [0, 2]
         category: Number(q.category) || 1, // 1, 2, or 3
         subject: q.subject || testDoc.data().subject,
-        explanation: q.explanation || null
+        explanation: q.explanation || null,
+        order: index
       });
     });
     
@@ -236,6 +237,9 @@ router.get('/:id', verifyToken, async (req, res) => {
       questions.push({ id: doc.id, ...q });
     });
     
+    // Sort questions by order field in memory
+    questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
     res.json({ ok: true, test: { id: testDoc.id, ...testData }, questions });
   } catch (err) {
     res.status(500).json({ error: 'fetch_failed', message: err.message });
@@ -252,6 +256,10 @@ router.post('/:id/submit', verifyToken, async (req, res) => {
     const qsSnap = await db.collection('mockTestQuestions').where('testId', '==', id).get();
     let totalScore = 0;
     let scoreCat1 = 0, scoreCat2 = 0, scoreCat3 = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let partialCount = 0;
+    let unattemptedCount = 0;
     
     const detailedResults = {};
     
@@ -263,48 +271,62 @@ router.post('/:id/submit', verifyToken, async (req, res) => {
       const studentSelected = answers[qId] || []; // Array of indices
       
       let marksAwarded = 0;
+      let isCorrect = false;
+      let isPartial = false;
+      let isIncorrect = false;
+      let isUnattempted = false;
       
       // Calculate WBJEE Marking Scheme
-      if (cat === 1) {
-        // Cat 1: Single correct (+1, -0.25)
-        if (studentSelected.length === 0) {
-          marksAwarded = 0;
-        } else if (studentSelected.length === 1 && studentSelected[0] === correctIndices[0]) {
-          marksAwarded = 1;
-        } else {
-          marksAwarded = -0.25;
-        }
-        scoreCat1 += marksAwarded;
-      } 
-      else if (cat === 2) {
-        // Cat 2: Single correct (+2, -0.5)
-        if (studentSelected.length === 0) {
-          marksAwarded = 0;
-        } else if (studentSelected.length === 1 && studentSelected[0] === correctIndices[0]) {
-          marksAwarded = 2;
-        } else {
-          marksAwarded = -0.5;
-        }
-        scoreCat2 += marksAwarded;
-      } 
-      else if (cat === 3) {
-        // Cat 3: Multiple correct (+2, partial marking (y/x)*2, NO negative)
-        if (studentSelected.length === 0) {
-          marksAwarded = 0;
-        } else {
-          // Check if ANY incorrect option is selected
+      if (studentSelected.length === 0) {
+        isUnattempted = true;
+        marksAwarded = 0;
+      } else {
+        if (cat === 1) {
+          // Cat 1: Single correct (+1, -0.25)
+          if (studentSelected.length === 1 && studentSelected[0] === correctIndices[0]) {
+            marksAwarded = 1;
+            isCorrect = true;
+          } else {
+            marksAwarded = -0.25;
+            isIncorrect = true;
+          }
+          scoreCat1 += marksAwarded;
+        } 
+        else if (cat === 2) {
+          // Cat 2: Single correct (+2, -0.5)
+          if (studentSelected.length === 1 && studentSelected[0] === correctIndices[0]) {
+            marksAwarded = 2;
+            isCorrect = true;
+          } else {
+            marksAwarded = -0.5;
+            isIncorrect = true;
+          }
+          scoreCat2 += marksAwarded;
+        } 
+        else if (cat === 3) {
+          // Cat 3: Multiple correct (+2, partial marking (y/x)*2, NO negative)
           const hasIncorrectSelection = studentSelected.some(sel => !correctIndices.includes(sel));
           if (hasIncorrectSelection) {
             marksAwarded = 0;
+            isIncorrect = true;
           } else {
-            // Partial or full marking
             const x = correctIndices.length; // Total correct options
-            const y = studentSelected.length; // Number of correct options selected (since we verified no incorrect)
+            const y = studentSelected.length; // Number of correct options selected
             marksAwarded = (y / x) * 2;
+            if (y === x) {
+              isCorrect = true;
+            } else {
+              isPartial = true;
+            }
           }
+          scoreCat3 += marksAwarded;
         }
-        scoreCat3 += marksAwarded;
       }
+      
+      if (isCorrect) correctCount++;
+      else if (isPartial) partialCount++;
+      else if (isIncorrect) incorrectCount++;
+      else if (isUnattempted) unattemptedCount++;
       
       totalScore += marksAwarded;
       detailedResults[qId] = {
@@ -325,7 +347,11 @@ router.post('/:id/submit', verifyToken, async (req, res) => {
         totalScore,
         scoreCat1,
         scoreCat2,
-        scoreCat3
+        scoreCat3,
+        correctCount,
+        incorrectCount,
+        partialCount,
+        unattemptedCount
       },
       detailedResults, // Keep full granularity
       submittedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -416,6 +442,9 @@ router.get('/submissions/:id', verifyToken, async (req, res) => {
       questions.push({ id: doc.id, ...doc.data() });
     });
     
+    // Sort questions by order field in memory
+    questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
     res.json({
       ok: true,
       submission: {
@@ -433,6 +462,58 @@ router.get('/submissions/:id', verifyToken, async (req, res) => {
       },
       questions
     });
+  } catch (err) {
+    res.status(500).json({ error: 'fetch_failed', message: err.message });
+  }
+});
+
+// GET /api/tests/:id/submissions — fetch all submissions for a test (Admin only)
+router.get('/:id/submissions', verifyToken, requirePermission('content', 'view'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const snap = await db.collection('mockTestSubmissions')
+      .where('testId', '==', id)
+      .orderBy('submittedAt', 'desc')
+      .get();
+      
+    const submissions = [];
+    const userIds = new Set();
+    
+    snap.forEach(doc => {
+      const data = doc.data();
+      submissions.push({
+        id: doc.id,
+        userId: data.userId,
+        submittedAt: data.submittedAt ? (data.submittedAt.toDate ? data.submittedAt.toDate() : data.submittedAt) : null,
+        tabViolations: data.tabViolations || 0,
+        scoreDetails: data.scoreDetails || {}
+      });
+      if (data.userId) userIds.add(data.userId);
+    });
+    
+    const usersMap = {};
+    if (userIds.size > 0) {
+      const userDocs = await Promise.all(
+        Array.from(userIds).map(uid => db.collection('users').doc(uid).get())
+      );
+      userDocs.forEach(uDoc => {
+        if (uDoc.exists) {
+          const uData = uDoc.data();
+          usersMap[uDoc.id] = {
+            name: uData.name || uData.displayName || `${uData.firstName || ''} ${uData.lastName || ''}`.trim() || 'Unknown Student',
+            email: uData.email || '—'
+          };
+        }
+      });
+    }
+    
+    const joined = submissions.map(sub => ({
+      ...sub,
+      studentName: usersMap[sub.userId]?.name || 'Unknown Student',
+      studentEmail: usersMap[sub.userId]?.email || '—'
+    }));
+    
+    res.json({ ok: true, submissions: joined });
   } catch (err) {
     res.status(500).json({ error: 'fetch_failed', message: err.message });
   }

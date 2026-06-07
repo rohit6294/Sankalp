@@ -180,10 +180,54 @@
       let seriesBadge = t.seriesId ? `<span style="background:rgba(139,92,246,0.15);color:#A78BFA;font-size:9px;font-weight:700;padding:2px 6px;border-radius:100px;margin-left:8px"><i class="fas fa-layer-group"></i> IN SERIES</span>` : '';
 
       let actionBtn = '';
+      let resultsBlock = '';
+      let completionBadge = '';
+      
+      const sub = completedSubmissions.find(s => s.testId === t.id);
+
       if(t.allowed) {
-        const hasTaken = completedSubmissions.some(sub => sub.testId === t.id);
-        if (hasTaken) {
-          actionBtn = `<button onclick="confirmRetakeOrResults('${t.id}')" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
+        if (sub) {
+          completionBadge = '<span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px"><i class="fas fa-check-circle"></i> COMPLETED</span>';
+          
+          const totalPossibleScore = (t.cat1Qs || 0) * 1 + (t.cat2Qs || 0) * 2 + (t.cat3Qs || 0) * 2;
+          const score = (sub.scoreDetails?.totalScore || 0).toFixed(2);
+          const cCount = sub.scoreDetails?.correctCount !== undefined ? sub.scoreDetails.correctCount : null;
+          const iCount = sub.scoreDetails?.incorrectCount !== undefined ? sub.scoreDetails.incorrectCount : null;
+          const pCount = sub.scoreDetails?.partialCount !== undefined ? sub.scoreDetails.partialCount : null;
+          const uCount = sub.scoreDetails?.unattemptedCount !== undefined ? sub.scoreDetails.unattemptedCount : null;
+          
+          let breakdownText = '';
+          if (cCount !== null) {
+            breakdownText = `
+              <div style="font-size:11px;color:var(--ink-mute);display:flex;justify-content:space-between;margin-top:6px;border-top:1px solid rgba(255,255,255,0.04);padding-top:6px;flex-wrap:wrap;gap:6px">
+                <span>Correct: <strong style="color:var(--forest)">${cCount}</strong></span>
+                <span>Incorrect: <strong style="color:#EF4444">${iCount}</strong></span>
+                ${pCount > 0 ? `<span>Partial: <strong style="color:#F59E0B">${pCount}</strong></span>` : ''}
+                <span>Unattempted: <strong>${uCount}</strong></span>
+              </div>`;
+          }
+          
+          let violTag = sub.tabViolations > 0 
+            ? `<div style="font-size:11px;color:#EF4444;margin-top:4px;font-weight:600;"><i class="fas fa-exclamation-triangle"></i> ${sub.tabViolations} Tab switches detected</div>` 
+            : '';
+            
+          resultsBlock = `
+            <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.12);padding:12px;border-radius:8px;margin-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:var(--ink-soft);font-weight:600;"><i class="fas fa-trophy" style="color:#F59E0B;margin-right:4px"></i> Score:</span>
+                <span style="font-size:15px;font-weight:800;color:#10B981">${score} <span style="font-size:11px;color:var(--ink-mute);font-weight:500">/ ${totalPossibleScore}</span></span>
+              </div>
+              ${breakdownText}
+              ${violTag}
+            </div>
+          `;
+          
+          actionBtn = `
+            <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+              <button onclick="window.location.href='exam-results.html?id=${sub.id}'" class="btn-rust" style="width:100%;justify-content:center;background:transparent;border-color:var(--rust);color:var(--rust);"><i class="fas fa-lightbulb" style="margin-right:6px"></i> View Solutions</button>
+              <button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-ghost" style="width:100%;justify-content:center;color:var(--ink-mute);border-color:transparent;padding:6px;"><i class="fas fa-redo" style="margin-right:6px"></i> Retake Test</button>
+            </div>
+          `;
         } else {
           actionBtn = `<button onclick="window.location.href='exam-viewer.html?id=${t.id}'" class="btn-rust" style="width:100%;justify-content:center"><i class="fas fa-play" style="margin-right:6px"></i> Start Test</button>`;
         }
@@ -201,14 +245,20 @@
       }
 
       let badge = '';
-      if(t.accessType==='free') badge='<span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">FREE</span>';
-      else if(t.accessType==='subscription') badge='<span style="background:rgba(139,92,246,0.15);color:#A78BFA;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">WBJEE PASS</span>';
+      if (completionBadge) {
+        badge = completionBadge;
+      } else if(t.accessType==='free') {
+        badge='<span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">FREE</span>';
+      } else if(t.accessType==='subscription') {
+        badge='<span style="background:rgba(139,92,246,0.15);color:#A78BFA;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px">WBJEE PASS</span>';
+      }
+      
       return `
       <div class="q-card" style="padding:24px;border:1px solid var(--rule-strong);box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
             <div style="font-weight:700;font-size:15px;color:var(--ink)">${t.title}</div>
-            <div style="font-size:11px;color:var(--ink-mute);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em">${t.type || 'Test'} · ${t.subject}</div>
+            <div style="font-size:11px;color:var(--ink-mute);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em">${t.type || 'Test'} · ${t.subject} ${seriesBadge}</div>
           </div>
           ${badge}
         </div>
@@ -219,6 +269,7 @@
           <div style="font-size:12px;color:var(--ink-soft);font-weight:600;grid-column:1/-1"><i class="fas fa-layer-group" style="color:var(--ink-mute);margin-right:4px"></i> Series: <span style="color:var(--rust)">${t.seriesTitle||'None'}</span></div>
         </div>
 
+        ${resultsBlock}
         ${actionBtn}
       </div>`;
     }).join('');

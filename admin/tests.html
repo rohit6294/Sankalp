@@ -90,9 +90,14 @@
 <!-- Editor View (Hidden initially) -->
 <main class="main-content" id="editorView" style="padding:28px 32px;display:none;">
   <button onclick="closeEditor()" class="btn-ghost" style="margin-bottom:24px"><i class="fas fa-arrow-left" style="margin-right:6px"></i> Back to Tests</button>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;border-bottom:1px solid var(--rule-strong);padding-bottom:16px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;border-bottom:1px solid var(--rule-strong);padding-bottom:16px;flex-wrap:wrap;gap:12px">
     <h1 class="display-md" id="editorTitle">Editing Test</h1>
-    <button onclick="saveQuestions()" class="btn-rust" id="saveQuestionsBtn"><i class="fas fa-save" style="margin-right:6px"></i> Save All Questions</button>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <input type="file" id="jsonImportInput" accept=".json" onchange="handleJsonImport(event)" style="display:none;">
+      <button onclick="document.getElementById('jsonImportInput').click()" class="btn-ghost" style="border-color:var(--rule-strong);"><i class="fas fa-file-import" style="margin-right:6px"></i> Import JSON</button>
+      <button onclick="downloadSampleJson()" class="btn-ghost" style="border-color:var(--rule-strong);" title="Download template JSON for questions"><i class="fas fa-file-download" style="margin-right:6px"></i> Sample JSON</button>
+      <button onclick="saveQuestions()" class="btn-rust" id="saveQuestionsBtn"><i class="fas fa-save" style="margin-right:6px"></i> Save All Questions</button>
+    </div>
   </div>
   
   <div style="background:var(--paper-deep);border:1px solid var(--rule-strong);padding:20px;border-radius:12px;margin-bottom:32px;font-size:13px;color:var(--ink-soft);">
@@ -214,6 +219,33 @@
     
     <div id="seriesList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
       <div style="color:var(--ink-mute);font-size:13px;text-align:center;padding:20px"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Submissions Log Modal -->
+<div id="submissionsModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:900px; display:flex; flex-direction:column;">
+    <button onclick="closeSubmissionsModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ink-mute);cursor:pointer;font-size:20px">&times;</button>
+    <h2 class="display-md" id="submissionsModalTitle" style="margin-bottom:24px">Submissions Log</h2>
+    
+    <div style="flex:1; overflow-y:auto; max-height:60vh;">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Submitted At</th>
+            <th>Score</th>
+            <th>Tab Switches</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="submissionsTableBody">
+          <tr>
+            <td colspan="5" style="text-align:center;padding:20px;color:var(--ink-mute)"><i class="fas fa-spinner fa-spin"></i> Loading submissions...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -370,7 +402,8 @@
           <div style="font-size:12px;color:var(--ink-soft);font-weight:600;grid-column:1/-1"><i class="fas fa-layer-group" style="color:var(--ink-mute);margin-right:4px"></i> Series: <span style="color:var(--rust)">${t.seriesTitle||'None'}</span></div>
         </div>
         <div style="display:flex;gap:8px">
-          <button onclick="openEditor('${t.id}', '${t.title}')" class="btn-rust" style="flex:1;justify-content:center"><i class="fas fa-pen" style="margin-right:6px"></i> Edit</button>
+          <button onclick="openEditor('${t.id}', '${t.title.replace(/'/g, "\\'")}')" class="btn-rust" style="flex:1;justify-content:center"><i class="fas fa-pen" style="margin-right:6px"></i> Edit</button>
+          <button onclick="openSubmissionsLog('${t.id}', '${t.title.replace(/'/g, "\\'")}')" class="btn-ghost" style="flex:1;justify-content:center;border-color:var(--rule-strong);"><i class="fas fa-history" style="margin-right:6px"></i> Submissions</button>
         </div>
       </div>`;
     }).join('');
@@ -492,6 +525,8 @@
           <textarea class="q-input" placeholder="Question Text..." onchange="updateQText(${i}, this.value)">${q.text}</textarea>
           <div style="margin-top:12px;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px">Options & Correct Answer</div>
           ${optHtml}
+          <div style="margin-top:12px;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px">Explanation / Solution Details</div>
+          <textarea class="q-input" placeholder="Explanation text..." onchange="updateQExplanation(${i}, this.value)" style="min-height:60px">${q.explanation || ''}</textarea>
         </div>
       `;
     });
@@ -499,6 +534,7 @@
   }
 
   window.updateQText = (i, val) => { questionsEditor[i].text = val; };
+  window.updateQExplanation = (i, val) => { questionsEditor[i].explanation = val; };
   window.updateOpt = (i, oIdx, val) => { questionsEditor[i].options[oIdx] = val; };
   window.updateAns = (i, oIdx, isChecked) => {
     if(questionsEditor[i].category === 3) {
@@ -525,6 +561,190 @@
       toast(e.message, 'error');
     } finally {
       btn.innerHTML = '<i class="fas fa-save"></i> Save All Questions'; btn.disabled=false;
+    }
+  }
+
+  async function handleJsonImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!Array.isArray(imported)) {
+          throw new Error("JSON root must be an array of questions.");
+        }
+        
+        // Validate each question
+        const validated = [];
+        for (let idx = 0; idx < imported.length; idx++) {
+          const q = imported[idx];
+          if (!q.text || typeof q.text !== 'string') {
+            throw new Error(`Question ${idx + 1} is missing a valid 'text' string.`);
+          }
+          const cat = Number(q.category);
+          if (![1, 2, 3].includes(cat)) {
+            throw new Error(`Question ${idx + 1} has an invalid 'category' (must be 1, 2, or 3).`);
+          }
+          if (!Array.isArray(q.options) || q.options.length !== 4) {
+            throw new Error(`Question ${idx + 1} must have an 'options' array containing exactly 4 strings.`);
+          }
+          for (let oIdx = 0; oIdx < 4; oIdx++) {
+            if (typeof q.options[oIdx] !== 'string') {
+              throw new Error(`Question ${idx + 1} Option ${oIdx + 1} must be a string.`);
+            }
+          }
+          if (!Array.isArray(q.correctOptions) || q.correctOptions.length === 0) {
+            throw new Error(`Question ${idx + 1} must have a non-empty 'correctOptions' array of indices.`);
+          }
+          for (let cIdx of q.correctOptions) {
+            if (typeof cIdx !== 'number' || cIdx < 0 || cIdx > 3) {
+              throw new Error(`Question ${idx + 1} correctOption '${cIdx}' is out of range (must be 0-3).`);
+            }
+          }
+          if (cat !== 3 && q.correctOptions.length > 1) {
+            throw new Error(`Question ${idx + 1} is in Category ${cat} (single correct) but has multiple correct options.`);
+          }
+          validated.push({
+            id: 'imported_' + Date.now() + '_' + idx,
+            text: q.text,
+            category: cat,
+            options: q.options,
+            correctOptions: q.correctOptions,
+            explanation: q.explanation || null
+          });
+        }
+        
+        // Ask replace or append
+        const replaceMode = confirm(`Successfully parsed ${validated.length} questions.\n\nClick OK to REPLACE ALL existing questions with these.\nClick Cancel to APPEND them to the existing list.`);
+        
+        let targetList = replaceMode ? [] : [...questionsEditor];
+        
+        // Calculate new counts
+        const counts = { 1: 0, 2: 0, 3: 0 };
+        targetList.forEach(q => counts[q.category]++);
+        validated.forEach(q => counts[q.category]++);
+        
+        // Limit checks
+        if (editingTestObj) {
+          if (counts[1] > (editingTestObj.cat1Qs || 0)) {
+            throw new Error(`Limit Exceeded: Category 1 would have ${counts[1]} questions (Max allowed: ${editingTestObj.cat1Qs || 0}).`);
+          }
+          if (counts[2] > (editingTestObj.cat2Qs || 0)) {
+            throw new Error(`Limit Exceeded: Category 2 would have ${counts[2]} questions (Max allowed: ${editingTestObj.cat2Qs || 0}).`);
+          }
+          if (counts[3] > (editingTestObj.cat3Qs || 0)) {
+            throw new Error(`Limit Exceeded: Category 3 would have ${counts[3]} questions (Max allowed: ${editingTestObj.cat3Qs || 0}).`);
+          }
+        }
+        
+        // Apply
+        questionsEditor = targetList.concat(validated);
+        renderEditor();
+        toast(`Imported ${validated.length} questions successfully!`, 'success');
+      } catch(err) {
+        alert("Import Failed:\n" + err.message);
+      } finally {
+        event.target.value = ''; // Reset file input
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function downloadSampleJson() {
+    let cat1 = editingTestObj ? (editingTestObj.cat1Qs || 0) : 1;
+    let cat2 = editingTestObj ? (editingTestObj.cat2Qs || 0) : 1;
+    let cat3 = editingTestObj ? (editingTestObj.cat3Qs || 0) : 1;
+    
+    const sample = [];
+    if (cat1 > 0) {
+      sample.push({
+        text: "Sample Category 1 Question: What is the unit of Force?",
+        category: 1,
+        options: ["Newton", "Joule", "Watt", "Pascal"],
+        correctOptions: [0],
+        explanation: "The SI unit of force is Newton (N)."
+      });
+    }
+    if (cat2 > 0) {
+      sample.push({
+        text: "Sample Category 2 Question: Which of the following represents the correct order of acidic strength?",
+        category: 2,
+        options: ["HCl > HF > H2O", "HF > HCl > H2O", "H2O > HF > HCl", "HCl > H2O > HF"],
+        correctOptions: [0],
+        explanation: "HCl is a stronger acid than HF, which is stronger than H2O."
+      });
+    }
+    if (cat3 > 0) {
+      sample.push({
+        text: "Sample Category 3 Question: Which of the following are prime numbers? (Select all that apply)",
+        category: 3,
+        options: ["2", "3", "4", "9"],
+        correctOptions: [0, 1],
+        explanation: "2 and 3 are prime numbers. 4 and 9 are composite numbers."
+      });
+    }
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sample, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href",     dataStr     );
+    dlAnchorElem.setAttribute("download", `sankalp_mock_test_${editingTestObj ? editingTestObj.title.replace(/\s+/g, '_') : 'sample'}.json`);
+    dlAnchorElem.click();
+  }
+
+  function openSubmissionsModal() {
+    document.getElementById('submissionsModal').style.display = 'flex';
+  }
+  function closeSubmissionsModal() {
+    document.getElementById('submissionsModal').style.display = 'none';
+  }
+
+  async function openSubmissionsLog(testId, testTitle) {
+    document.getElementById('submissionsModalTitle').textContent = `Submissions Log — ${testTitle}`;
+    openSubmissionsModal();
+    const tbody = document.getElementById('submissionsTableBody');
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--ink-mute)"><i class="fas fa-spinner fa-spin"></i> Loading submissions...</td></tr>`;
+    
+    try {
+      const data = await apiJson(`/api/tests/${testId}/submissions`);
+      const subs = data.submissions || [];
+      if (!subs.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--ink-mute)">No submissions found for this test.</td></tr>`;
+        return;
+      }
+      
+      tbody.innerHTML = subs.map(sub => {
+        const d = sub.submittedAt ? new Date(sub.submittedAt) : null;
+        const dateStr = d 
+          ? d.toLocaleDateString('en-IN', {day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})
+          : '—';
+        const score = sub.scoreDetails ? (sub.scoreDetails.totalScore || 0).toFixed(2) : '0.00';
+        const breakdown = sub.scoreDetails 
+          ? `(C1: ${(sub.scoreDetails.scoreCat1||0).toFixed(1)}, C2: ${(sub.scoreDetails.scoreCat2||0).toFixed(1)}, C3: ${(sub.scoreDetails.scoreCat3||0).toFixed(1)})`
+          : '';
+        const violationsColor = sub.tabViolations > 0 ? 'color:#EF4444; font-weight:700;' : 'color:var(--ink-mute);';
+        
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;color:var(--ink)">${sub.studentName}</div>
+              <div style="font-size:11px;color:var(--ink-mute)">${sub.studentEmail}</div>
+            </td>
+            <td>${dateStr}</td>
+            <td>
+              <div style="font-weight:700;color:var(--forest);">${score}</div>
+              <div style="font-size:10px;color:var(--ink-mute)">${breakdown}</div>
+            </td>
+            <td style="${violationsColor}">${sub.tabViolations}</td>
+            <td>
+              <a href="../student/exam-results.html?id=${sub.id}" target="_blank" class="btn-ghost" style="padding:4px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-external-link-alt"></i> View Sheet</a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#EF4444;font-weight:700">Failed to load submissions: ${e.message}</td></tr>`;
     }
   }
 

@@ -2933,9 +2933,25 @@ let slStudentsLoaded = false;
 const slAvatarColors = ['#C94E1F','#1A6B3C','#2563EB','#7C3AED','#D97706','#DC2626','#0891B2'];
 function slAvatarColor(str) { let h=0; for(let c of(str||'')) h=(h*31+c.charCodeAt(0))%slAvatarColors.length; return slAvatarColors[Math.abs(h)]; }
 function slInitials(name) { if(!name)return'?'; const p=name.trim().split(' '); return p.length>=2?(p[0][0]+p[p.length-1][0]).toUpperCase():p[0].substring(0,2).toUpperCase(); }
+function slParseDate(ts) {
+  if (!ts) return new Date(0);
+  if (typeof ts === 'object') {
+    const seconds = ts._seconds !== undefined ? ts._seconds : ts.seconds;
+    if (seconds !== undefined) return new Date(seconds * 1000);
+    if (typeof ts.toDate === 'function') return ts.toDate();
+  }
+  return new Date(ts);
+}
+
 function slFmtDate(ts) {
   if(!ts) return '—';
-  try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch(e) { return '—'; }
+  try {
+    const d = slParseDate(ts);
+    if (isNaN(d.getTime()) || d.getTime() === 0) return '—';
+    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  } catch(e) {
+    return '—';
+  }
 }
 
 async function loadStudentList() {
@@ -2989,7 +3005,11 @@ function slApplyFilters() {
 
   slFiltered.sort((a, b) => {
     if (sort === 'joined') {
-      try { const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0); const db2 = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0); return db2 - da; } catch(e) { return 0; }
+      try {
+        const da = slParseDate(a.createdAt);
+        const db2 = slParseDate(b.createdAt);
+        return db2.getTime() - da.getTime();
+      } catch(e) { return 0; }
     }
     if (sort === 'year') return String(b.wbjeeYear||'').localeCompare(String(a.wbjeeYear||''));
     return (a.name||'').localeCompare(b.name||'');

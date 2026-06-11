@@ -848,10 +848,18 @@ auth.onAuthStateChanged(async (user) => {
 
 window.addEventListener('beforeunload', saveDraft);
 
+  const SANKALP_VERSION = '1.0.4';
+
   function checkShareStatus() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const lastSharedDate = localStorage.getItem('sankalp_marks_calculator_shared_date');
-    if (lastSharedDate !== todayStr) {
+    const savedVersion = localStorage.getItem('sankalp_version');
+    if (savedVersion !== SANKALP_VERSION) {
+      localStorage.removeItem('sankalp_marks_calculator_shared');
+      localStorage.removeItem('sankalp_marks_calculator_shared_date');
+      localStorage.setItem('sankalp_version', SANKALP_VERSION);
+    }
+
+    const shared = localStorage.getItem('sankalp_marks_calculator_shared');
+    if (shared !== 'true') {
       document.getElementById('shareWallModal').style.display = 'flex';
     }
   }
@@ -868,8 +876,8 @@ window.addEventListener('beforeunload', saveDraft);
     window.open(whatsappUrl, '_blank');
     
     // Unlock immediately when clicked
-    const todayStr = new Date().toISOString().split('T')[0];
-    localStorage.setItem('sankalp_marks_calculator_shared_date', todayStr);
+    localStorage.setItem('sankalp_marks_calculator_shared', 'true');
+    localStorage.setItem('sankalp_version', SANKALP_VERSION);
     document.getElementById('shareWallModal').style.display = 'none';
   }
 

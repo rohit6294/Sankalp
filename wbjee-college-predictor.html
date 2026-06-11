@@ -454,8 +454,8 @@
       return;
     }
     
-    // Show top 6 matches max for preview
-    const preview = matches.slice(0, 6);
+    // Show top 1 match max for preview
+    const preview = matches.slice(0, 1);
     preview.forEach(m => {
       const card = document.createElement('div');
       card.className = 'college-result-card';

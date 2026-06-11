@@ -849,8 +849,9 @@ auth.onAuthStateChanged(async (user) => {
 window.addEventListener('beforeunload', saveDraft);
 
   function checkShareStatus() {
-    const shared = localStorage.getItem('sankalp_marks_calculator_shared');
-    if (shared !== 'true') {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastSharedDate = localStorage.getItem('sankalp_marks_calculator_shared_date');
+    if (lastSharedDate !== todayStr) {
       document.getElementById('shareWallModal').style.display = 'flex';
     }
   }
@@ -867,7 +868,8 @@ window.addEventListener('beforeunload', saveDraft);
     window.open(whatsappUrl, '_blank');
     
     // Unlock immediately when clicked
-    localStorage.setItem('sankalp_marks_calculator_shared', 'true');
+    const todayStr = new Date().toISOString().split('T')[0];
+    localStorage.setItem('sankalp_marks_calculator_shared_date', todayStr);
     document.getElementById('shareWallModal').style.display = 'none';
   }
 

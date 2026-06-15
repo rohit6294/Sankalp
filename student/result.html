@@ -904,8 +904,8 @@ auth.onAuthStateChanged(async (user) => {
     document.getElementById('shareWallModal').style.display = 'none';
   }
 
-  // Call check
-  checkShareStatus();
+  // Call check after DOM is ready to avoid null element references
+  document.addEventListener('DOMContentLoaded', checkShareStatus);
 </script>
 
 <!-- WhatsApp Share Wall Modal -->

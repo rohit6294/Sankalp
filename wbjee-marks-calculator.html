@@ -794,7 +794,9 @@
 
   // Initialize
   calculate();
-  checkShareStatus();
+  
+  // Call check after DOM is ready to avoid null element references
+  document.addEventListener('DOMContentLoaded', checkShareStatus);
 </script>
 
 <!-- Login Prompt Modal -->

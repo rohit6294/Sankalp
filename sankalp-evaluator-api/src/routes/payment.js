@@ -171,9 +171,25 @@ async function verifyPayment(req, res) {
       payment.order_id !== razorpay_order_id
       || Number(payment.amount) !== Number(pendingOrder.amount)
       || payment.currency !== pendingOrder.currency
-      || payment.status !== 'captured'
     ) {
-      return res.status(400).json({ error: 'payment_not_captured', message: 'Payment not captured.' });
+      return res.status(400).json({ error: 'payment_mismatch', message: 'Payment details mismatch.' });
+    }
+
+    if (payment.status !== 'captured' && payment.status !== 'authorized') {
+      return res.status(400).json({ error: 'payment_invalid_status', message: `Payment status is ${payment.status}` });
+    }
+
+    // Programmatically capture the payment if it's authorized but not yet captured
+    if (payment.status === 'authorized') {
+      try {
+        await getRazorpayInstance().payments.capture(razorpay_payment_id, pendingOrder.amount, pendingOrder.currency);
+      } catch (captureErr) {
+        console.error('Failed to capture authorized payment:', captureErr);
+        return res.status(500).json({
+          error: 'capture_failed',
+          message: 'Payment was authorized but the server failed to capture it. Please contact support.'
+        });
+      }
     }
 
     const userDoc = await db.collection('users').doc(req.user.uid).get();

@@ -72,6 +72,14 @@ async function userHasAccess(req) {
       return true;
     }
 
+    // Auto-reconcile any pending payments for the user
+    try {
+      const { autoReconcileUserPayments } = require('../payment-verifier');
+      await autoReconcileUserPayments(req.user.uid);
+    } catch (reconcileErr) {
+      console.error('Auto-reconcile failed during access check:', reconcileErr);
+    }
+
     // Check if user has a valid purchase document in Firestore
     const purchaseDoc = await db.collection('purchases').doc(`${req.user.uid}_college_predictor`).get();
     if (purchaseDoc.exists && purchaseDoc.data().status === 'success') {

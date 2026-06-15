@@ -145,6 +145,14 @@ router.get('/available', verifyToken, async (req, res) => {
     const profile = await getAdminProfile(req.user);
     const isContentAdmin = profile ? (profile.permissions?.content?.view === true) : false;
     
+    // Auto-reconcile any pending payments for the user
+    try {
+      const { autoReconcileUserPayments } = require('../payment-verifier');
+      await autoReconcileUserPayments(uid);
+    } catch (reconcileErr) {
+      console.error('Auto-reconcile failed during tests/available check:', reconcileErr);
+    }
+    
     // Fetch user's subscription and purchases in parallel
     const [subDoc, purchasesSnap] = await Promise.all([
       db.collection('subscriptions').doc(uid).get(),
@@ -219,9 +227,17 @@ router.get('/:id', verifyToken, async (req, res) => {
       }
       
       if (testData.accessType !== 'free') {
-      let allowed = false;
-      // Global Pass check
-      const subDoc = await db.collection('subscriptions').doc(req.user.uid).get();
+        // Auto-reconcile any pending payments for the user
+        try {
+          const { autoReconcileUserPayments } = require('../payment-verifier');
+          await autoReconcileUserPayments(req.user.uid);
+        } catch (reconcileErr) {
+          console.error('Auto-reconcile failed during test detail check:', reconcileErr);
+        }
+
+        let allowed = false;
+        // Global Pass check
+        const subDoc = await db.collection('subscriptions').doc(req.user.uid).get();
       if (subDoc.exists && subDoc.data().validUntil.toDate() > new Date()) {
         allowed = true;
       }

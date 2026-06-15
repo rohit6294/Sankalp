@@ -14,11 +14,8 @@ async function getCachedExamTotals(examId) {
     return totalsCache[examId].totals;
   }
 
-  const allSnap = await db.collection('submissions').where('examId', '==', examId).get();
-  const totals = allSnap.docs.map(doc => {
-    const s = doc.data().scores || {};
-    return s.total ?? s.engineering ?? 0;
-  });
+  const { getExamScores } = require('../exam-stats-cache');
+  const totals = await getExamScores(examId);
 
   totalsCache[examId] = {
     totals,

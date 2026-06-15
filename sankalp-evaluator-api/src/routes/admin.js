@@ -500,7 +500,23 @@ router.get('/submissions', requirePermission('evaluators', 'view'), async (req, 
 router.delete('/submissions/:subId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { subId } = req.params;
   try {
-    await db.collection('submissions').doc(subId).delete();
+    const subDoc = await db.collection('submissions').doc(subId).get();
+    if (subDoc.exists) {
+      const data = subDoc.data() || {};
+      const score = data.scores?.total ?? data.scores?.engineering ?? 0;
+      const examId = data.examId;
+      
+      await db.collection('submissions').doc(subId).delete();
+      
+      try {
+        const { removeExamScore } = require('../exam-stats-cache');
+        await removeExamScore(examId, score);
+      } catch (cacheErr) {
+        console.error('Failed to remove score from stats cache on deletion:', cacheErr);
+      }
+    } else {
+      await db.collection('submissions').doc(subId).delete();
+    }
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'submission_delete_failed', message: e.message });
@@ -750,8 +766,25 @@ router.get('/reset-requests', requirePermission('evaluators', 'view'), async (_r
 router.post('/reset-approve/:subId', requirePermission('evaluators', 'edit'), async (req, res) => {
   const { subId } = req.params;
   try {
-    // Delete the submission
-    await db.collection('submissions').doc(subId).delete();
+    // Fetch submission to get score & examId before deleting
+    const subDoc = await db.collection('submissions').doc(subId).get();
+    if (subDoc.exists) {
+      const data = subDoc.data() || {};
+      const score = data.scores?.total ?? data.scores?.engineering ?? 0;
+      const examId = data.examId;
+      
+      await db.collection('submissions').doc(subId).delete();
+      
+      try {
+        const { removeExamScore } = require('../exam-stats-cache');
+        await removeExamScore(examId, score);
+      } catch (cacheErr) {
+        console.error('Failed to remove score from stats cache on reset approval:', cacheErr);
+      }
+    } else {
+      await db.collection('submissions').doc(subId).delete();
+    }
+    
     // Mark request as approved
     const reqRef = db.collection('resetRequests').doc(subId);
     const reqDoc = await reqRef.get();

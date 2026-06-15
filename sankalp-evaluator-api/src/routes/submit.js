@@ -122,6 +122,14 @@ router.post('/', verifyToken, async (req, res) => {
     };
     await subRef.create(payload);
 
+    // Append the new score to the stats cache
+    try {
+      const { addExamScore } = require('../exam-stats-cache');
+      await addExamScore(examId, scores.engineering ?? scores.total ?? 0);
+    } catch (cacheErr) {
+      console.error('Failed to append score to stats cache:', cacheErr);
+    }
+
     // Bust the community rank cache for this exam so subsequent rank views reflect the new submission immediately
     if (rankRouter && typeof rankRouter.bustExamTotalsCache === 'function') {
       rankRouter.bustExamTotalsCache(examId);

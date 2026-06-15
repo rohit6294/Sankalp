@@ -71,6 +71,10 @@
 </head>
 <body>
 
+<!-- Mobile menu toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
 <!-- Sidebar -->
 <aside class="admin-sidebar" id="adminSidebar">
   <div style="padding:20px 16px">
@@ -1004,6 +1008,11 @@ async function deletePYQ(id){
 document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',function(ev){if(ev.target===this)this.style.display='none';});
 });
+
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
 
 // Auth + init
 auth.onAuthStateChanged(async user=>{

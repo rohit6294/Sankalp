@@ -1102,13 +1102,13 @@ select.input-field {
 .menu-toggle {
   display: none;
   position: fixed;
-  top: 24px;
-  left: 20px;
+  top: 14px;
+  left: 16px;
   z-index: 99999 !important;
   background: var(--ink);
   border: 1px solid var(--ink);
   border-radius: 4px;
-  padding: 12px 14px;
+  padding: 8px 12px;
   cursor: pointer;
   color: var(--paper);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -1156,14 +1156,14 @@ select.input-field {
   }
   .main-content {
     margin-left: 0 !important;
-    padding: 72px 16px 24px !important;
+    padding: 86px 16px 24px !important;
     max-width: 100% !important;
     width: 100% !important;
     overflow-x: hidden;
   }
   .admin-main {
     margin-left: 0 !important;
-    padding: 72px 16px 24px !important;
+    padding: 86px 16px 24px !important;
     max-width: 100% !important;
     overflow-x: hidden;
   }

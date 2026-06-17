@@ -349,8 +349,9 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
     }
 
     // 4. Recalculate and batch update
-    const batch = db.batch();
+    let batch = db.batch();
     let updatedCount = 0;
+    let batchOpCount = 0;
 
     for (const subDoc of subSnap.docs) {
       const sub = subDoc.data();
@@ -380,17 +381,17 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
         expectedRank,
       });
       updatedCount++;
+      batchOpCount++;
 
-      // Firestore batches hold up to 500 operations. If we have more than 500 subs, we'd need multiple batches.
-      // Assuming < 500 for now. If > 490, we should commit and start a new batch, but let's keep it simple.
-      if (updatedCount >= 490) {
+      // Firestore batches hold up to 500 operations. Commit and start a fresh batch when needed.
+      if (batchOpCount >= 450) {
         await batch.commit();
-        // Reset batch is complex in a simple loop without re-instantiating. 
-        // For Sankalp WBJEE, we likely don't have 500+ subs per exam yet, but it's good to note.
+        batch = db.batch();
+        batchOpCount = 0;
       }
     }
 
-    if (updatedCount > 0 && updatedCount < 490) {
+    if (batchOpCount > 0) {
       await batch.commit();
     }
 

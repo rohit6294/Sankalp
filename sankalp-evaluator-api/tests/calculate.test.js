@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
-const { scoreSubject, scoreSubmission, round2, normalizeStudentAnswer } = require('../src/scoring/calculate');
+const { scoreSubject, scoreSubmission, round2, normalizeStudentAnswer, applyExamBonus } = require('../src/scoring/calculate');
 const { categoryFor } = require('../src/categories');
 const { defaultRankRows, predictRank, formatRankRange } = require('../src/scoring/ranking');
 const { missingAnswerNumbers } = require('../src/exam-readiness');
@@ -191,4 +191,27 @@ test('missingAnswerNumbers: detects incomplete keys', () => {
   delete key['17'];
   delete key['75'];
   assert.deepEqual(missingAnswerNumbers('math', key), [17, 75]);
+});
+
+test('applyExamBonus: always returns engineering and bpharma scores', () => {
+  const scores = {
+    math: 10,
+    physics: 15,
+    chemistry: 20,
+    total: 45,
+  };
+  
+  // Test with bonus = 0
+  const updated0 = applyExamBonus(scores, 0);
+  assert.equal(updated0.bonus, 0);
+  assert.equal(updated0.engineering, 45);
+  assert.equal(updated0.bpharma, 35);
+  assert.equal(updated0.total, 45);
+
+  // Test with bonus = 5
+  const updated5 = applyExamBonus(scores, 5);
+  assert.equal(updated5.bonus, 5);
+  assert.equal(updated5.engineering, 50);
+  assert.equal(updated5.bpharma, 40);
+  assert.equal(updated5.total, 50);
 });

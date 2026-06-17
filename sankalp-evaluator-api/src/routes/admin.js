@@ -439,6 +439,17 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
     // 6. Clear the needsRecalculation flag
     await examRef.set({ needsRecalculation: false }, { merge: true });
 
+    // 7. Bust stats cache and local rank caches so ranks are recalculated with new scores
+    try {
+      await db.collection('exams').doc(examId).collection('stats').doc('scores').delete();
+      const rankRouter = require('./rank');
+      if (rankRouter && typeof rankRouter.bustExamTotalsCache === 'function') {
+        rankRouter.bustExamTotalsCache(examId);
+      }
+    } catch (cacheErr) {
+      console.error('[Recalculate] Failed to bust stats cache:', cacheErr);
+    }
+
     // Sort comparison by name
     comparison.sort((a, b) => a.studentName.localeCompare(b.studentName));
 

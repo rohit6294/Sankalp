@@ -161,7 +161,12 @@
 
       <div style="border:1px solid var(--ink); background:var(--paper); max-height:500px; overflow-y:auto;" id="keyGrid"></div>
 
-      <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end; align-items:center;">
+      <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <label for="examBonusInput" style="font-size:13px; color:var(--ink); font-weight:600;">Bonus Marks</label>
+          <input id="examBonusInput" type="number" min="0" step="0.01" placeholder="0" style="width:100px; padding:8px; border:1px solid var(--ink-soft); border-radius:4px; background:var(--paper); color:var(--ink);" />
+          <button class="btn-ghost btn-sm" onclick="saveExamBonus()" id="saveBonusBtn"><i class="fas fa-plus"></i> Save Bonus</button>
+        </div>
         <button class="btn-rust" onclick="saveAnswerKey()" id="saveKeyBtn"><i class="fas fa-save"></i> Save Answer Key</button>
       </div>
     </div>
@@ -1244,6 +1249,7 @@ const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com
 
 let selectedExamId = null;
 let selectedExamName = '';
+let selectedExamBonus = 0;
 let adminExams = [];
 let currentSet = 'A';
 let currentPaper = 'math';
@@ -1699,10 +1705,59 @@ async function toggleExamActive(examId, active) {
 function openKeyEditor(examId, examName) {
   selectedExamId = examId;
   selectedExamName = examName;
+  selectedExamBonus = (adminExams.find((exam) => exam.id === examId)?.bonus) || 0;
   resetKeyEditorState();
   updateKeyEditorTitle();
+  setBonusInputValue();
   document.getElementById('keyEditor').style.display = 'block';
   loadAnswerKey();
+}
+
+function setBonusInputValue() {
+  const input = document.getElementById('examBonusInput');
+  if (input) {
+    input.value = selectedExamBonus !== undefined ? selectedExamBonus : '';
+  }
+}
+
+async function saveExamBonus() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+  if (!selectedExamId) {
+    toast('No exam selected.');
+    return;
+  }
+
+  const input = document.getElementById('examBonusInput');
+  if (!input) return;
+  const value = Number(input.value);
+  if (!Number.isFinite(value) || value < 0) {
+    toast('Bonus marks must be a non-negative number.');
+    return;
+  }
+
+  const btn = document.getElementById('saveBonusBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    await apiJson(`/api/admin/exams/${encodeURIComponent(selectedExamId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ bonus: value }),
+    });
+    selectedExamBonus = value;
+    adminExams = adminExams.map((exam) => exam.id === selectedExamId ? { ...exam, bonus: value, needsRecalculation: true } : exam);
+    toast(`Bonus marks updated to ${value}. Click Recalculate on the exam to apply to all submissions.`);
+    await loadExams();
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error saving bonus: ${error.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Save Bonus';
+  }
 }
 
 function hideKeyEditor() {
@@ -1843,18 +1898,6 @@ async function saveAnswerKey() {
     return;
   }
 
-  const bonusInput = window.prompt('Enter bonus marks for this exam (leave blank for 0):', '0');
-  if (bonusInput === null) {
-    toast('Save cancelled.');
-    return;
-  }
-
-  const bonusValue = bonusInput.trim() === '' ? 0 : Number(bonusInput);
-  if (!Number.isFinite(bonusValue) || bonusValue < 0) {
-    toast('Bonus marks must be a non-negative number.');
-    return;
-  }
-
   const btn = document.getElementById('saveKeyBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
@@ -1865,20 +1908,12 @@ async function saveAnswerKey() {
       body: JSON.stringify(keyData[docId]),
     });
 
-    // Save the exam bonus too, if provided
-    await apiJson(`/api/admin/exams/${encodeURIComponent(selectedExamId)}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ bonus: bonusValue }),
-    });
-
-    adminExams = adminExams.map((exam) => exam.id === selectedExamId ? { ...exam, bonus: bonusValue, needsRecalculation: true } : exam);
-
     const data = keyData[docId];
     const filled = currentPaper === 'math'
       ? Object.keys(data.math || {}).length
       : Object.keys(data.physics || {}).length + Object.keys(data.chemistry || {}).length;
     const label = currentPaper === 'math' ? 'Mathematics' : 'Physics & Chemistry';
-    toast(`${label} Set ${currentSet} saved (${filled} answers). Bonus: ${bonusValue}`);
+    toast(`${label} Set ${currentSet} saved (${filled} answers).`);
     await loadExams();
   } catch (error) {
     if (handleAccessError(error)) return;

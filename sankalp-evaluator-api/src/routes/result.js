@@ -1,6 +1,8 @@
 const express = require('express');
 const { db } = require('../firebase');
 const { verifyToken } = require('../auth');
+const { defaultRankRows, predictRank } = require('../scoring/ranking');
+const { round2 } = require('../scoring/calculate');
 
 const router = express.Router();
 
@@ -33,16 +35,47 @@ router.get('/:examId', verifyToken, async (req, res) => {
       chemistry: physChemData.chemistry || {},
     };
 
+    const s = data.scores || {};
+    let finalScores = data.scores;
+    let finalExpectedRank = data.expectedRank;
+
+    // Fallback on-the-fly for old submissions that were affected by the scoring bug
+    if (s.engineering === undefined || s.bpharma === undefined || !finalExpectedRank || finalExpectedRank.engineering === null) {
+      const engRankRef = examRef.collection('rankTable').doc('engineering');
+      const bphRankRef = examRef.collection('rankTable').doc('bpharma');
+      const [engRankDoc, bphRankDoc] = await Promise.all([
+        engRankRef.get(),
+        bphRankRef.get(),
+      ]);
+      const engineeringRows = engRankDoc.exists ? (engRankDoc.data().rows || []) : defaultRankRows('engineering');
+      const bpharmaRows = bphRankDoc.exists ? (bphRankDoc.data().rows || []) : defaultRankRows('bpharma');
+
+      const engScore = s.engineering ?? s.total ?? 0;
+      const bphScore = s.bpharma ?? (s.physics !== undefined && s.chemistry !== undefined ? round2(s.physics + s.chemistry) : 0);
+
+      finalScores = {
+        ...s,
+        engineering: engScore,
+        bpharma: bphScore,
+        bonus: s.bonus ?? 0,
+      };
+
+      finalExpectedRank = {
+        engineering: (finalExpectedRank?.engineering) || predictRank(engScore, engineeringRows),
+        bpharma: (finalExpectedRank?.bpharma) || predictRank(bphScore, bpharmaRows),
+      };
+    }
+
     res.json({
       examId,
       examName: data.examName || examData.name || examId,
       set: data.set || data.mathSet,
       mathSet: data.mathSet,
       physChemSet: data.physChemSet,
-      scores: data.scores,
+      scores: finalScores,
       analytics: data.analytics,
       perSubject: data.perSubject,
-      expectedRank: data.expectedRank,
+      expectedRank: finalExpectedRank,
       submittedAt: data.submittedAt ? data.submittedAt.toMillis() : null,
       answers: data.answers || {},
       keys,

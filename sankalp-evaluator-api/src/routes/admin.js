@@ -482,14 +482,53 @@ router.get('/submissions', requirePermission('evaluators', 'view'), async (req, 
     }
     const subSnap = await query.get();
     const submissions = [];
-    subSnap.forEach((doc) => {
+    const rankTablesCache = {};
+    const getRankRows = async (eId, type) => {
+      const cacheKey = `${eId}_${type}`;
+      if (rankTablesCache[cacheKey]) return rankTablesCache[cacheKey];
+      let rows = defaultRankRows(type);
+      try {
+        const doc = await db.collection('exams').doc(eId).collection('rankTable').doc(type).get();
+        if (doc.exists && doc.data().rows) {
+          rows = doc.data().rows;
+        }
+      } catch (e) {
+        // Fallback to defaults on error
+      }
+      rankTablesCache[cacheKey] = rows;
+      return rows;
+    };
+
+    for (const doc of subSnap.docs) {
       const data = doc.data() || {};
+      const s = data.scores || {};
+      
+      if (s.engineering === undefined || s.bpharma === undefined || !data.expectedRank || data.expectedRank.engineering === null) {
+        const engScore = s.engineering ?? s.total ?? 0;
+        const bphScore = s.bpharma ?? (s.physics !== undefined && s.chemistry !== undefined ? round2(s.physics + s.chemistry) : 0);
+        
+        const engRows = await getRankRows(data.examId, 'engineering');
+        const bphRows = await getRankRows(data.examId, 'bpharma');
+        
+        data.scores = {
+          ...s,
+          engineering: engScore,
+          bpharma: bphScore,
+          bonus: s.bonus ?? 0,
+        };
+        
+        data.expectedRank = {
+          engineering: (data.expectedRank?.engineering) || predictRank(engScore, engRows),
+          bpharma: (data.expectedRank?.bpharma) || predictRank(bphScore, bphRows),
+        };
+      }
+      
       submissions.push({
         id: doc.id,
         ...data,
         submittedAt: normalizeTimestamp(data.submittedAt),
       });
-    });
+    }
 
     const baseUsersMap = await getCachedUsersMap();
     const usersMap = { ...baseUsersMap };

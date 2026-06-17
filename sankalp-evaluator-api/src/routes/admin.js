@@ -6,7 +6,7 @@ const { resolveCollegeType } = require('../college-types');
 const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
 const { scoreSubmission, round2, applyExamBonus } = require('../scoring/calculate');
-const { defaultRankRows, predictRank } = require('../scoring/ranking');
+const { defaultRankRows, predictRank, formatRankRange } = require('../scoring/ranking');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const sqlite3 = require('sqlite3').verbose();
@@ -401,18 +401,31 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
         bpharma: predictRank(computedScores.bpharma, bpharmaRows),
       };
 
+      // Calculate old engineering/bpharma scores if missing (due to the previous bug)
+      const oldEngScore = oldScores.engineering ?? oldScores.total ?? null;
+      const oldBphScore = oldScores.bpharma ?? (oldScores.physics !== undefined && oldScores.chemistry !== undefined ? round2(oldScores.physics + oldScores.chemistry) : null);
+
+      const oldEngPredictedRank = oldRank.engineering || (oldEngScore !== null ? predictRank(oldEngScore, engineeringRows) : null);
+      const oldBphPredictedRank = oldRank.bpharma || (oldBphScore !== null ? predictRank(oldBphScore, bpharmaRows) : null);
+
+      const formatRank = (val) => {
+        if (!val) return '—';
+        if (typeof val === 'object') return formatRankRange(val) || '—';
+        return String(val);
+      };
+
       // Build comparison entry for admin
       comparison.push({
         studentName: userNames[sub.userId] || 'Unknown',
         userId: sub.userId || '',
-        oldEngineering: oldScores.engineering ?? null,
+        oldEngineering: oldEngScore,
         newEngineering: computedScores.engineering ?? null,
-        oldBpharma: oldScores.bpharma ?? null,
+        oldBpharma: oldBphScore,
         newBpharma: computedScores.bpharma ?? null,
-        oldEngRank: oldRank.engineering || '—',
-        newEngRank: expectedRank.engineering || '—',
-        oldBphRank: oldRank.bpharma || '—',
-        newBphRank: expectedRank.bpharma || '—',
+        oldEngRank: formatRank(oldEngPredictedRank),
+        newEngRank: formatRank(expectedRank.engineering),
+        oldBphRank: formatRank(oldBphPredictedRank),
+        newBphRank: formatRank(expectedRank.bpharma),
       });
 
       batch.update(subDoc.ref, {

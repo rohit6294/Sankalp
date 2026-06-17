@@ -1096,6 +1096,37 @@
   </div>
 </div>
 
+<div id="recalcResultsModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:24px;">
+  <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:900px; width:100%; max-height:85vh; display:flex; flex-direction:column; position:relative;">
+    <button onclick="document.getElementById('recalcResultsModal').style.display='none'" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:20px; color:var(--ink); cursor:pointer;">&times;</button>
+    <div class="eyebrow" style="margin-bottom:4px;">Recalculation Complete</div>
+    <h2 class="display-md" style="margin-bottom:4px;">Before vs After Comparison</h2>
+    <p id="recalcSummaryText" style="font-size:13px; color:var(--ink-mute); margin-bottom:16px;"></p>
+    <div style="overflow:auto; flex:1;">
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="background:var(--paper-soft); position:sticky; top:0; z-index:1;">
+            <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">#</th>
+            <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">Student Name</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">Old Eng.</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">New Eng.</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">Change</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">Old B.Ph.</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">New B.Ph.</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">Change</th>
+            <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;">Eng. Rank</th>
+          </tr>
+        </thead>
+        <tbody id="recalcResultsBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+      <button class="btn-ghost btn-sm" onclick="downloadRecalcCSV()"><i class="fas fa-download"></i> Download CSV</button>
+      <button class="btn-rust btn-sm" onclick="document.getElementById('recalcResultsModal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="violationLogModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:24px;">
   <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:480px; width:100%; text-align:center; position:relative;">
     <button onclick="closeViolationModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:18px; color:var(--ink-mute); cursor:pointer; font-weight:700;">✕</button>
@@ -1635,6 +1666,8 @@ function renderExamRows(exams) {
   applyEvaluatorPermissions();
 }
 
+let _lastRecalcComparison = [];
+
 async function recalculateExam(examId, examName, btn) {
   if (!adminCan('evaluators', 'edit')) {
     toast('Evaluator edit permission is required.');
@@ -1652,12 +1685,82 @@ async function recalculateExam(examId, examName, btn) {
   try {
     const res = await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}/recalculate`, { method: 'POST' });
     toast(res.recalculated !== undefined ? `Successfully recalculated ${res.recalculated} submissions.` : res.message || 'Recalculation complete.');
-    await loadExams(); // Refresh to hide the button
+    await loadExams();
+
+    // Show the before/after comparison modal
+    if (res.comparison && res.comparison.length > 0) {
+      showRecalcResults(res, examName);
+    }
   } catch (error) {
     toast(`Error recalculating: ${error.message}`);
     btn.innerHTML = originalHtml;
     btn.disabled = false;
   }
+}
+
+function showRecalcResults(res, examName) {
+  _lastRecalcComparison = res.comparison || [];
+  const tbody = document.getElementById('recalcResultsBody');
+  const summary = document.getElementById('recalcSummaryText');
+
+  let increased = 0, decreased = 0, unchanged = 0;
+  _lastRecalcComparison.forEach(c => {
+    const diff = (c.newEngineering ?? 0) - (c.oldEngineering ?? 0);
+    if (diff > 0) increased++;
+    else if (diff < 0) decreased++;
+    else unchanged++;
+  });
+
+  summary.innerHTML = `<strong>${examName}</strong> — ${res.recalculated} submissions recalculated` +
+    (res.bonus ? ` (Bonus: <strong>+${res.bonus}</strong>)` : '') +
+    ` — <span style="color:#22C55E;">${increased} increased</span>, ` +
+    `<span style="color:#EF4444;">${decreased} decreased</span>, ` +
+    `<span style="opacity:0.6;">${unchanged} unchanged</span>`;
+
+  tbody.innerHTML = _lastRecalcComparison.map((c, i) => {
+    const engDiff = ((c.newEngineering ?? 0) - (c.oldEngineering ?? 0));
+    const bphDiff = ((c.newBpharma ?? 0) - (c.oldBpharma ?? 0));
+
+    const fmtDiff = (d) => {
+      if (d === 0) return '<span style="opacity:0.4;">0</span>';
+      const color = d > 0 ? '#22C55E' : '#EF4444';
+      const sign = d > 0 ? '+' : '';
+      return `<span style="color:${color}; font-weight:700;">${sign}${d}</span>`;
+    };
+
+    const fmtScore = (v) => v !== null && v !== undefined ? v : '—';
+
+    return `<tr style="border-bottom:1px solid var(--ink-soft);">
+      <td style="padding:8px; color:var(--ink-mute);">${i + 1}</td>
+      <td style="padding:8px; font-weight:600; white-space:nowrap;">${c.studentName}</td>
+      <td style="padding:8px; text-align:center; opacity:0.6;">${fmtScore(c.oldEngineering)}</td>
+      <td style="padding:8px; text-align:center; font-weight:700;">${fmtScore(c.newEngineering)}</td>
+      <td style="padding:8px; text-align:center;">${fmtDiff(engDiff)}</td>
+      <td style="padding:8px; text-align:center; opacity:0.6;">${fmtScore(c.oldBpharma)}</td>
+      <td style="padding:8px; text-align:center; font-weight:700;">${fmtScore(c.newBpharma)}</td>
+      <td style="padding:8px; text-align:center;">${fmtDiff(bphDiff)}</td>
+      <td style="padding:8px; text-align:center; font-size:11px;">${c.oldEngRank} → ${c.newEngRank}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('recalcResultsModal').style.display = 'flex';
+}
+
+function downloadRecalcCSV() {
+  if (!_lastRecalcComparison.length) return;
+  const header = 'Student Name,Old Eng Marks,New Eng Marks,Eng Change,Old BPh Marks,New BPh Marks,BPh Change,Old Eng Rank,New Eng Rank\n';
+  const rows = _lastRecalcComparison.map(c => {
+    const engDiff = ((c.newEngineering ?? 0) - (c.oldEngineering ?? 0));
+    const bphDiff = ((c.newBpharma ?? 0) - (c.oldBpharma ?? 0));
+    return `"${c.studentName}",${c.oldEngineering ?? ''},${c.newEngineering ?? ''},${engDiff},${c.oldBpharma ?? ''},${c.newBpharma ?? ''},${bphDiff},"${c.oldEngRank}","${c.newEngRank}"`;
+  }).join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'recalculation_results.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function loadExams() {

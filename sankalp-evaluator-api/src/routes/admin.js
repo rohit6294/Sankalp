@@ -355,16 +355,35 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
     const subSnap = await db.collection('submissions').where('examId', '==', examId).get();
     if (subSnap.empty) {
       await examRef.set({ needsRecalculation: false }, { merge: true });
-      return res.json({ ok: true, message: 'no_submissions_to_recalculate' });
+      return res.json({ ok: true, message: 'no_submissions_to_recalculate', comparison: [] });
     }
 
-    // 4. Recalculate and batch update
+    // 4. Collect unique userIds and fetch their names in parallel
+    const userIds = [...new Set(subSnap.docs.map(d => d.data().userId).filter(Boolean))];
+    const userNames = {};
+    if (userIds.length > 0) {
+      const userDocs = await Promise.all(
+        userIds.map(uid => db.collection('users').doc(uid).get())
+      );
+      userDocs.forEach(uDoc => {
+        if (uDoc.exists) {
+          const d = uDoc.data() || {};
+          userNames[uDoc.id] = d.name || d.displayName || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown';
+        }
+      });
+    }
+
+    // 5. Recalculate, track before/after, and batch update
     let batch = db.batch();
     let updatedCount = 0;
     let batchOpCount = 0;
+    const comparison = [];
 
     for (const subDoc of subSnap.docs) {
       const sub = subDoc.data();
+      const oldScores = sub.scores || {};
+      const oldRank = sub.expectedRank || {};
+
       const mathData = loadedKeys[`math_${sub.mathSet}`] || {};
       const physChemData = loadedKeys[`physChem_${sub.physChemSet}`] || {};
 
@@ -381,6 +400,20 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
         engineering: predictRank(computedScores.engineering, engineeringRows),
         bpharma: predictRank(computedScores.bpharma, bpharmaRows),
       };
+
+      // Build comparison entry for admin
+      comparison.push({
+        studentName: userNames[sub.userId] || 'Unknown',
+        userId: sub.userId || '',
+        oldEngineering: oldScores.engineering ?? null,
+        newEngineering: computedScores.engineering ?? null,
+        oldBpharma: oldScores.bpharma ?? null,
+        newBpharma: computedScores.bpharma ?? null,
+        oldEngRank: oldRank.engineering || '—',
+        newEngRank: expectedRank.engineering || '—',
+        oldBphRank: oldRank.bpharma || '—',
+        newBphRank: expectedRank.bpharma || '—',
+      });
 
       batch.update(subDoc.ref, {
         scores: computedScores,
@@ -403,10 +436,13 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
       await batch.commit();
     }
 
-    // 5. Clear the needsRecalculation flag
+    // 6. Clear the needsRecalculation flag
     await examRef.set({ needsRecalculation: false }, { merge: true });
 
-    res.json({ ok: true, recalculated: updatedCount });
+    // Sort comparison by name
+    comparison.sort((a, b) => a.studentName.localeCompare(b.studentName));
+
+    res.json({ ok: true, recalculated: updatedCount, bonus, comparison });
   } catch (e) {
     res.status(500).json({ error: 'recalculation_failed', message: e.message });
   }

@@ -108,6 +108,11 @@ function normalizeAnswerKeySubject(subject, value) {
     const category = categoryFor(subject, qNo);
     const rawValue = String(raw).trim().toUpperCase();
 
+    if (rawValue === 'BONUS') {
+      cleaned[String(qNo)] = 'BONUS';
+      continue;
+    }
+
     const options = category === 3 && /^[A-D]{2,4}$/.test(rawValue)
       ? rawValue.split('')
       : rawValue.split(',').map((option) => option.trim()).filter(Boolean);

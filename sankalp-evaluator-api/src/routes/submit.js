@@ -2,7 +2,7 @@ const express = require('express');
 const { admin, db } = require('../firebase');
 const { verifyToken } = require('../auth');
 const { missingAnswerNumbers } = require('../exam-readiness');
-const { scoreSubmission, round2 } = require('../scoring/calculate');
+const { scoreSubmission, round2, applyExamBonus } = require('../scoring/calculate');
 const { defaultRankRows, predictRank } = require('../scoring/ranking');
 const { sendEmail } = require('../mailer');
 const rankRouter = require('./rank');
@@ -63,6 +63,7 @@ router.post('/', verifyToken, async (req, res) => {
 
     const mathData = mathKeyDoc.data() || {};
     const physChemData = physChemKeyDoc.data() || {};
+    const examBonus = Number(examDoc.data().bonus) || 0;
 
     const keys = {
       math: mathData.math || {},
@@ -85,10 +86,7 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     const { scores, analytics, perSubject } = scoreSubmission(answers, keys);
-
-    // Compute Engineering and B-Pharma scores
-    scores.engineering = scores.total;
-    scores.bpharma = round2(scores.physics + scores.chemistry);
+    const computedScores = applyExamBonus(scores, examBonus);
 
     // Fetch both rank tables
     const engRankRef = examRef.collection('rankTable').doc('engineering');
@@ -102,8 +100,8 @@ router.post('/', verifyToken, async (req, res) => {
     const engineeringRows = engRankDoc.exists ? (engRankDoc.data().rows || []) : defaultRankRows('engineering');
     const bpharmaRows = bphRankDoc.exists ? (bphRankDoc.data().rows || []) : defaultRankRows('bpharma');
     const expectedRank = {
-      engineering: predictRank(scores.engineering, engineeringRows),
-      bpharma: predictRank(scores.bpharma, bpharmaRows),
+      engineering: predictRank(computedScores.engineering, engineeringRows),
+      bpharma: predictRank(computedScores.bpharma, bpharmaRows),
     };
 
     const payload = {
@@ -113,7 +111,7 @@ router.post('/', verifyToken, async (req, res) => {
       mathSet,
       physChemSet,
       answers,
-      scores,
+      scores: computedScores,
       analytics,
       perSubject,
       expectedRank,
@@ -125,7 +123,7 @@ router.post('/', verifyToken, async (req, res) => {
     // Append the new score to the stats cache
     try {
       const { addExamScore } = require('../exam-stats-cache');
-      await addExamScore(examId, scores.engineering ?? scores.total ?? 0);
+      await addExamScore(examId, computedScores.engineering ?? computedScores.total ?? 0);
     } catch (cacheErr) {
       console.error('Failed to append score to stats cache:', cacheErr);
     }
@@ -138,16 +136,17 @@ router.post('/', verifyToken, async (req, res) => {
     // Send Exam Submission Receipt Email
     if (userData.email) {
       const examName = examDoc.data().name || examId;
-      const totalScore = (scores.engineering || 0);
-      const mathScore = (scores.math || 0);
-      const physicsScore = (scores.physics || 0);
-      const chemistryScore = (scores.chemistry || 0);
+      const totalScore = (computedScores.engineering || 0);
+      const mathScore = (computedScores.math || 0);
+      const physicsScore = (computedScores.physics || 0);
+      const chemistryScore = (computedScores.chemistry || 0);
+      const bonusText = examBonus ? `\n- Bonus Marks: ${examBonus}` : '';
       const rankText = expectedRank ? `\nYour Expected WBJEE Rank:\n- Engineering Rank: ${expectedRank.engineering || 'N/A'}\n- B.Pharma Rank: ${expectedRank.bpharma || 'N/A'}` : '';
       
       sendEmail({
         to: userData.email,
         subject: `Exam Submission Receipt: ${examName} - Sankalp Learning`,
-        text: `Hello ${userData.name || 'Student'},\n\nYour submission for "${examName}" has been successfully recorded.\n\nScore Breakdown:\n- Total Score: ${totalScore}\n- Math: ${mathScore}\n- Physics: ${physicsScore}\n- Chemistry: ${chemistryScore}${rankText}\n\nLog in to your dashboard to view detailed analytics and performance insights.\n\nBest of luck,\nSankalp Learning Team`
+        text: `Hello ${userData.name || 'Student'},\n\nYour submission for "${examName}" has been successfully recorded.\n\nScore Breakdown:\n- Total Score: ${totalScore}\n- Math: ${mathScore}\n- Physics: ${physicsScore}\n- Chemistry: ${chemistryScore}${bonusText}${rankText}\n\nLog in to your dashboard to view detailed analytics and performance insights.\n\nBest of luck,\nSankalp Learning Team`
       }).catch(err => console.error('Submission receipt email failed:', err));
     }
 

@@ -161,7 +161,12 @@
 
       <div style="border:1px solid var(--ink); background:var(--paper); max-height:500px; overflow-y:auto;" id="keyGrid"></div>
 
-      <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end;">
+      <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end; align-items:center;">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <label for="examBonusInput" style="font-size:13px; color:var(--ink); font-weight:600;">Bonus Marks</label>
+          <input id="examBonusInput" type="number" min="0" step="0.01" style="width:100px; padding:8px; border:1px solid var(--ink-soft); border-radius:4px; background:var(--paper); color:var(--ink);" />
+          <button class="btn-ghost btn-sm" onclick="saveExamBonus()" id="saveBonusBtn"><i class="fas fa-plus"></i> Save Bonus</button>
+        </div>
         <button class="btn-rust" onclick="saveAnswerKey()" id="saveKeyBtn"><i class="fas fa-save"></i> Save Answer Key</button>
       </div>
     </div>
@@ -1244,6 +1249,8 @@ const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com
 
 let selectedExamId = null;
 let selectedExamName = '';
+let selectedExamBonus = 0;
+let adminExams = [];
 let currentSet = 'A';
 let currentPaper = 'math';
 let currentKeySubject = 'math';
@@ -1424,6 +1431,53 @@ function updateKeyEditorTitle() {
   document.getElementById('keyExamName').textContent = `${selectedExamName || selectedExamId || 'Exam'} - Set ${currentSet}`;
 }
 
+function setBonusInputValue() {
+  const input = document.getElementById('examBonusInput');
+  if (input) {
+    input.value = selectedExamBonus !== undefined ? selectedExamBonus : '';
+  }
+}
+
+async function saveExamBonus() {
+  if (!adminCan('evaluators', 'edit')) {
+    toast('Evaluator edit permission is required.');
+    return;
+  }
+  if (!selectedExamId) {
+    toast('No exam selected.');
+    return;
+  }
+
+  const input = document.getElementById('examBonusInput');
+  if (!input) return;
+  const value = Number(input.value);
+  if (!Number.isFinite(value) || value < 0) {
+    toast('Bonus marks must be a non-negative number.');
+    return;
+  }
+
+  const btn = document.getElementById('saveBonusBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    await apiJson(`/api/admin/exams/${encodeURIComponent(selectedExamId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ bonus: value }),
+    });
+    selectedExamBonus = value;
+    adminExams = adminExams.map((exam) => exam.id === selectedExamId ? { ...exam, bonus: value, needsRecalculation: true } : exam);
+    toast(`Bonus marks updated to ${value} and submissions marked for recalculation.`);
+    await loadExams();
+  } catch (error) {
+    if (handleAccessError(error)) return;
+    toast(`Error saving bonus: ${error.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Save Bonus';
+  }
+}
+
 function resetKeyEditorState() {
   currentSet = 'A';
   currentPaper = 'math';
@@ -1591,11 +1645,12 @@ function renderExamRows(exams) {
     const recalcHtml = exam.needsRecalculation
       ? `<button class="btn-ghost btn-sm" data-action="recalc" style="color:#F59E0B; border-color:rgba(245,158,11,0.3);" title="Answers/Ranks changed. Recalculate scores for all submissions."><i class="fas fa-rotate"></i> Recalculate</button>`
       : `<button class="btn-ghost btn-sm" disabled style="opacity:0.5;" title="All submissions are up to date"><i class="fas fa-rotate"></i> Recalculate</button>`;
+    const bonusHtml = exam.bonus ? `<span style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono);">Bonus: ${exam.bonus}</span>` : '';
 
     row.innerHTML = `
       <div>
         <div style="font-weight:700; font-size:14px;"></div>
-        <div style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono); margin-top:2px;"></div>
+        <div style="font-size:12px; color:var(--ink-mute); font-family:var(--font-mono); margin-top:2px;">${bonusHtml}</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <span class="badge ${exam.ready ? 'badge-success' : 'badge-warning'}">${exam.ready ? 'Ready' : 'Setup'}</span>
@@ -1643,7 +1698,7 @@ async function recalculateExam(examId, examName, btn) {
   try {
     const res = await apiJson(`/api/admin/exams/${encodeURIComponent(examId)}/recalculate`, { method: 'POST' });
     toast(res.recalculated !== undefined ? `Successfully recalculated ${res.recalculated} submissions.` : res.message || 'Recalculation complete.');
-    await fetchExams(); // Refresh to hide the button
+    await loadExams(); // Refresh to hide the button
   } catch (error) {
     toast(`Error recalculating: ${error.message}`);
     btn.innerHTML = originalHtml;
@@ -1656,6 +1711,7 @@ async function loadExams() {
 
   try {
     const { exams } = await apiJson('/api/admin/exams');
+    adminExams = exams;
     if (!exams.length) {
       document.getElementById('examCount').textContent = '0 exams';
       document.getElementById('rankExamSelect').innerHTML = '<option value="">- Choose exam -</option>';
@@ -1695,8 +1751,10 @@ async function toggleExamActive(examId, active) {
 function openKeyEditor(examId, examName) {
   selectedExamId = examId;
   selectedExamName = examName;
+  selectedExamBonus = (adminExams.find((exam) => exam.id === examId)?.bonus) || 0;
   resetKeyEditorState();
   updateKeyEditorTitle();
+  setBonusInputValue();
   document.getElementById('keyEditor').style.display = 'block';
   loadAnswerKey();
 }

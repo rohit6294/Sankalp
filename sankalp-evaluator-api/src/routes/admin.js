@@ -5,7 +5,7 @@ const { ADMIN_SECTIONS } = require('../permissions');
 const { resolveCollegeType } = require('../college-types');
 const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
-const { scoreSubmission, round2 } = require('../scoring/calculate');
+const { scoreSubmission, round2, applyExamBonus } = require('../scoring/calculate');
 const { defaultRankRows, predictRank } = require('../scoring/ranking');
 const multer = require('multer');
 const XLSX = require('xlsx');
@@ -167,6 +167,7 @@ router.get('/exams', requirePermission('evaluators', 'view'), async (_req, res) 
           name: data.name || doc.id,
           active: data.active === true,
           ready: data.ready === true,
+          bonus: Number.isFinite(data.bonus) ? Number(data.bonus) : 0,
           needsRecalculation: data.needsRecalculation === true,
           readinessProblems: Array.isArray(data.readinessProblems) ? data.readinessProblems : [],
           createdAt: normalizeTimestamp(data.createdAt),
@@ -210,6 +211,14 @@ router.patch('/exams/:examId', requirePermission('evaluators', 'edit'), async (r
   const updates = {};
   if (typeof req.body?.active === 'boolean') updates.active = req.body.active;
   if (typeof req.body?.name === 'string' && req.body.name.trim()) updates.name = req.body.name.trim();
+  if (req.body?.bonus !== undefined) {
+    const bonus = Number(req.body.bonus);
+    if (!Number.isFinite(bonus) || bonus < 0) {
+      return res.status(400).json({ error: 'invalid_bonus', message: 'Bonus marks must be a non-negative number' });
+    }
+    updates.bonus = round2(bonus);
+    updates.needsRecalculation = true;
+  }
   if (Object.keys(updates).length === 0) {
     return res.status(400).json({ error: 'no_updates' });
   }
@@ -329,6 +338,7 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
     const examRef = db.collection('exams').doc(examId);
     const examDoc = await examRef.get();
     if (!examDoc.exists) return res.status(404).json({ error: 'exam_not_found' });
+    const bonus = Number(examDoc.data().bonus) || 0;
 
     // 1. Fetch all answer keys
     const keysSnap = await examRef.collection('answerKeys').get();
@@ -365,17 +375,15 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
       };
 
       const { scores, analytics, perSubject } = scoreSubmission(sub.answers || {}, keys);
-      
-      scores.engineering = scores.total;
-      scores.bpharma = round2(scores.physics + scores.chemistry);
+      const computedScores = applyExamBonus(scores, bonus);
 
       const expectedRank = {
-        engineering: predictRank(scores.engineering, engineeringRows),
-        bpharma: predictRank(scores.bpharma, bpharmaRows),
+        engineering: predictRank(computedScores.engineering, engineeringRows),
+        bpharma: predictRank(computedScores.bpharma, bpharmaRows),
       };
 
       batch.update(subDoc.ref, {
-        scores,
+        scores: computedScores,
         analytics,
         perSubject,
         expectedRank,

@@ -120,4 +120,17 @@ function scoreSubmission(answers, keys) {
   return { scores, analytics, perSubject: { math, physics, chemistry } };
 }
 
-module.exports = { scoreSubject, scoreSubmission, round2, normalizeStudentAnswer };
+function applyExamBonus(scores, bonus = 0) {
+  const normalizedBonus = Number.isFinite(Number(bonus)) ? round2(Number(bonus)) : 0;
+  if (!normalizedBonus) {
+    return scores;
+  }
+
+  const updated = { ...scores, bonus: normalizedBonus };
+  updated.total = round2((scores.total || 0) + normalizedBonus);
+  updated.engineering = updated.total;
+  updated.bpharma = round2((scores.physics || 0) + (scores.chemistry || 0) + normalizedBonus);
+  return updated;
+}
+
+module.exports = { scoreSubject, scoreSubmission, round2, normalizeStudentAnswer, applyExamBonus };

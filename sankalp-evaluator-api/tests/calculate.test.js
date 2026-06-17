@@ -215,3 +215,14 @@ test('applyExamBonus: always returns engineering and bpharma scores', () => {
   assert.equal(updated5.bpharma, 40);
   assert.equal(updated5.total, 50);
 });
+
+test('scoreSubject: ignores BONUS questions entirely', () => {
+  const key = { 1: 'A', 2: 'BONUS', 3: 'C' };
+  const ans = { 1: 'A', 2: 'A', 3: 'X' }; // Q2 is answered incorrectly, Q3 is incorrect
+  const r = scoreSubject(ans, key, 'math');
+  assert.equal(r.marks, 0.75); // Q1 (+1), Q2 (ignored/0), Q3 (-0.25) -> 0.75
+  assert.equal(r.correct, 1);
+  assert.equal(r.wrong, 1); // Q3 is wrong
+  assert.equal(r.skipped, 0);
+  assert.equal(r.totalQuestions, 2); // Q2 is excluded
+});

@@ -27,9 +27,14 @@ function scoreSubject(studentAns, key, subject) {
   let skipped = 0;
   let effectiveCorrect = 0;
   const entries = Object.entries(key || {});
-  const totalQuestions = entries.length;
+  let totalQuestions = 0;
 
   for (const [qNoStr, correctAns] of entries) {
+    if (String(correctAns).trim().toUpperCase() === 'BONUS') {
+      continue;
+    }
+    totalQuestions++;
+
     const qNo = Number(qNoStr);
     const cat = categoryFor(subject, qNo);
     const ans = normalizeStudentAnswer(studentAns ? studentAns[qNoStr] : null);

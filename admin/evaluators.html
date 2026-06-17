@@ -17,12 +17,13 @@
     .tab-btn { padding: 12px 24px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--font-sans); border-radius: 4px 4px 0 0; transition: all 0.15s ease; }
     .tab-btn.active { background: var(--ink); color: var(--paper); }
     .tab-btn:hover:not(.active) { background: var(--paper-deep); border-color: var(--ink); }
-    .key-grid { display: grid; grid-template-columns: 56px repeat(4, 1fr); gap: 6px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--rule); font-size: 13px; }
+    .key-grid { display: grid; grid-template-columns: 56px repeat(5, 1fr); gap: 6px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--rule); font-size: 13px; }
     .key-grid .qno { font-family: var(--font-mono); font-size: 12px; color: var(--ink-mute); font-weight: 700; }
     .key-opt { padding: 8px 4px; border: 1px solid var(--rule); cursor: pointer; text-align: center; font-weight: 700; font-family: var(--font-mono); font-size: 12px; user-select: none; background: var(--paper); transition: all 0.1s; }
     .key-opt:hover { border-color: var(--ink); }
     .key-opt.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .key-opt.multi.selected { background: var(--forest); color: var(--paper); border-color: var(--forest); }
+    .key-opt.selected-bonus { background: #F59E0B; color: var(--paper); border-color: #F59E0B; }
     .cat-header { background: var(--paper-soft); border: 1px solid var(--ink); padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
     .set-tab { padding: 10px 18px; border: 1px solid var(--ink); cursor: pointer; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--paper); }
     .set-tab.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
@@ -1946,14 +1947,22 @@ function renderKeyGrid() {
     row.innerHTML = `<div class="qno">${prefix}${q}</div>`;
 
     const canEdit = adminCan('evaluators', 'edit');
-    ['A', 'B', 'C', 'D'].forEach((letter) => {
+    ['A', 'B', 'C', 'D', 'BONUS'].forEach((letter) => {
       const opt = document.createElement('div');
-      opt.className = `key-opt ${isCat3 ? 'multi' : ''} ${currentOpts.includes(letter) ? 'selected' : ''}`;
+      const isSelected = currentOpts.includes(letter);
+      let extraClass = '';
+      if (letter === 'BONUS') {
+        extraClass = isSelected ? 'selected-bonus' : '';
+      } else {
+        extraClass = isSelected ? 'selected' : '';
+      }
+      opt.className = `key-opt ${isCat3 && letter !== 'BONUS' ? 'multi' : ''} ${extraClass}`;
+      
       if (!canEdit) {
         opt.classList.add('sankalp-readonly-disabled');
         opt.style.pointerEvents = 'none';
       }
-      opt.textContent = letter;
+      opt.textContent = letter === 'BONUS' ? 'BONUS' : letter;
       opt.addEventListener('click', () => toggleKeyOpt(subject, q, letter, category));
       row.appendChild(opt);
     });
@@ -1974,16 +1983,28 @@ function toggleKeyOpt(subject, qNo, letter, category) {
   if (!keyData[docId][subject]) keyData[docId][subject] = {};
   const answers = keyData[docId][subject];
 
-  if (category === 3) {
-    const current = (answers[String(qNo)] || '').split(',').filter(Boolean).map((value) => value.trim().toUpperCase());
-    const idx = current.indexOf(letter);
-    if (idx >= 0) current.splice(idx, 1); else current.push(letter);
-    answers[String(qNo)] = current.sort().join(',');
-    if (!answers[String(qNo)]) delete answers[String(qNo)];
-  } else if (answers[String(qNo)] === letter) {
-    delete answers[String(qNo)];
+  if (letter === 'BONUS') {
+    if (answers[String(qNo)] === 'BONUS') {
+      delete answers[String(qNo)];
+    } else {
+      answers[String(qNo)] = 'BONUS';
+    }
   } else {
-    answers[String(qNo)] = letter;
+    if (answers[String(qNo)] === 'BONUS') {
+      answers[String(qNo)] = '';
+    }
+    
+    if (category === 3) {
+      const current = (answers[String(qNo)] || '').split(',').filter(Boolean).map((value) => value.trim().toUpperCase());
+      const idx = current.indexOf(letter);
+      if (idx >= 0) current.splice(idx, 1); else current.push(letter);
+      answers[String(qNo)] = current.sort().join(',');
+      if (!answers[String(qNo)]) delete answers[String(qNo)];
+    } else if (answers[String(qNo)] === letter) {
+      delete answers[String(qNo)];
+    } else {
+      answers[String(qNo)] = letter;
+    }
   }
 
   renderKeyGrid();
@@ -2769,7 +2790,11 @@ async function renderModalAnswers() {
     let statusBg = 'var(--paper-deep)';
     let borderStyle = '1px solid var(--rule)';
 
-    if (sAns !== null) {
+    if (cRaw === 'BONUS') {
+      statusText = 'Bonus';
+      statusBg = 'rgba(245,158,11,0.08)';
+      borderStyle = '1px solid #F59E0B';
+    } else if (sAns !== null) {
       if (cat === 3) {
         const correctSet = new Set(cAns || []);
         const studentOpts = Array.isArray(sAns) ? sAns : [sAns];

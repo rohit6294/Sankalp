@@ -772,7 +772,11 @@ function renderAnswers() {
     let statusBg = 'var(--paper-deep)';
     let borderStyle = '1px solid var(--rule)';
 
-    if (sAns !== null) {
+    if (cRaw === 'BONUS') {
+      statusText = 'Bonus';
+      statusBg = 'rgba(245,158,11,0.08)';
+      borderStyle = '1px solid #F59E0B';
+    } else if (sAns !== null) {
       if (cat === 3) {
         const correctSet = new Set(cAns || []);
         const studentOpts = Array.isArray(sAns) ? sAns : [sAns];

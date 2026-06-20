@@ -1575,7 +1575,6 @@ function applyEvaluatorPermissions() {
   setHidden('#sidebarStudentListBtn', !adminCan('students', 'view'));
   setHidden('#sidebarCollegePredictorBtn', !adminCan('collegePredictor', 'view'));
   setHidden('#sidebarPrepPortalBtn', !adminCan('evaluators', 'view'));
-}minCan('collegePredictor', 'view'));
   setHidden('[data-tab="exams"], [data-tab="rank"], [data-tab="submissions"]', !adminCan('evaluators', 'view'));
   setHidden('[data-tab="settings"]', !adminCan('settings', 'view'));
 

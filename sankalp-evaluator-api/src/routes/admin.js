@@ -18,36 +18,7 @@ const { bustSettingsCache } = require('./predictor');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-let _usersCache = null;
-let _usersCacheAt = 0;
-const USERS_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
-
-async function getCachedUsersMap() {
-  const now = Date.now();
-  if (_usersCache && (now - _usersCacheAt) < USERS_CACHE_TTL_MS) {
-    return _usersCache;
-  }
-
-  const userSnap = await db.collection('users').get();
-  const usersMap = {};
-  userSnap.forEach((doc) => {
-    const data = doc.data() || {};
-    const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
-    usersMap[doc.id] = {
-      name: fullName,
-      email: data.email || '—',
-      phone: data.phone || '—',
-      gender: data.gender || '—',
-      caste: data.caste || '—',
-      tfw: data.tfw || '—',
-      wbjeeYear: data.wbjeeYear || '—',
-    };
-  });
-
-  _usersCache = usersMap;
-  _usersCacheAt = now;
-  return _usersCache;
-}
+// Users cache and full users mapping function removed to prevent expensive database reads
 
 const VALID_PAPERS = new Set(['math', 'physChem']);
 const VALID_SETS = new Set(['A', 'B', 'C', 'D']);
@@ -363,12 +334,20 @@ router.post('/exams/:examId/recalculate', requirePermission('evaluators', 'edit'
       return res.json({ ok: true, message: 'no_submissions_to_recalculate', comparison: [] });
     }
 
-    // 4. Collect unique userIds and fetch their names in parallel
-    const userIds = [...new Set(subSnap.docs.map(d => d.data().userId).filter(Boolean))];
+    // 4. Collect user names from submissions, fallback to user docs only if missing
     const userNames = {};
-    if (userIds.length > 0) {
+    const missingUserDocsUids = [];
+    for (const subDoc of subSnap.docs) {
+      const sub = subDoc.data() || {};
+      if (sub.studentName) {
+        userNames[sub.userId] = sub.studentName;
+      } else if (sub.userId && !missingUserDocsUids.includes(sub.userId)) {
+        missingUserDocsUids.push(sub.userId);
+      }
+    }
+    if (missingUserDocsUids.length > 0) {
       const userDocs = await Promise.all(
-        userIds.map(uid => db.collection('users').doc(uid).get())
+        missingUserDocsUids.map(uid => db.collection('users').doc(uid).get())
       );
       userDocs.forEach(uDoc => {
         if (uDoc.exists) {
@@ -535,73 +514,65 @@ router.get('/submissions', requirePermission('evaluators', 'view'), async (req, 
       });
     }
 
-    const baseUsersMap = await getCachedUsersMap();
-    const usersMap = { ...baseUsersMap };
-
-    const uncachedUserIds = [...new Set(
-      submissions
-        .map(sub => sub.userId)
-        .filter(uid => uid && !usersMap[uid])
-    )];
-
-    if (uncachedUserIds.length > 0) {
-      try {
-        const userDocs = await Promise.all(
-          uncachedUserIds.map(uid => db.collection('users').doc(uid).get())
-        );
-        userDocs.forEach(singleUserDoc => {
-          if (singleUserDoc.exists) {
-            const data = singleUserDoc.data() || {};
-            const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
-            const uid = singleUserDoc.id;
-            usersMap[uid] = {
-              name: fullName,
-              email: data.email || '—',
-              phone: data.phone || '—',
-              gender: data.gender || '—',
-              caste: data.caste || '—',
-              tfw: data.tfw || '—',
-              wbjeeYear: data.wbjeeYear || '—',
-            };
-            if (_usersCache) {
-              _usersCache[uid] = usersMap[uid];
-            }
-          }
-        });
-      } catch (err) {
-        console.error('Failed to fetch uncached users in parallel:', err);
-      }
-    }
-
     const reqSnap = await db.collection('resetRequests').where('status', '==', 'pending').get();
     const pendingResets = {};
     reqSnap.forEach(doc => {
       pendingResets[doc.id] = doc.data();
     });
 
-    const joined = submissions.map((sub) => {
-      const user = usersMap[sub.userId] || {
-        name: 'Unknown Student',
-        email: sub.userId || '—',
-        phone: '—',
-        gender: '—',
-        caste: '—',
-        tfw: '—',
-        wbjeeYear: '—'
-      };
-      return {
+    const joined = [];
+    for (const sub of submissions) {
+      let studentName = sub.studentName;
+      let studentEmail = sub.studentEmail;
+      let studentPhone = sub.studentPhone;
+      let studentGender = sub.studentGender;
+      let studentCaste = sub.studentCaste;
+      let studentTFW = sub.studentTFW;
+      let studentYear = sub.studentYear;
+
+      // Lazy migration / fallback
+      if (!studentName && sub.userId) {
+        try {
+          const userDoc = await db.collection('users').doc(sub.userId).get();
+          if (userDoc.exists) {
+            const uData = userDoc.data() || {};
+            studentName = uData.name || uData.displayName || `${uData.firstName || ''} ${uData.lastName || ''}`.trim() || 'Unknown Student';
+            studentEmail = uData.email || '—';
+            studentPhone = uData.phone || '—';
+            studentGender = uData.gender || '—';
+            studentCaste = uData.caste || '—';
+            studentTFW = uData.tfw || '—';
+            studentYear = uData.wbjeeYear || '—';
+
+            // Asynchronously save back to Firestore to permanently migrate
+            db.collection('submissions').doc(sub.id).update({
+              studentName,
+              studentEmail,
+              studentPhone,
+              studentGender,
+              studentCaste,
+              studentTFW,
+              studentYear,
+            }).catch(e => console.error(`Lazy migration failed for submission ${sub.id}:`, e));
+          }
+        } catch (err) {
+          console.error(`Error fetching fallback user for submission ${sub.id}:`, err);
+        }
+      }
+
+      joined.push({
         ...sub,
-        studentName: user.name,
-        studentEmail: user.email,
-        studentPhone: user.phone,
-        studentGender: user.gender,
-        studentCaste: user.caste,
-        studentTFW: user.tfw,
-        studentYear: user.wbjeeYear,
+        studentName: studentName || 'Unknown Student',
+        studentEmail: studentEmail || '—',
+        studentPhone: studentPhone || '—',
+        studentGender: studentGender || '—',
+        studentCaste: studentCaste || '—',
+        studentTFW: studentTFW || '—',
+        studentYear: studentYear || '—',
         resetRequested: !!pendingResets[sub.id],
         resetReason: pendingResets[sub.id] ? pendingResets[sub.id].reason : null,
-      };
-    });
+      });
+    }
 
     res.json({ submissions: joined });
   } catch (e) {
@@ -737,19 +708,15 @@ router.get('/announcement-meta', requirePermission('announcements', 'view'), asy
       series.push({ id: doc.id, title: data.title || doc.id });
     });
 
-    // 2. Fetch all users to collect unique wbjeeYear
-    const usersSnap = await db.collection('users').get();
-    const yearsSet = new Set();
-    usersSnap.forEach(doc => {
-      const data = doc.data();
-      if (data.wbjeeYear) {
-        const yr = String(data.wbjeeYear).trim();
-        if (yr && yr !== '—') {
-          yearsSet.add(yr);
-        }
-      }
-    });
-    const years = Array.from(yearsSet).sort();
+    // 2. Dynamically generate target WBJEE years list instead of scanning the entire users collection
+    const currentYear = new Date().getFullYear();
+    const years = [
+      String(currentYear - 1),
+      String(currentYear),
+      String(currentYear + 1),
+      String(currentYear + 2),
+      String(currentYear + 3),
+    ];
 
     res.json({ ok: true, series, years });
   } catch (err) {
@@ -793,12 +760,25 @@ router.post('/broadcast-announcement', requirePermission('announcements', 'edit'
       });
 
       if (userIds.size > 0) {
-        const usersSnap = await db.collection('users').get();
-        usersSnap.forEach(doc => {
-          if (userIds.has(doc.id)) {
-            const data = doc.data();
+        const userIdsArray = Array.from(userIds);
+        const chunks = [];
+        for (let i = 0; i < userIdsArray.length; i += 30) {
+          chunks.push(userIdsArray.slice(i, i + 30));
+        }
+
+        const userSnaps = await Promise.all(
+          chunks.map(chunk =>
+            db.collection('users')
+              .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
+              .get()
+          )
+        );
+
+        userSnaps.forEach(userSnap => {
+          userSnap.forEach(doc => {
+            const data = doc.data() || {};
             if (data.email) emails.push(data.email.trim());
-          }
+          });
         });
       }
     } else {

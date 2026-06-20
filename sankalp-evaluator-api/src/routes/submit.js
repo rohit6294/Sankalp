@@ -104,6 +104,7 @@ router.post('/', verifyToken, async (req, res) => {
       bpharma: predictRank(computedScores.bpharma, bpharmaRows),
     };
 
+    const fullName = String(userData.name || userData.displayName || `${userData.firstName || ''} ${userData.lastName || ''}`).trim() || 'Unknown Student';
     const payload = {
       userId: uid,
       examId,
@@ -117,6 +118,13 @@ router.post('/', verifyToken, async (req, res) => {
       expectedRank,
       submittedAt: admin.firestore.FieldValue.serverTimestamp(),
       locked: true,
+      studentName: fullName,
+      studentEmail: userData.email || '—',
+      studentPhone: userData.phone || '—',
+      studentGender: userData.gender || '—',
+      studentCaste: userData.caste || '—',
+      studentTFW: userData.tfw || '—',
+      studentYear: userData.wbjeeYear || '—',
     };
     await subRef.create(payload);
 

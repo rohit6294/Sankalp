@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prep Portal — Sankalp Aspirants</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/profile-check.js"></script>
+  <!-- Chart.js for Mock Test Graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .glass-card { background: var(--paper-soft); border: 1px solid var(--rule-strong); border-radius: 16px; padding: 24px; }
+    .nav-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--rule); padding-bottom: 12px; margin-bottom: 24px; overflow-x: auto; white-space: nowrap; }
+    .nav-tab-btn { padding: 8px 16px; border: 1px solid transparent; font-size: 13px; font-weight: 700; color: var(--ink-mute); cursor: pointer; transition: all 0.2s; border-radius: 8px; }
+    .nav-tab-btn:hover { background: var(--paper-soft); color: var(--ink); }
+    .nav-tab-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    
+    .subject-tab-btn { padding: 6px 12px; font-size: 12px; font-weight: 700; border: 1px solid var(--rule); border-radius: 6px; cursor: pointer; color: var(--ink-mute); transition: all 0.2s; }
+    .subject-tab-btn.active { background: var(--rust); color: white; border-color: var(--rust); }
+    
+    .chapter-card { border: 1px solid var(--rule); background: var(--paper); padding: 18px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s; }
+    .chapter-card:hover { border-color: var(--rust); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    
+    .status-select { font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; outline: none; border: 1px solid var(--rule-strong); background: var(--paper-soft); color: var(--ink); cursor: pointer; }
+    .status-select.status-not_started { border-color: #64748B; color: #64748B; }
+    .status-select.status-studying { border-color: #3B82F6; color: #3B82F6; }
+    .status-select.status-completed { border-color: #10B981; color: #10B981; }
+    .status-select.status-needs_revision { border-color: #F59E0B; color: #F59E0B; }
+    .status-select.status-mastered { border-color: #8B5CF6; color: #8B5CF6; }
+
+    .res-link { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink); text-decoration: none; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper-soft); transition: all 0.2s; }
+    .res-link:hover { border-color: var(--rust); color: var(--rust); background: var(--paper); }
+    .res-link.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    
+    .quote-box { border-left: 4px solid var(--rust); padding-left: 16px; font-style: italic; color: var(--ink-mute); font-family: var(--font-display); }
+    
+    .task-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--rule); background: var(--paper); border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; }
+    .task-item.completed { opacity: 0.6; }
+    .task-item.completed span { text-decoration: line-through; }
+
+    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.2s; border-radius: 6px; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body class="bg-[var(--paper-deep)] text-[var(--ink)] font-sans">
+
+<!-- Mobile menu toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP ASPIRANTS</div>
+        <div class="brand-sub">JEE/WBJEE PREPARATION</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="prep.html" class="sidebar-link active"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal</a>
+    <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+  <!-- User info at bottom -->
+  <div style="position:absolute; bottom:0; left:0; right:0; padding:16px 22px; border-top:1px solid var(--ink);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="avatarSidebar" class="brand-mark" style="width:34px; height:34px; font-size:14px;">?</div>
+      <div style="overflow:hidden;">
+        <div id="sidebarName" style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading...</div>
+        <div id="sidebarEmail" style="font-size:11px; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:32px;">
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="display-lg">🚀 Free Preparation Portal</h1>
+      <p style="color:var(--ink-mute); font-size:14px; margin-top:4px;">Access curated resources and track your progress chapter-by-chapter.</p>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="nav-tabs">
+    <button class="nav-tab-btn active" onclick="switchTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
+    <button class="nav-tab-btn" onclick="switchTab('subjects')"><i class="fas fa-book"></i> Chapter-wise Roadmap</button>
+    <button class="nav-tab-btn" onclick="switchTab('revision')"><i class="fas fa-history"></i> Revision Tracker</button>
+    <button class="nav-tab-btn" onclick="switchTab('mock')"><i class="fas fa-vial"></i> Mock Test Log</button>
+    <button class="nav-tab-btn" onclick="switchTab('resources')"><i class="fas fa-folder-open"></i> Resource Library</button>
+    <button class="nav-tab-btn" onclick="switchTab('community')"><i class="fas fa-users"></i> Community</button>
+  </div>
+
+  <!-- 1. DASHBOARD VIEW -->
+  <div id="tabView-dashboard" class="tab-view">
+    <div style="display:grid; grid-template-columns: 1fr 340px; gap:24px; align-items:start;" class="max-[900px]:grid-cols-1">
+      
+      <!-- Left side -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        
+        <!-- Welcome Card -->
+        <div class="glass-card" style="background:var(--ink); color:var(--paper); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h2 class="display-md" style="color:var(--paper); font-size:1.4rem;">Hello, <span id="welcomeName">Aspirant</span>!</h2>
+            <p style="color:rgba(234,219,192,0.7); font-size:13px; margin-top:6px;">Your preparation is in full swing. Keep pushing daily targets to master the syllabus!</p>
+          </div>
+          <div style="background:var(--rust); color:white; font-size:1.8rem; width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center;">🎯</div>
+        </div>
+
+        <!-- Overall progress -->
+        <div class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Overall Completion Progress</h3>
+            <span id="overallProgressPercent" style="font-size:1.2rem; font-weight:800; color:var(--rust);">0%</span>
+          </div>
+          <div class="progress-bar" style="height:12px; margin-bottom:16px;"><div class="progress-fill" id="overallProgressFill" style="width:0%;"></div></div>
+          
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;" class="max-[600px]:grid-cols-1">
+            <div style="border:1px solid var(--rule); padding:14px; border-radius:10px; background:var(--paper);">
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                <strong>Physics</strong><span id="phyProgressText">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="phyProgressFill" style="width:0%;"></div></div>
+            </div>
+            <div style="border:1px solid var(--rule); padding:14px; border-radius:10px; background:var(--paper);">
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                <strong>Chemistry</strong><span id="chemProgressText">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="chemProgressFill" style="width:0%;"></div></div>
+            </div>
+            <div style="border:1px solid var(--rule); padding:14px; border-radius:10px; background:var(--paper);">
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                <strong>Mathematics</strong><span id="mathProgressText">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="mathProgressFill" style="width:0%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recently Completed -->
+        <div class="glass-card">
+          <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px;">Recently Completed Chapters</h3>
+          <div id="recentChaptersList" style="display:flex; flex-direction:column; gap:8px;">
+            <div style="color:var(--ink-mute); font-size:12px; text-align:center; padding:16px;">Completed chapters will appear here. Keep studying!</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right side -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        
+        <!-- Daily study target -->
+        <div class="glass-card">
+          <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Daily Study Target</h3>
+          
+          <div id="taskListContainer" style="max-height: 280px; overflow-y: auto; margin-bottom:14px;">
+            <div style="color:var(--ink-mute); font-size:12px; text-align:center; padding:16px;">No tasks added for today. Add one below!</div>
+          </div>
+
+          <form id="addTaskForm" onsubmit="handleAddTask(event)" style="display:flex; gap:8px;">
+            <input type="text" id="taskInput" placeholder="e.g. Complete NLM Lecture" class="input-field" style="margin-bottom:0; font-size:12px; padding:8px 12px; flex:1;" required>
+            <button type="submit" class="btn-rust btn-sm" style="padding:0 14px;"><i class="fas fa-plus"></i></button>
+          </form>
+        </div>
+
+        <!-- Daily motivation quote -->
+        <div class="glass-card">
+          <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">Daily Motivation</h3>
+          <div class="quote-box">
+            <p id="motivationalQuote">"Consistency beats intensity."</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. SUBJECT ROADMAP VIEW -->
+  <div id="tabView-subjects" class="tab-view" style="display:none;">
+    <!-- Subject sub-tabs -->
+    <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+      <button class="subject-tab-btn active" id="btnSubj-physics" onclick="switchSubject('physics')">Physics</button>
+      <button class="subject-tab-btn" id="btnSubj-chemistry" onclick="switchSubject('chemistry')">Chemistry</button>
+      <button class="subject-tab-btn" id="btnSubj-mathematics" onclick="switchSubject('mathematics')">Mathematics</button>
+    </div>
+
+    <!-- Category filters for Chemistry & Math -->
+    <div id="categoryFilterContainer" style="display:none; gap:8px; margin-bottom:20px; flex-wrap:wrap; border-top: 1px solid var(--rule); padding-top:14px;">
+      <!-- Populated via Javascript -->
+    </div>
+
+    <!-- Chapters Grid -->
+    <div id="chaptersGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
+      <!-- Chapter Cards populated via JavaScript -->
+    </div>
+  </div>
+
+  <!-- 3. REVISION TRACKER VIEW -->
+  <div id="tabView-revision" class="tab-view" style="display:none;">
+    <div class="glass-card" style="margin-bottom:24px;">
+      <h2 class="display-md" style="font-size:1.1rem; margin-bottom:6px;">Needs Revision Tracker 🔍</h2>
+      <p style="color:var(--ink-mute); font-size:13px;">This page filters all chapters you have marked as **Needs Revision**. Go through their lectures and notes to master them.</p>
+    </div>
+
+    <div id="revisionChaptersGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
+      <div style="grid-column: 1 / -1; color:var(--ink-mute); font-size:13px; text-align:center; padding:48px;" class="glass-card">
+        <i class="fas fa-check-circle" style="font-size:2rem; color:var(--forest); margin-bottom:12px; display:block;"></i>
+        No chapters marked for revision. Great job keeping your concepts fresh!
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. MOCK TEST TRACKER VIEW -->
+  <div id="tabView-mock" class="tab-view" style="display:none;">
+    <div style="display:grid; grid-template-columns: 1fr 340px; gap:24px; align-items:start;" class="max-[900px]:grid-cols-1">
+      
+      <!-- Left side - log list & statistics -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        
+        <!-- Score Stats row -->
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;">
+          <div class="glass-card" style="text-align:center; padding:16px;">
+            <div class="eyebrow">Average Score</div>
+            <div id="mockStatAvg" style="font-size:1.8rem; font-weight:800; color:var(--rust); margin-top:6px;">—</div>
+          </div>
+          <div class="glass-card" style="text-align:center; padding:16px;">
+            <div class="eyebrow">Highest Score</div>
+            <div id="mockStatHigh" style="font-size:1.8rem; font-weight:800; color:var(--forest); margin-top:6px;">—</div>
+          </div>
+          <div class="glass-card" style="text-align:center; padding:16px;">
+            <div class="eyebrow">Lowest Score</div>
+            <div id="mockStatLow" style="font-size:1.8rem; font-weight:800; color:var(--ink-mute); margin-top:6px;">—</div>
+          </div>
+        </div>
+
+        <!-- Graph Card -->
+        <div class="glass-card">
+          <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:16px;">Score Improvement Trend</h3>
+          <div style="position:relative; height: 260px; width: 100%;">
+            <canvas id="scoreImprovementChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Mock list table -->
+        <div class="glass-card" style="padding:0; overflow:hidden;">
+          <div style="padding:16px 20px; border-bottom:1px solid var(--rule);">
+            <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Attempted Mock Tests</h3>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+              <thead>
+                <tr style="background:var(--paper-soft); border-bottom:1px solid var(--rule);">
+                  <th style="padding:12px 20px;">Date</th>
+                  <th style="padding:12px 20px;">Exam Name</th>
+                  <th style="padding:12px 20px;">Marks</th>
+                  <th style="padding:12px 20px; text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="mockTestTableBody">
+                <tr>
+                  <td colspan="4" style="text-align:center; padding:32px; color:var(--ink-mute);"><i class="fas fa-vial" style="margin-right:6px;"></i> No mock tests logged yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right side - log form & predictor -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        
+        <!-- Log test form -->
+        <div class="glass-card">
+          <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px;">Log Mock Test</h3>
+          <form id="logMockForm" onsubmit="handleLogMockTest(event)" style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label class="input-label" style="font-size:11px;">Test Date *</label>
+              <input type="date" id="mockDate" class="input-field" style="margin-bottom:0; font-size:12px;" required>
+            </div>
+            <div>
+              <label class="input-label" style="font-size:11px;">Exam / Test Name *</label>
+              <input type="text" id="mockName" placeholder="e.g. WBJEE Mock Test 1" class="input-field" style="margin-bottom:0; font-size:12px;" required>
+            </div>
+            <div>
+              <label class="input-label" style="font-size:11px;">Marks Secured *</label>
+              <input type="number" step="0.01" id="mockMarks" placeholder="e.g. 73.5" class="input-field" style="margin-bottom:0; font-size:12px;" required>
+            </div>
+            <button type="submit" class="btn-rust btn-sm" style="margin-top:4px;"><i class="fas fa-save"></i> Save Test Score</button>
+          </form>
+        </div>
+
+        <!-- Rank Predictor based on Avg Mock Score -->
+        <div class="glass-card">
+          <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Average Rank Predictor</h3>
+          <p style="font-size:12px; color:var(--ink-mute); margin-bottom:14px;">Enter your typical average mock marks to predict expected ranks.</p>
+          
+          <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+            <div>
+              <label class="input-label" style="font-size:11px;">Average Mock Marks</label>
+              <input type="number" step="0.1" id="predictorAvgMarks" placeholder="e.g. 85" oninput="calculateExpectedRanks()" class="input-field" style="margin-bottom:0; font-size:12px;">
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--rule); padding-top:12px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px;">
+              <span>Expected WBJEE Rank:</span>
+              <strong id="expectedWbjeeRank" style="color:var(--rust);">—</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px;">
+              <span>Expected JEE Percentile:</span>
+              <strong id="expectedJeePercentile" style="color:var(--forest);">—</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. RESOURCE LIBRARY VIEW -->
+  <div id="tabView-resources" class="tab-view" style="display:none;">
+    <div class="glass-card" style="margin-bottom:24px;">
+      <h2 class="display-md" style="font-size:1.1rem; margin-bottom:6px;">Formula Sheets & Question Banks 📄</h2>
+      <p style="color:var(--ink-mute); font-size:13px;">Download formula sheets, short notes, and previous year questions to aid your preparation.</p>
+    </div>
+
+    <!-- Notes list loaded dynamically -->
+    <div id="resourceNotesGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:20px;">
+      <div style="grid-column:1/-1; text-align:center; padding:32px; color:var(--ink-mute);" class="glass-card">
+        <i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i> Loading Resource Library items...
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. COMMUNITY VIEW -->
+  <div id="tabView-community" class="tab-view" style="display:none;">
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:24px;">
+      
+      <!-- Telegram -->
+      <div class="glass-card" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:space-between; min-height:220px;">
+        <div style="font-size:3rem; color:#0088cc; margin-bottom:12px;"><i class="fab fa-telegram"></i></div>
+        <div>
+          <h3 style="font-family:var(--font-display); font-weight:800; font-size:1.1rem; margin-bottom:6px;">Telegram Community</h3>
+          <p style="font-size:13px; color:var(--ink-mute); padding:0 12px;">Join our community for regular mock test PDFs, study material updates, and strategy files.</p>
+        </div>
+        <a href="https://t.me/sankalpaspirants" target="_blank" class="btn-rust btn-sm" style="margin-top:16px; background:#0088cc; border-color:#0088cc;"><i class="fab fa-telegram-plane"></i> Join Channel</a>
+      </div>
+
+      <!-- WhatsApp Group -->
+      <div class="glass-card" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:space-between; min-height:220px;">
+        <div style="font-size:3rem; color:#25D366; margin-bottom:12px;"><i class="fab fa-whatsapp"></i></div>
+        <div>
+          <h3 style="font-family:var(--font-display); font-weight:800; font-size:1.1rem; margin-bottom:6px;">WhatsApp Group</h3>
+          <p style="font-size:13px; color:var(--ink-mute); padding:0 12px;">Clear your doubts, ask questions about strategy, and connect with fellow JEE/WBJEE aspirants.</p>
+        </div>
+        <a href="https://chat.whatsapp.com/sankalpaspirants" target="_blank" class="btn-rust btn-sm" style="margin-top:16px; background:#25D366; border-color:#25D366;"><i class="fab fa-whatsapp"></i> Join Group</a>
+      </div>
+
+      <!-- YouTube Channel -->
+      <div class="glass-card" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:space-between; min-height:220px;">
+        <div style="font-size:3rem; color:#FF0000; margin-bottom:12px;"><i class="fab fa-youtube"></i></div>
+        <div>
+          <h3 style="font-family:var(--font-display); font-weight:800; font-size:1.1rem; margin-bottom:6px;">YouTube Channel</h3>
+          <p style="font-size:13px; color:var(--ink-mute); padding:0 12px;">Watch the best video lectures, prep guidance, and college reviews targeted specifically for Bengali students.</p>
+        </div>
+        <a href="https://youtube.com/sankalplearning" target="_blank" class="btn-rust btn-sm" style="margin-top:16px; background:#FF0000; border-color:#FF0000;"><i class="fab fa-youtube"></i> Subscribe Channel</a>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast notification box -->
+<div id="toast" class="toast"></div>
+
+<script>
+  let currentUser = null;
+  let allChapters = [];
+  let studentProgress = {};
+  let dailyTasks = [];
+  let mockTests = [];
+  let scoreChart = null;
+
+  let currentSubject = 'physics';
+  let currentCategory = 'general';
+
+  // Motivational quotes
+  const quotes = [
+    "Consistency beats intensity.",
+    "Small progress every day leads to big results.",
+    "Today's effort is tomorrow's rank.",
+    "Success isn't overnight. It's when every day you get a little better.",
+    "The secret of getting ahead is getting started.",
+    "Hard work beats talent when talent fails to work hard."
+  ];
+
+  // Initialize daily quote
+  document.getElementById('motivationalQuote').textContent = `"${quotes[new Date().getDay() % quotes.length]}"`;
+
+  function showToast(message, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = message;
+    t.style.background = isError ? '#EF4444' : 'var(--ink)';
+    t.style.color = isError ? '#FFFFFF' : 'var(--paper)';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.href = '../login.html';
+    });
+  }
+
+  // Generic fetch wrapper
+  async function apiJson(path, options = {}) {
+    const token = await auth.currentUser?.getIdToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(options.headers || {})
+    };
+    const response = await fetch((window.EVALUATOR_API || '') + path, {
+      ...options,
+      headers
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'API request failed');
+    }
+    return response.json();
+  }
+
+  // Switch between tabs
+  function switchTab(tabId) {
+    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabId));
+    });
+    document.querySelectorAll('.tab-view').forEach(view => {
+      view.style.display = view.id === `tabView-${tabId}` ? 'block' : 'none';
+    });
+    if (tabId === 'mock') {
+      setTimeout(renderChart, 100);
+    }
+  }
+
+  // Switch subjects inside roadmap tab
+  function switchSubject(subject) {
+    currentSubject = subject;
+    document.querySelectorAll('.subject-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.id === `btnSubj-${subject}`);
+    });
+    
+    // Set up category filters if applicable
+    const catContainer = document.getElementById('categoryFilterContainer');
+    if (subject === 'physics') {
+      catContainer.style.display = 'none';
+      currentCategory = 'general';
+    } else if (subject === 'chemistry') {
+      catContainer.style.display = 'flex';
+      catContainer.innerHTML = `
+        <button class="subject-tab-btn active" id="btnCat-physical" onclick="switchCategory('physical')">Physical</button>
+        <button class="subject-tab-btn" id="btnCat-organic" onclick="switchCategory('organic')">Organic</button>
+        <button class="subject-tab-btn" id="btnCat-inorganic" onclick="switchCategory('inorganic')">Inorganic</button>
+      `;
+      currentCategory = 'physical';
+    } else if (subject === 'mathematics') {
+      catContainer.style.display = 'flex';
+      catContainer.innerHTML = `
+        <button class="subject-tab-btn active" id="btnCat-algebra" onclick="switchCategory('algebra')">Algebra</button>
+        <button class="subject-tab-btn" id="btnCat-trigonometry" onclick="switchCategory('trigonometry')">Trigonometry</button>
+        <button class="subject-tab-btn" id="btnCat-coordinate_geometry" onclick="switchCategory('coordinate_geometry')">Coordinate Geometry</button>
+        <button class="subject-tab-btn" id="btnCat-calculus" onclick="switchCategory('calculus')">Calculus</button>
+        <button class="subject-tab-btn" id="btnCat-vector_3d" onclick="switchCategory('vector_3d')">Vector & 3D</button>
+      `;
+      currentCategory = 'algebra';
+    }
+    
+    renderRoadmapChapters();
+  }
+
+  function switchCategory(category) {
+    currentCategory = category;
+    document.querySelectorAll('#categoryFilterContainer .subject-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('onclick').includes(category));
+    });
+    renderRoadmapChapters();
+  }
+
+  // Load basic data
+  async function loadData() {
+    try {
+      // 1. Fetch chapters
+      const chData = await apiJson('/api/prep/chapters');
+      allChapters = chData.chapters || [];
+
+      // 2. Fetch progress map
+      const progData = await apiJson('/api/prep/progress');
+      studentProgress = progData.progress || {};
+
+      // 3. Fetch tasks
+      const taskData = await apiJson('/api/prep/tasks');
+      dailyTasks = taskData.tasks || [];
+
+      // 4. Fetch mock tests
+      const mockData = await apiJson('/api/prep/mock-tests');
+      mockTests = mockData.tests || [];
+
+      // Render all views
+      renderDashboardProgress();
+      renderTasks();
+      renderRecentChapters();
+      switchSubject('physics'); // Initial roadmap view
+      renderRevisionChapters();
+      renderMockTestsTable();
+      renderChart();
+      loadResourceLibrary();
+    } catch (err) {
+      console.error('Failed to load preparation portal data:', err);
+      showToast('Error loading portal data: ' + err.message, true);
+    }
+  }
+
+  // Render overall and subject completion progress bars
+  function renderDashboardProgress() {
+    if (!allChapters.length) return;
+
+    const subjects = { physics: 0, chemistry: 0, mathematics: 0 };
+    const completedCounts = { physics: 0, chemistry: 0, mathematics: 0 };
+    const totalCounts = { physics: 0, chemistry: 0, mathematics: 0 };
+
+    allChapters.forEach(ch => {
+      totalCounts[ch.subject]++;
+      const prog = studentProgress[ch.id];
+      if (prog && (prog.status === 'completed' || prog.status === 'mastered')) {
+        completedCounts[ch.subject]++;
+      }
+    });
+
+    const getPercent = (c, t) => t > 0 ? Math.round((c / t) * 100) : 0;
+    
+    const phyPct = getPercent(completedCounts.physics, totalCounts.physics);
+    const chemPct = getPercent(completedCounts.chemistry, totalCounts.chemistry);
+    const mathPct = getPercent(completedCounts.mathematics, totalCounts.mathematics);
+
+    document.getElementById('phyProgressText').textContent = `${phyPct}%`;
+    document.getElementById('phyProgressFill').style.width = `${phyPct}%`;
+
+    document.getElementById('chemProgressText').textContent = `${chemPct}%`;
+    document.getElementById('chemProgressFill').style.width = `${chemPct}%`;
+
+    document.getElementById('mathProgressText').textContent = `${mathPct}%`;
+    document.getElementById('mathProgressFill').style.width = `${mathPct}%`;
+
+    const totalChaptersCount = allChapters.length;
+    const totalCompleted = Object.values(completedCounts).reduce((a, b) => a + b, 0);
+    const overallPct = getPercent(totalCompleted, totalChaptersCount);
+
+    document.getElementById('overallProgressPercent').textContent = `${overallPct}%`;
+    document.getElementById('overallProgressFill').style.width = `${overallPct}%`;
+  }
+
+  // Render list of recently completed chapters
+  function renderRecentChapters() {
+    const listEl = document.getElementById('recentChaptersList');
+    
+    const completedArr = allChapters.filter(ch => {
+      const prog = studentProgress[ch.id];
+      return prog && (prog.status === 'completed' || prog.status === 'mastered');
+    });
+
+    if (completedArr.length === 0) {
+      listEl.innerHTML = `<div style="color:var(--ink-mute); font-size:12px; text-align:center; padding:16px;">Completed chapters will appear here. Keep studying!</div>`;
+      return;
+    }
+
+    // Sort by updatedAt if available
+    completedArr.sort((a, b) => {
+      const tsA = studentProgress[a.id]?.updatedAt?.toMillis ? studentProgress[a.id].updatedAt.toMillis() : 0;
+      const tsB = studentProgress[b.id]?.updatedAt?.toMillis ? studentProgress[b.id].updatedAt.toMillis() : 0;
+      return tsB - tsA;
+    });
+
+    listEl.innerHTML = completedArr.slice(0, 5).map(ch => {
+      const status = studentProgress[ch.id]?.status || '';
+      const color = status === 'mastered' ? '#8B5CF6' : '#10B981';
+      const statusLabel = status.toUpperCase().replace('_', ' ');
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border:1px solid var(--rule); background:var(--paper); border-radius:8px; font-size:13px;">
+          <div>
+            <strong>${ch.name}</strong>
+            <div style="font-size:10px; color:var(--ink-mute); text-transform:uppercase; margin-top:2px;">${ch.subject} · ${ch.category}</div>
+          </div>
+          <span style="font-size:10px; font-weight:700; color:${color}; border:1px solid ${color}; padding:2px 6px; border-radius:4px;">${statusLabel}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Render daily checklist tasks
+  function renderTasks() {
+    const container = document.getElementById('taskListContainer');
+    if (dailyTasks.length === 0) {
+      container.innerHTML = `<div style="color:var(--ink-mute); font-size:12px; text-align:center; padding:16px;">No tasks added for today. Add one below!</div>`;
+      return;
+    }
+
+    container.innerHTML = dailyTasks.map(task => {
+      return `
+        <div class="task-item ${task.completed ? 'completed' : ''}">
+          <div style="display:flex; align-items:center; gap:10px; flex:1;">
+            <input type="checkbox" onchange="toggleTask('${task.id}', this.checked)" ${task.completed ? 'checked' : ''} style="cursor:pointer;">
+            <span style="font-size:13px; color:var(--ink);">${task.text}</span>
+          </div>
+          <button onclick="deleteTask('${task.id}')" style="color:#EF4444; font-size:13px; background:none; border:none; cursor:pointer; padding:4px;"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function handleAddTask(e) {
+    e.preventDefault();
+    const input = document.getElementById('taskInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    try {
+      const added = await apiJson('/api/prep/tasks', {
+        method: 'POST',
+        body: JSON.stringify({ text })
+      });
+      dailyTasks.push(added);
+      input.value = '';
+      renderTasks();
+      showToast('Task added successfully!');
+    } catch (err) {
+      showToast('Failed to add task: ' + err.message, true);
+    }
+  }
+
+  async function toggleTask(taskId, completed) {
+    try {
+      await apiJson(`/api/prep/tasks/${taskId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ completed })
+      });
+      const idx = dailyTasks.findIndex(t => t.id === taskId);
+      if (idx !== -1) {
+        dailyTasks[idx].completed = completed;
+      }
+      renderTasks();
+    } catch (err) {
+      showToast('Failed to update task: ' + err.message, true);
+    }
+  }
+
+  async function deleteTask(taskId) {
+    try {
+      await apiJson(`/api/prep/tasks/${taskId}`, {
+        method: 'DELETE'
+      });
+      dailyTasks = dailyTasks.filter(t => t.id !== taskId);
+      renderTasks();
+      showToast('Task deleted');
+    } catch (err) {
+      showToast('Failed to delete task: ' + err.message, true);
+    }
+  }
+
+  // Render Subject Roadmap Grid
+  function renderRoadmapChapters() {
+    const grid = document.getElementById('chaptersGrid');
+    
+    const filtered = allChapters.filter(ch => {
+      if (ch.subject !== currentSubject) return false;
+      if (currentSubject !== 'physics' && ch.category !== currentCategory) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:32px; color:var(--ink-mute);">No chapters found under this category.</div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(ch => {
+      const prog = studentProgress[ch.id] || { status: 'not_started' };
+      const currentStatus = prog.status || 'not_started';
+      
+      const selectClass = `status-${currentStatus}`;
+      const linkClass = (link) => link ? 'res-link' : 'res-link disabled';
+      const target = (link) => link ? `href="${link}" target="_blank"` : '';
+
+      return `
+        <div class="chapter-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom:12px;">
+              <h4 style="font-family:var(--font-display); font-weight:800; font-size:15px;">${ch.name}</h4>
+              <select class="status-select ${selectClass}" onchange="updateChapterStatus('${ch.id}', this.value)">
+                <option value="not_started" ${currentStatus === 'not_started' ? 'selected' : ''}>Not Started</option>
+                <option value="studying" ${currentStatus === 'studying' ? 'selected' : ''}>Studying</option>
+                <option value="completed" ${currentStatus === 'completed' ? 'selected' : ''}>Completed</option>
+                <option value="needs_revision" ${currentStatus === 'needs_revision' ? 'selected' : ''}>Needs Revision</option>
+                <option value="mastered" ${currentStatus === 'mastered' ? 'selected' : ''}>Mastered</option>
+              </select>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:14px;">
+              <a ${target(ch.lectureLink)} class="${linkClass(ch.lectureLink)}"><i class="fab fa-youtube" style="color:#FF0000;"></i> Lecture</a>
+              <a ${target(ch.practiceLink)} class="${linkClass(ch.practiceLink)}"><i class="fas fa-edit" style="color:var(--rust);"></i> Practice</a>
+              <a ${target(ch.pyqLink)} class="${linkClass(ch.pyqLink)}"><i class="fas fa-book-open" style="color:var(--forest);"></i> PYQs</a>
+              <a ${target(ch.notesLink)} class="${linkClass(ch.notesLink)}"><i class="fas fa-file-pdf" style="color:#E11D48;"></i> Notes</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function updateChapterStatus(chapterId, status) {
+    try {
+      await apiJson('/api/prep/progress', {
+        method: 'POST',
+        body: JSON.stringify({ chapterId, status })
+      });
+      
+      // Update local state
+      studentProgress[chapterId] = { status, updatedAt: { toMillis: () => Date.now() } };
+      
+      showToast('Progress updated successfully!');
+      
+      // Refresh views
+      renderDashboardProgress();
+      renderRecentChapters();
+      renderRoadmapChapters();
+      renderRevisionChapters();
+    } catch (err) {
+      showToast('Failed to update progress: ' + err.message, true);
+    }
+  }
+
+  // Render Revision Chapters view
+  function renderRevisionChapters() {
+    const grid = document.getElementById('revisionChaptersGrid');
+    
+    const revisionList = allChapters.filter(ch => {
+      const prog = studentProgress[ch.id];
+      return prog && prog.status === 'needs_revision';
+    });
+
+    if (revisionList.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; color:var(--ink-mute); font-size:13px; text-align:center; padding:48px;" class="glass-card">
+          <i class="fas fa-check-circle" style="font-size:2rem; color:var(--forest); margin-bottom:12px; display:block;"></i>
+          No chapters marked for revision. Great job keeping your concepts fresh!
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = revisionList.map(ch => {
+      const linkClass = (link) => link ? 'res-link' : 'res-link disabled';
+      const target = (link) => link ? `href="${link}" target="_blank"` : '';
+
+      return `
+        <div class="chapter-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom:12px;">
+              <h4 style="font-family:var(--font-display); font-weight:800; font-size:15px;">${ch.name}</h4>
+              <select class="status-select status-needs_revision" onchange="updateChapterStatus('${ch.id}', this.value)">
+                <option value="not_started">Not Started</option>
+                <option value="studying">Studying</option>
+                <option value="completed">Completed</option>
+                <option value="needs_revision" selected>Needs Revision</option>
+                <option value="mastered">Mastered</option>
+              </select>
+            </div>
+            <div style="font-size:10px; color:var(--ink-mute); text-transform:uppercase; margin-bottom:12px;">${ch.subject} · ${ch.category}</div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+              <a ${target(ch.lectureLink)} class="${linkClass(ch.lectureLink)}"><i class="fab fa-youtube" style="color:#FF0000;"></i> Lecture</a>
+              <a ${target(ch.practiceLink)} class="${linkClass(ch.practiceLink)}"><i class="fas fa-edit" style="color:var(--rust);"></i> Practice</a>
+              <a ${target(ch.pyqLink)} class="${linkClass(ch.pyqLink)}"><i class="fas fa-book-open" style="color:var(--forest);"></i> PYQs</a>
+              <a ${target(ch.notesLink)} class="${linkClass(ch.notesLink)}"><i class="fas fa-file-pdf" style="color:#E11D48;"></i> Notes</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Render Mock Tests
+  function renderMockTestsTable() {
+    const tbody = document.getElementById('mockTestTableBody');
+    const marksList = mockTests.map(t => t.marks);
+
+    if (mockTests.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center; padding:32px; color:var(--ink-mute);"><i class="fas fa-vial" style="margin-right:6px;"></i> No mock tests logged yet.</td>
+        </tr>
+      `;
+      document.getElementById('mockStatAvg').textContent = '—';
+      document.getElementById('mockStatHigh').textContent = '—';
+      document.getElementById('mockStatLow').textContent = '—';
+      document.getElementById('predictorAvgMarks').value = '';
+      document.getElementById('expectedWbjeeRank').textContent = '—';
+      document.getElementById('expectedJeePercentile').textContent = '—';
+      return;
+    }
+
+    // Sort by date ascending for the table
+    const sortedTests = [...mockTests].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    tbody.innerHTML = sortedTests.map(test => {
+      return `
+        <tr style="border-bottom:1px solid var(--rule); transition: background 0.15s;">
+          <td style="padding:12px 20px;">${test.date}</td>
+          <td style="padding:12px 20px; font-weight:700;">${test.name}</td>
+          <td style="padding:12px 20px; color:var(--rust); font-weight:800;">${test.marks.toFixed(2)}</td>
+          <td style="padding:12px 20px; text-align:right;">
+            <button onclick="deleteMockTest('${test.id}')" style="color:#EF4444; border:none; background:none; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const sum = marksList.reduce((a, b) => a + b, 0);
+    const avg = sum / marksList.length;
+    const max = Math.max(...marksList);
+    const min = Math.min(...marksList);
+
+    document.getElementById('mockStatAvg').textContent = avg.toFixed(2);
+    document.getElementById('mockStatHigh').textContent = max.toFixed(2);
+    document.getElementById('mockStatLow').textContent = min.toFixed(2);
+
+    // Populate average predictor marks input and trigger rank prediction
+    const avgInput = document.getElementById('predictorAvgMarks');
+    avgInput.value = avg.toFixed(1);
+    calculateExpectedRanks();
+  }
+
+  async function handleLogMockTest(e) {
+    e.preventDefault();
+    const date = document.getElementById('mockDate').value;
+    const name = document.getElementById('mockName').value.trim();
+    const marks = Number(document.getElementById('mockMarks').value);
+
+    if (!name || isNaN(marks) || !date) return;
+
+    try {
+      const added = await apiJson('/api/prep/mock-tests', {
+        method: 'POST',
+        body: JSON.stringify({ date, name, marks })
+      });
+      mockTests.push(added);
+      
+      document.getElementById('logMockForm').reset();
+      renderMockTestsTable();
+      renderChart();
+      showToast('Mock test score logged successfully!');
+    } catch (err) {
+      showToast('Failed to save test score: ' + err.message, true);
+    }
+  }
+
+  async function deleteMockTest(id) {
+    if (!confirm('Are you sure you want to delete this mock test?')) return;
+    try {
+      await apiJson(`/api/prep/mock-tests/${id}`, {
+        method: 'DELETE'
+      });
+      mockTests = mockTests.filter(t => t.id !== id);
+      renderMockTestsTable();
+      renderChart();
+      showToast('Mock test score deleted');
+    } catch (err) {
+      showToast('Failed to delete score: ' + err.message, true);
+    }
+  }
+
+  // Draw chart of mock tests progress
+  function renderChart() {
+    const canvas = document.getElementById('scoreImprovementChart');
+    if (!canvas) return;
+    
+    if (scoreChart) {
+      scoreChart.destroy();
+    }
+
+    if (mockTests.length === 0) return;
+
+    // Sort chronologically for the graph
+    const sorted = [...mockTests].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const labels = sorted.map(t => t.name);
+    const data = sorted.map(t => t.marks);
+
+    const ctx = canvas.getContext('2d');
+    scoreChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Marks Secured',
+          data,
+          borderColor: '#C94E1F',
+          backgroundColor: 'rgba(201, 78, 31, 0.1)',
+          borderWidth: 3,
+          tension: 0.3,
+          fill: true,
+          pointBackgroundColor: '#C94E1F',
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            grid: { color: 'rgba(255,255,255,0.06)' },
+            ticks: { color: 'var(--ink-mute)' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: 'var(--ink-mute)' }
+          }
+        }
+      }
+    });
+  }
+
+  // Rank and percentile prediction helper
+  function calculateExpectedRanks() {
+    const marksVal = Number(document.getElementById('predictorAvgMarks').value);
+    const wbjeeRankEl = document.getElementById('expectedWbjeeRank');
+    const jeePctEl = document.getElementById('expectedJeePercentile');
+
+    if (isNaN(marksVal) || marksVal <= 0) {
+      wbjeeRankEl.textContent = '—';
+      jeePctEl.textContent = '—';
+      return;
+    }
+
+    // Expected WBJEE Rank mapping (from standard defaultRankRows engineering)
+    // 160-200 -> Rank 1 to 399
+    // 140-159 -> Rank 400 to 1,999
+    // 100-139 -> Rank 2,000 to 4,999
+    // 50-99   -> Rank 5,000 to 14,999
+    // 0-49    -> Rank 15,000 to 50,000
+    let expectedWbjee = '';
+    if (marksVal >= 160) {
+      expectedWbjee = 'Top 400';
+    } else if (marksVal >= 140) {
+      expectedWbjee = '400 - 2,000';
+    } else if (marksVal >= 100) {
+      expectedWbjee = '2,000 - 5,000';
+    } else if (marksVal >= 50) {
+      expectedWbjee = '5,000 - 15,000';
+    } else {
+      expectedWbjee = '15,000 - 50,000';
+    }
+
+    // Expected JEE Percentile mapping (Assuming JEE marks out of 300)
+    let expectedJee = '';
+    if (marksVal >= 240) {
+      expectedJee = '99.8% - 100%';
+    } else if (marksVal >= 200) {
+      expectedJee = '99.5% - 99.79%';
+    } else if (marksVal >= 170) {
+      expectedJee = '99.0% - 99.49%';
+    } else if (marksVal >= 150) {
+      expectedJee = '98.0% - 98.99%';
+    } else if (marksVal >= 130) {
+      expectedJee = '97.0% - 97.99%';
+    } else if (marksVal >= 110) {
+      expectedJee = '95.0% - 96.99%';
+    } else if (marksVal >= 90) {
+      expectedJee = '92.0% - 94.99%';
+    } else if (marksVal >= 70) {
+      expectedJee = '85.0% - 91.99%';
+    } else if (marksVal >= 50) {
+      expectedJee = '75.0% - 84.99%';
+    } else {
+      expectedJee = '< 75%';
+    }
+
+    wbjeeRankEl.textContent = expectedWbjee;
+    jeePctEl.textContent = expectedJee;
+  }
+
+  // Load resource library dynamically from backend note listing
+  async function loadResourceLibrary() {
+    const container = document.getElementById('resourceNotesGrid');
+    try {
+      const { notes } = await apiJson('/api/notes/list');
+      
+      const freeNotes = (notes || []).filter(n => n.access === 'free');
+
+      if (freeNotes.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column:1/-1; text-align:center; padding:32px; color:var(--ink-mute);" class="glass-card">
+            No revision sheets uploaded in the database yet. Check back soon!
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = freeNotes.map(n => {
+        const sizeStr = n.fileSize ? `${(n.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'PDF Document';
+        const dateStr = n.createdAt ? new Date(n.createdAt.seconds * 1000).toLocaleDateString() : '';
+
+        return `
+          <div class="chapter-card" style="min-height:140px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <span style="font-size:10px; font-weight:700; color:var(--rust); background:rgba(201, 78, 31, 0.1); padding:2px 6px; border-radius:4px; text-transform:uppercase;">${n.subject || 'Material'}</span>
+              </div>
+              <h4 style="font-family:var(--font-display); font-weight:800; font-size:15px; margin-bottom:6px;">${n.title}</h4>
+              <p style="font-size:12px; color:var(--ink-mute); margin-bottom:12px;">${n.description || 'Sankalp revision resource'}</p>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--rule); padding-top:10px; font-size:11px; color:var(--ink-mute);">
+              <span>${sizeStr}</span>
+              <a href="#" onclick="downloadResource('${n.id}', '${n.title}'); return false;" style="font-weight:700; color:var(--rust); text-decoration:none;"><i class="fas fa-download"></i> Download</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error('Failed to load notes library:', err);
+      container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:32px; color:#EF4444;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i> Failed to load Resource Library.</div>`;
+    }
+  }
+
+  // Handle note download
+  async function downloadResource(noteId, title) {
+    try {
+      const data = await apiJson(`/api/notes/access/${noteId}`);
+      if (data.hasAccess && data.fileUrl) {
+        window.open(data.fileUrl, '_blank');
+        
+        // Log view access
+        apiJson('/api/notes/log-access', {
+          method: 'POST',
+          body: JSON.stringify({ noteId, noteTitle: title })
+        }).catch(e => console.error(e));
+      } else {
+        showToast('You do not have permission to download this file', true);
+      }
+    } catch (err) {
+      showToast('Download check failed: ' + err.message, true);
+    }
+  }
+
+  // Auth initialization
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { 
+      window.location.href = '../login.html'; 
+      return; 
+    }
+    currentUser = user;
+    
+    // Set sidebar profiles
+    const firstName = (user.displayName || 'Student').split(' ')[0];
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+    document.getElementById('sidebarEmail').textContent = user.email || '';
+    
+    // Set dashboard greeting
+    document.getElementById('welcomeName').textContent = user.displayName || 'Student';
+
+    await loadData();
+  });
+</script>
+</body>
+</html>

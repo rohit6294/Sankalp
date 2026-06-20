@@ -14,6 +14,7 @@ const predictorRouter = require('./routes/predictor');
 const subadminsRouter = require('./routes/subadmins');
 const notesRouter = require('./routes/notes');
 const testsRouter = require('./routes/tests');
+const prepRouter = require('./routes/prep');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
 const { sendEmail } = require('./mailer');
@@ -66,6 +67,7 @@ app.use('/api', paymentRouter);
 app.use('/api/predictor', predictorRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/tests', testsRouter);
+app.use('/api/prep', prepRouter);
 
 // Student-accessible settings: any authenticated user can read mandatory fields
 app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {

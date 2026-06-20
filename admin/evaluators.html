@@ -1531,7 +1531,10 @@ function adminCan(section, action = 'view') {
 }
 
 function canGrantStudentPredictorAccess() {
-  return adminCan('students', 'edit') && adminCfunction permissionForMainTab(tab) {
+  return adminCan('students', 'edit') && adminCan('collegePredictor', 'edit');
+}
+
+function permissionForMainTab(tab) {
   if (tab === 'studentList') return { section: 'students', action: 'view' };
   if (tab === 'collegePredictor') return { section: 'collegePredictor', action: 'view' };
   if (tab === 'settings') return { section: 'settings', action: 'view' };

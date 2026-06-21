@@ -40,9 +40,7 @@ async function restoreDatabaseBackups() {
 
         sqliteDb.run('BEGIN TRANSACTION');
         
-        // Clear current sqlite table first before restoring backups
-        sqliteDb.run('DELETE FROM cutoffs');
-
+        const deleteStmt = sqliteDb.prepare('DELETE FROM cutoffs WHERE year = ?');
         const insertStmt = sqliteDb.prepare(`
           INSERT INTO cutoffs (year, round, institute, program, category, opening_rank, closing_rank, stream, seat_type, quota, college_type)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -53,6 +51,7 @@ async function restoreDatabaseBackups() {
           const data = doc.data();
           if (data.records) {
             try {
+              deleteStmt.run(year);
               const rawBuffer = Buffer.isBuffer(data.records) ? data.records : (data.records.toBuffer ? data.records.toBuffer() : Buffer.from(data.records));
               const records = JSON.parse(zlib.gunzipSync(rawBuffer).toString());
               console.log(`Restoring ${records.length} records for year ${year}...`);
@@ -77,6 +76,7 @@ async function restoreDatabaseBackups() {
           }
         });
 
+        deleteStmt.finalize();
         insertStmt.finalize();
 
         sqliteDb.run('COMMIT', (commitErr) => {

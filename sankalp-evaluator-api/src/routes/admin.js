@@ -1283,21 +1283,42 @@ router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), 
     sqliteDb.configure("busyTimeout", 10000);
 
     sqliteDb.all(`
-      SELECT institute, program, stream, college_type, seat_type, quota,
-             COALESCE(MAX(CASE WHEN year = ? AND round = 2 THEN closing_rank END),
-                      MAX(CASE WHEN year = ? AND round = 1 THEN closing_rank END),
-                      MAX(CASE WHEN year = ? THEN closing_rank END)) AS closing_rank_target,
-             COALESCE(MAX(CASE WHEN year = ? AND round = 2 THEN closing_rank END),
-                      MAX(CASE WHEN year = ? AND round = 1 THEN closing_rank END),
-                      MAX(CASE WHEN year = ? THEN closing_rank END)) AS closing_rank_prev
+      SELECT institute, program, stream, college_type, seat_type, quota, year, closing_rank, round
       FROM cutoffs
       WHERE category = ?
-      GROUP BY institute, program, seat_type, quota
-    `, [targetYear, targetYear, targetYear, prevYear, prevYear, prevYear, category], (err, rows) => {
+    `, [category], (err, rows) => {
       sqliteDb.close();
       if (err) {
         return res.status(500).json({ error: 'prediction_failed', message: err.message });
       }
+
+      const grouped = {};
+      rows.forEach(row => {
+        const key = `${row.institute}|${row.program}|${row.seat_type}|${row.quota}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            institute: row.institute,
+            program: row.program,
+            stream: row.stream,
+            college_type: row.college_type,
+            seat_type: row.seat_type,
+            quota: row.quota,
+            cutoffs: {},
+            rounds: {}
+          };
+        }
+        
+        const currentCutoff = row.closing_rank;
+        const currentRound = row.round || 0;
+        const existingRound = grouped[key].rounds[row.year] || 0;
+        
+        if (grouped[key].cutoffs[row.year] === undefined || 
+            (currentRound === 2 && existingRound !== 2) || 
+            (currentRound > existingRound && existingRound !== 2)) {
+          grouped[key].cutoffs[row.year] = currentCutoff;
+          grouped[key].rounds[row.year] = currentRound;
+        }
+      });
 
       const results = [];
       let totalMatches = 0;
@@ -1305,18 +1326,19 @@ router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), 
       let mediumCount = 0;
       let lowCount = 0;
 
-      for (const row of rows) {
-        const target_cutoff = row.closing_rank_target;
-        const prev_cutoff = row.closing_rank_prev;
+      Object.keys(grouped).forEach(key => {
+        const item = grouped[key];
+        const target_cutoff = item.cutoffs[targetYear];
+        const prev_cutoff = item.cutoffs[prevYear];
 
-        if (!target_cutoff) continue;
+        if (!target_cutoff) return;
 
         // Apply filters
         // Course Type: B.Tech, B.Pharm, All
         if (courseType && courseType !== 'All') {
-          const isPharm = String(row.stream).toLowerCase().includes('pharma') || String(row.program).toLowerCase().includes('pharma');
-          if (courseType === 'B.Pharm' && !isPharm) continue;
-          if (courseType === 'B.Tech' && isPharm) continue;
+          const isPharm = String(item.stream).toLowerCase().includes('pharma') || String(item.program).toLowerCase().includes('pharma');
+          if (courseType === 'B.Pharm' && !isPharm) return;
+          if (courseType === 'B.Tech' && isPharm) return;
         }
 
         // College Type Filters: GovtGroup, PrivateGroup, specific types, All
@@ -1326,27 +1348,27 @@ router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), 
             'State Government Engineering College',
             'State Government Pharmacy College',
             'Central Government Engineering College'
-          ].includes(row.college_type);
+          ].includes(item.college_type);
           
           const isPrivateType = [
             'Private University',
             'Private Engineering College',
             'Stand Alone Private Pharmacy College'
-          ].includes(row.college_type);
+          ].includes(item.college_type);
           
-          if (collegeType === 'GovtGroup' && !isGovtType) continue;
-          else if (collegeType === 'PrivateGroup' && !isPrivateType) continue;
-          else if (collegeType !== 'GovtGroup' && collegeType !== 'PrivateGroup' && row.college_type !== collegeType) continue;
+          if (collegeType === 'GovtGroup' && !isGovtType) return;
+          else if (collegeType === 'PrivateGroup' && !isPrivateType) return;
+          else if (collegeType !== 'GovtGroup' && collegeType !== 'PrivateGroup' && item.college_type !== collegeType) return;
         }
 
         // Seat Type Filter: Specific, or All
         if (seatType && seatType !== 'All') {
-          if (row.seat_type !== seatType) continue;
+          if (item.seat_type !== seatType) return;
         }
 
         // Quota Filter: Specific, or All
         if (quota && quota !== 'All') {
-          if (row.quota !== quota) continue;
+          if (item.quota !== quota) return;
         }
 
         // Probability prediction logic:
@@ -1366,27 +1388,28 @@ router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), 
           chanceSort = 3;
           lowCount++;
         } else {
-          continue; // Exclude if too high
+          return; // Exclude if too high
         }
 
         totalMatches++;
 
         results.push({
-          institute: row.institute,
-          program: row.program,
-          stream: row.stream,
-          collegeType: row.college_type,
-          seatType: row.seat_type,
-          quota: row.quota,
+          institute: item.institute,
+          program: item.program,
+          stream: item.stream,
+          collegeType: item.college_type,
+          seatType: item.seat_type,
+          quota: item.quota,
           selectedYear: targetYear,
           prevYear: prevYear,
           closingRank2025: target_cutoff || '—',
           closingRank2024: prev_cutoff || '—',
           latestCutoff: target_cutoff,
+          cutoffs: item.cutoffs,
           chance,
           chanceSort
         });
-      }
+      });
 
       // Sort purely by latest closing rank ascending (closest rank shows first)
       results.sort((a, b) => a.latestCutoff - b.latestCutoff);

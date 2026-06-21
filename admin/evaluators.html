@@ -1474,6 +1474,7 @@ let allUsersMap = {};
 let currentModalSub = null;
 let currentModalPaper = 'math';
 let lastPredictionResults = [];
+let allPredictorYears = [];
 
 function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');
@@ -3780,10 +3781,11 @@ async function loadPredictorDashboard() {
       if (dropdownYear) {
         dropdownYear.innerHTML = '';
         const years = yearRes.years || [2025, 2024];
+        allPredictorYears = years; // Store globally
         years.forEach(yr => {
           const opt = document.createElement('option');
           opt.value = yr;
-          opt.textContent = `${yr} Cutoffs` + (yr === 2025 ? ' (Default)' : '');
+          opt.textContent = `${yr} Cutoffs` + (String(yr) === '2025' ? ' (Default)' : '');
           dropdownYear.appendChild(opt);
         });
         if (years.includes(2025)) {
@@ -4081,6 +4083,29 @@ function renderPredictionResults(results) {
 
     const chanceClass = String(row.chance).toLowerCase(); // 'high', 'medium', 'low'
 
+    // Get years list to show: from selected year down to the oldest year
+    const sortedYears = [...allPredictorYears].sort((a, b) => {
+      const numA = parseInt(String(a).match(/^\d+/) || 0, 10);
+      const numB = parseInt(String(b).match(/^\d+/) || 0, 10);
+      if (numA !== numB) return numB - numA;
+      return String(b).localeCompare(String(a));
+    });
+
+    const selectedYear = row.selectedYear || document.getElementById('predYear').value;
+    const selectedYearIndex = sortedYears.indexOf(selectedYear);
+    const yearsToShow = selectedYearIndex !== -1 ? sortedYears.slice(selectedYearIndex) : [selectedYear];
+
+    let cutoffsHtml = '';
+    yearsToShow.forEach(yr => {
+      const val = row.cutoffs && row.cutoffs[yr] !== undefined ? row.cutoffs[yr] : '—';
+      cutoffsHtml += `
+        <div>
+          <div style="font-size:9px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">${yr} Cutoff</div>
+          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${val}</div>
+        </div>
+      `;
+    });
+
     card.innerHTML = `
       <div>
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:12px;">
@@ -4090,15 +4115,8 @@ function renderPredictionResults(results) {
         <h4 style="font-family:var(--font-display); font-size:14px; font-weight:700; color:var(--ink); line-height:1.4; margin-bottom:6px;">${row.institute}</h4>
         <p style="font-size:12px; color:var(--rust); font-weight:600; margin-bottom:14px;"><i class="fas fa-code-branch" style="margin-right:6px;"></i>${row.program} <span style="color:var(--ink-mute); font-weight:400; margin-left:6px;">(${row.seatType} | ${row.quota})</span></p>
       </div>
-      <div style="border-top:1px solid var(--rule); padding-top:12px; margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div>
-          <div style="font-size:9px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">${row.selectedYear || 2025} Cutoff</div>
-          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${row.closingRank2025}</div>
-        </div>
-        <div>
-          <div style="font-size:9px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">${row.prevYear || 2024} Cutoff</div>
-          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${row.closingRank2024}</div>
-        </div>
+      <div style="border-top:1px solid var(--rule); padding-top:12px; margin-top:12px; display:grid; grid-template-columns:repeat(auto-fit, minmax(65px, 1fr)); gap:10px;">
+        ${cutoffsHtml}
       </div>
     `;
     grid.appendChild(card);

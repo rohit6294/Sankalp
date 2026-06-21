@@ -1032,8 +1032,27 @@
       });
 
       const selectedYear = row.selectedYear || document.getElementById('inpYear').value;
-      const selectedYearIndex = sortedYears.indexOf(selectedYear);
-      const yearsToShow = selectedYearIndex !== -1 ? sortedYears.slice(selectedYearIndex) : [selectedYear];
+      const selectedYearNum = parseInt(String(selectedYear).match(/^\d+/) || 0, 10);
+      const yearsToShow = [];
+      if (!sortedYears.includes(selectedYear)) {
+        yearsToShow.push(selectedYear);
+      }
+      sortedYears.forEach(yr => {
+        const yrNum = parseInt(String(yr).match(/^\d+/) || 0, 10);
+        if (yr === selectedYear) {
+          if (!yearsToShow.includes(yr)) yearsToShow.push(yr);
+          return;
+        }
+        if (yrNum < selectedYearNum) {
+          yearsToShow.push(yr);
+        } else if (yrNum === selectedYearNum) {
+          const selIdx = sortedYears.indexOf(selectedYear);
+          const yrIdx = sortedYears.indexOf(yr);
+          if (selIdx !== -1 && yrIdx > selIdx) {
+            yearsToShow.push(yr);
+          }
+        }
+      });
 
       let cutoffsHtml = '';
       yearsToShow.forEach(yr => {

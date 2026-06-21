@@ -4,6 +4,9 @@ const cors = require('cors');
 require('dotenv').config();
 require('./firebase');
 
+const { restoreDatabaseBackups } = require('./database-backup');
+restoreDatabaseBackups().catch(console.error);
+
 const examsRouter = require('./routes/exams');
 const submitRouter = require('./routes/submit');
 const resultRouter = require('./routes/result');

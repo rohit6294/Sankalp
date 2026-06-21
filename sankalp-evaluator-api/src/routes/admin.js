@@ -15,6 +15,7 @@ const path = require('path');
 const router = express.Router();
 const { sendEmail } = require('../mailer');
 const { bustSettingsCache } = require('./predictor');
+const { backupYearToFirestore } = require('../database-backup');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -1127,6 +1128,9 @@ router.post('/predictor/upload', requirePermission('collegePredictor', 'edit'), 
         // Bust settings/predictor caches to reflect changes immediately
         bustSettingsCache();
 
+        // Back up to Firestore for persistence across deployments
+        backupYearToFirestore(year, cleanedRecords).catch(console.error);
+
         res.json({
           ok: true,
           message: `Successfully imported ${cleanedRecords.length} cutoff records for WBJEE ${year} into the SQL database.`
@@ -1190,10 +1194,21 @@ router.post('/predictor/clear', requirePermission('collegePredictor', 'edit'), a
     sqliteDb.configure("busyTimeout", 10000); // 10 seconds busy timeout to avoid SQLITE_BUSY
 
 
-    sqliteDb.run('DELETE FROM cutoffs', [], (err) => {
+    sqliteDb.run('DELETE FROM cutoffs', [], async (err) => {
       sqliteDb.close();
       if (err) {
         return res.status(500).json({ error: 'clear_failed', message: err.message });
+      }
+
+      // Clear Firestore backups too for persistence consistency
+      try {
+        const snapshot = await db.collection('cutoffBackups').get();
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        console.log('Firestore backups cleared successfully.');
+      } catch (backupErr) {
+        console.error('Failed to clear Firestore backups:', backupErr);
       }
 
       // Bust settings/predictor caches to reflect changes immediately

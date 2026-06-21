@@ -968,8 +968,8 @@ router.get('/test-email', requirePermission('settings', 'edit'), async (req, res
 // ── College Predictor Cutoff Excel Upload (Requires Admin) ─────────────────────
 router.post('/predictor/upload', requirePermission('collegePredictor', 'edit'), upload.single('file'), async (req, res) => {
   const year = Number(req.body.year);
-  if (!year || isNaN(year)) {
-    return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year.' });
+  if (!year || isNaN(year) || year < 2000 || year > 2100) {
+    return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year between 2000 and 2100.' });
   }
   if (!req.file) {
     return res.status(400).json({ error: 'missing_file', message: 'Please upload an Excel file.' });
@@ -1256,7 +1256,10 @@ router.get('/predictor/quotas', requirePermission('collegePredictor', 'view'), a
 router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {
     const { rank, category, courseType, collegeType, seatType, quota, year } = req.query;
-    const targetYear = year ? Number(year) : 2025;
+    let targetYear = year ? Number(year) : 2025;
+    if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
+      targetYear = 2025;
+    }
     const prevYear = targetYear - 1;
     const R = Number(rank);
     if (isNaN(R) || R <= 0) {

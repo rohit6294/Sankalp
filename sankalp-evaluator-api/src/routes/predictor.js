@@ -185,7 +185,10 @@ router.get('/predict', verifyToken, async (req, res) => {
     }
 
     const { rank, category, courseType, collegeType, seatType, quota, year } = req.query;
-    const targetYear = year ? Number(year) : 2025;
+    let targetYear = year ? Number(year) : 2025;
+    if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
+      targetYear = 2025;
+    }
     const prevYear = targetYear - 1;
     const R = Number(rank);
     if (isNaN(R) || R <= 0) {

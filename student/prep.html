@@ -185,6 +185,45 @@
       border: 1px solid var(--ink);
     }
     .toast.show { opacity: 1; }
+
+    /* Prep dropdown styles */
+    .prep-dropdown {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    .prep-dropdown-menu {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      width: 100%;
+      margin-bottom: 4px;
+      background: var(--paper);
+      border: 1px solid var(--ink);
+      z-index: 100;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    .prep-dropdown-menu.show {
+      display: block;
+    }
+    .prep-dropdown-item {
+      display: block;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      transition: all 0.2s;
+    }
+    .prep-dropdown-item:last-child {
+      border-bottom: none;
+    }
+    .prep-dropdown-item:hover {
+      background: var(--rust);
+      color: white;
+    }
   </style>
 </head>
 <body class="bg-[var(--paper-deep)] text-[var(--ink)] font-sans">
@@ -534,6 +573,51 @@
 <div id="toast" class="toast"></div>
 
 <script>
+  function generateLinkHTML(title, iconClass, iconStyle, linkVal, chapterId, typeKey) {
+    const links = (linkVal || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (links.length === 0) {
+      return `<a class="res-link disabled"><i class="${iconClass}" style="${iconStyle}"></i> ${title}</a>`;
+    }
+    if (links.length === 1) {
+      return `<a href="${links[0]}" target="_blank" class="res-link"><i class="${iconClass}" style="${iconStyle}"></i> ${title}</a>`;
+    }
+    const dropdownId = `dropdown-${chapterId}-${typeKey}`;
+    const itemsHTML = links.map((link, idx) => {
+      return `<a href="${link}" target="_blank" class="prep-dropdown-item"><i class="${iconClass}" style="${iconStyle}"></i> ${title} Part ${idx + 1}</a>`;
+    }).join('');
+
+    return `
+      <div class="prep-dropdown">
+        <button onclick="togglePrepDropdown('${dropdownId}', event)" class="res-link" style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span><i class="${iconClass}" style="${iconStyle}"></i> ${title}</span>
+          <i class="fas fa-chevron-down" style="font-size: 9px; opacity: 0.7;"></i>
+        </button>
+        <div id="${dropdownId}" class="prep-dropdown-menu">
+          ${itemsHTML}
+        </div>
+      </div>
+    `;
+  }
+
+  window.togglePrepDropdown = function(id, event) {
+    if (event) event.stopPropagation();
+    document.querySelectorAll('.prep-dropdown-menu').forEach(el => {
+      if (el.id !== id) {
+        el.classList.remove('show');
+      }
+    });
+    const menu = document.getElementById(id);
+    if (menu) {
+      menu.classList.toggle('show');
+    }
+  };
+
+  window.addEventListener('click', function() {
+    document.querySelectorAll('.prep-dropdown-menu').forEach(el => {
+      el.classList.remove('show');
+    });
+  });
+
   let currentUser = null;
   let allChapters = [];
   let studentProgress = {};
@@ -852,8 +936,6 @@
       const currentStatus = prog.status || 'not_started';
       
       const selectClass = `status-${currentStatus}`;
-      const linkClass = (link) => link ? 'res-link' : 'res-link disabled';
-      const target = (link) => link ? `href="${link}" target="_blank"` : '';
 
       return `
         <div class="chapter-card">
@@ -870,10 +952,10 @@
             </div>
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:14px;">
-              <a ${target(ch.lectureLink)} class="${linkClass(ch.lectureLink)}"><i class="fab fa-youtube" style="color:#FF0000;"></i> Lecture</a>
-              <a ${target(ch.practiceLink)} class="${linkClass(ch.practiceLink)}"><i class="fas fa-edit" style="color:var(--rust);"></i> Practice</a>
-              <a ${target(ch.pyqLink)} class="${linkClass(ch.pyqLink)}"><i class="fas fa-book-open" style="color:var(--forest);"></i> PYQs</a>
-              <a ${target(ch.notesLink)} class="${linkClass(ch.notesLink)}"><i class="fas fa-file-pdf" style="color:#E11D48;"></i> Notes</a>
+              ${generateLinkHTML('Lecture', 'fab fa-youtube', 'color:#FF0000;', ch.lectureLink, ch.id, 'lecture')}
+              ${generateLinkHTML('Practice', 'fas fa-edit', 'color:var(--rust);', ch.practiceLink, ch.id, 'practice')}
+              ${generateLinkHTML('PYQs', 'fas fa-book-open', 'color:var(--forest);', ch.pyqLink, ch.id, 'pyq')}
+              ${generateLinkHTML('Notes', 'fas fa-file-pdf', 'color:#E11D48;', ch.notesLink, ch.id, 'notes')}
             </div>
           </div>
         </div>
@@ -923,9 +1005,6 @@
     }
 
     grid.innerHTML = revisionList.map(ch => {
-      const linkClass = (link) => link ? 'res-link' : 'res-link disabled';
-      const target = (link) => link ? `href="${link}" target="_blank"` : '';
-
       return `
         <div class="chapter-card">
           <div>
@@ -942,10 +1021,10 @@
             <div style="font-size:10px; color:var(--ink-mute); text-transform:uppercase; margin-bottom:12px;">${ch.subject} · ${ch.category}</div>
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-              <a ${target(ch.lectureLink)} class="${linkClass(ch.lectureLink)}"><i class="fab fa-youtube" style="color:#FF0000;"></i> Lecture</a>
-              <a ${target(ch.practiceLink)} class="${linkClass(ch.practiceLink)}"><i class="fas fa-edit" style="color:var(--rust);"></i> Practice</a>
-              <a ${target(ch.pyqLink)} class="${linkClass(ch.pyqLink)}"><i class="fas fa-book-open" style="color:var(--forest);"></i> PYQs</a>
-              <a ${target(ch.notesLink)} class="${linkClass(ch.notesLink)}"><i class="fas fa-file-pdf" style="color:#E11D48;"></i> Notes</a>
+              ${generateLinkHTML('Lecture', 'fab fa-youtube', 'color:#FF0000;', ch.lectureLink, ch.id, 'lecture')}
+              ${generateLinkHTML('Practice', 'fas fa-edit', 'color:var(--rust);', ch.practiceLink, ch.id, 'practice')}
+              ${generateLinkHTML('PYQs', 'fas fa-book-open', 'color:var(--forest);', ch.pyqLink, ch.id, 'pyq')}
+              ${generateLinkHTML('Notes', 'fas fa-file-pdf', 'color:#E11D48;', ch.notesLink, ch.id, 'notes')}
             </div>
           </div>
         </div>

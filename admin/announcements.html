@@ -127,6 +127,37 @@ function showToast(msg, isError = false) {
   setTimeout(() => t.classList.remove('show'), 4000);
 }
 
+let currentToken = null;
+
+async function apiJson(path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  const token = currentToken || await user.getIdToken();
+  currentToken = token;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...(options.headers || {})
+  };
+  let response = await fetch(`${window.EVALUATOR_API || ''}${path}`, {
+    ...options,
+    headers
+  });
+  if (response.status === 401) {
+    currentToken = await user.getIdToken(true);
+    headers['Authorization'] = `Bearer ${currentToken}`;
+    response = await fetch(`${window.EVALUATOR_API || ''}${path}`, {
+      ...options,
+      headers
+    });
+  }
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  }
+  return payload;
+}
+
 // Sidebar toggle
 function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');

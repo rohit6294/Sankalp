@@ -444,6 +444,14 @@
         </div>
 
         <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Cutoff Year</label>
+          <select id="inpYear" class="predictor-input">
+            <option value="2025" selected>2025 Cutoffs (Default)</option>
+            <option value="2024">2024 Cutoffs</option>
+          </select>
+        </div>
+
+        <div>
           <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Reservation Category *</label>
           <select id="inpCategory" class="predictor-input" required>
             <option value="">Loading categories...</option>
@@ -616,7 +624,7 @@
   }
 
   function setPredictorLocked(locked) {
-    const controlIds = ['inpRank', 'inpCategory', 'inpCourse', 'inpSeat', 'inpQuota', 'inpCollegeType', 'inpChance'];
+    const controlIds = ['inpRank', 'inpCategory', 'inpCourse', 'inpSeat', 'inpQuota', 'inpCollegeType', 'inpChance', 'inpYear'];
     controlIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.disabled = locked;
@@ -783,6 +791,29 @@
         quotaSelect.appendChild(opt);
       });
 
+      // 4. Years
+      try {
+        const yearRes = await apiJson('/api/predictor/years');
+        const yearSelect = document.getElementById('inpYear');
+        if (yearSelect) {
+          yearSelect.innerHTML = '';
+          const years = yearRes.years || [2025, 2024];
+          years.forEach(yr => {
+            const opt = document.createElement('option');
+            opt.value = yr;
+            opt.textContent = `${yr} Cutoffs` + (yr === 2025 ? ' (Default)' : '');
+            yearSelect.appendChild(opt);
+          });
+          if (years.includes(2025)) {
+            yearSelect.value = "2025";
+          } else if (years.length > 0) {
+            yearSelect.value = years[0];
+          }
+        }
+      } catch (yearErr) {
+        console.warn('Failed to load dynamic years, fallback to static:', yearErr);
+      }
+
     } catch (err) {
       console.error('Failed to load dynamic categories:', err);
       toast('Failed to load filters metadata', 'error');
@@ -892,6 +923,7 @@
     const seatType = document.getElementById('inpSeat').value;
     const quota = document.getElementById('inpQuota').value;
     const collegeType = document.getElementById('inpCollegeType').value;
+    const year = document.getElementById('inpYear').value;
 
     if (!rank || !category) {
       toast('Please enter a rank and category', 'error');
@@ -910,7 +942,7 @@
     `;
 
     try {
-      const query = new URLSearchParams({ rank, category, courseType, seatType, quota, collegeType }).toString();
+      const query = new URLSearchParams({ rank, category, courseType, seatType, quota, collegeType, year }).toString();
       const res = await apiJson(`/api/predictor/predict?${query}`);
       
       // Save results globally
@@ -1005,11 +1037,11 @@
         </div>
         <div style="border-top:1px solid var(--rule); padding-top:12px; display:grid; grid-template-columns:1.5fr 1fr; gap:10px;">
           <div>
-            <div style="font-size:9px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">2025 Closing Rank</div>
+            <div style="font-size:9px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">${row.selectedYear || 2025} Closing</div>
             <div style="font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${row.closingRank2025}</div>
           </div>
           <div>
-            <div style="font-size:9px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">2024 Closing</div>
+            <div style="font-size:9px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">${row.prevYear || 2024} Closing</div>
             <div style="font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${row.closingRank2024}</div>
           </div>
         </div>

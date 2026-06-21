@@ -40,6 +40,16 @@
         "source": "/admin/settings.html",
         "destination": "/admin/evaluators.html#settings",
         "type": 302
+      },
+      {
+        "source": "/wbjee-college-predictor.html",
+        "destination": "/register.html",
+        "type": 302
+      },
+      {
+        "source": "/wbjee-marks-calculator.html",
+        "destination": "/register.html",
+        "type": 302
       }
     ],
     "headers": [

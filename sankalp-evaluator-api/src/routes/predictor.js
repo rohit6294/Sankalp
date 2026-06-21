@@ -154,6 +154,17 @@ router.get('/quotas', verifyToken, async (req, res) => {
   });
 });
 
+// ── 4b. Get Unique Years (Dynamic) ──────────────────────────────────────────
+router.get('/years', verifyToken, async (req, res) => {
+  sqliteDb.all('SELECT DISTINCT year FROM cutoffs ORDER BY year DESC', [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'years_load_failed', message: err.message });
+    }
+    const years = rows.map(r => r.year).filter(y => y !== null && y !== undefined);
+    res.json({ years });
+  });
+});
+
 // ── 5. Main Prediction Route with Access Safeguard ───────────────────────────
 router.get('/predict', verifyToken, async (req, res) => {
   try {
@@ -173,7 +184,9 @@ router.get('/predict', verifyToken, async (req, res) => {
       });
     }
 
-    const { rank, category, courseType, collegeType, seatType, quota } = req.query;
+    const { rank, category, courseType, collegeType, seatType, quota, year } = req.query;
+    const targetYear = year ? Number(year) : 2025;
+    const prevYear = targetYear - 1;
     const R = Number(rank);
     if (isNaN(R) || R <= 0) {
       return res.status(400).json({ error: 'invalid_rank', message: 'Please enter a valid positive rank number.' });
@@ -184,16 +197,16 @@ router.get('/predict', verifyToken, async (req, res) => {
 
     sqliteDb.all(`
       SELECT institute, program, stream, college_type, seat_type, quota,
-             COALESCE(MAX(CASE WHEN year = 2025 AND round = 2 THEN closing_rank END),
-                      MAX(CASE WHEN year = 2025 AND round = 1 THEN closing_rank END),
-                      MAX(CASE WHEN year = 2025 THEN closing_rank END)) AS closing_rank_2025,
-             COALESCE(MAX(CASE WHEN year = 2024 AND round = 2 THEN closing_rank END),
-                      MAX(CASE WHEN year = 2024 AND round = 1 THEN closing_rank END),
-                      MAX(CASE WHEN year = 2024 THEN closing_rank END)) AS closing_rank_2024
+             COALESCE(MAX(CASE WHEN year = ? AND round = 2 THEN closing_rank END),
+                      MAX(CASE WHEN year = ? AND round = 1 THEN closing_rank END),
+                      MAX(CASE WHEN year = ? THEN closing_rank END)) AS closing_rank_target,
+             COALESCE(MAX(CASE WHEN year = ? AND round = 2 THEN closing_rank END),
+                      MAX(CASE WHEN year = ? AND round = 1 THEN closing_rank END),
+                      MAX(CASE WHEN year = ? THEN closing_rank END)) AS closing_rank_prev
       FROM cutoffs
       WHERE category = ?
       GROUP BY institute, program, seat_type, quota
-    `, [category], (err, rows) => {
+    `, [targetYear, targetYear, targetYear, prevYear, prevYear, prevYear, category], (err, rows) => {
       if (err) {
         return res.status(500).json({ error: 'prediction_failed', message: err.message });
       }
@@ -205,11 +218,10 @@ router.get('/predict', verifyToken, async (req, res) => {
       let lowCount = 0;
 
       for (const row of rows) {
-        const c2025 = row.closing_rank_2025;
-        const c2024 = row.closing_rank_2024;
-        const latest_cutoff = c2025 !== null && c2025 !== undefined ? c2025 : c2024;
+        const target_cutoff = row.closing_rank_target;
+        const prev_cutoff = row.closing_rank_prev;
 
-        if (!latest_cutoff) continue;
+        if (!target_cutoff) continue;
 
         // Apply filters
         // Course Type: B.Tech, B.Pharm, All
@@ -253,15 +265,15 @@ router.get('/predict', verifyToken, async (req, res) => {
         let chance = '';
         let chanceSort = 0;
         
-        if (R <= latest_cutoff) {
+        if (R <= target_cutoff) {
           chance = 'High';
           chanceSort = 1;
           highCount++;
-        } else if (R <= latest_cutoff * 1.10) {
+        } else if (R <= target_cutoff * 1.10) {
           chance = 'Medium';
           chanceSort = 2;
           mediumCount++;
-        } else if (R <= latest_cutoff * 1.25) {
+        } else if (R <= target_cutoff * 1.25) {
           chance = 'Low';
           chanceSort = 3;
           lowCount++;
@@ -278,9 +290,11 @@ router.get('/predict', verifyToken, async (req, res) => {
           collegeType: row.college_type,
           seatType: row.seat_type,
           quota: row.quota,
-          closingRank2025: c2025 || '—',
-          closingRank2024: c2024 || '—',
-          latestCutoff: latest_cutoff,
+          selectedYear: targetYear,
+          prevYear: prevYear,
+          closingRank2025: target_cutoff || '—',
+          closingRank2024: prev_cutoff || '—',
+          latestCutoff: target_cutoff,
           chance,
           chanceSort
         });

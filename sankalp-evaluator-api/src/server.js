@@ -6,7 +6,7 @@ require('./firebase');
 
 const { restoreDatabaseBackups } = require('./database-backup');
 restoreDatabaseBackups().catch(console.error);
-
+// Redeploy triggered to force database restore from Firestore backups
 const examsRouter = require('./routes/exams');
 const submitRouter = require('./routes/submit');
 const resultRouter = require('./routes/result');

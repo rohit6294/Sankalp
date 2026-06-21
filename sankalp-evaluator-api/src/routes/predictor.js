@@ -185,11 +185,15 @@ router.get('/predict', verifyToken, async (req, res) => {
     }
 
     const { rank, category, courseType, collegeType, seatType, quota, year } = req.query;
-    let targetYear = year ? Number(year) : 2025;
-    if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
-      targetYear = 2025;
+    let targetYear = year ? String(year).trim() : '2025';
+    const yearMatch = targetYear.match(/^(\d{4})\b/);
+    let parsedYear = 2025;
+    if (yearMatch) {
+      parsedYear = parseInt(yearMatch[1], 10);
+    } else {
+      targetYear = '2025';
     }
-    const prevYear = targetYear - 1;
+    const prevYear = parsedYear - 1;
     const R = Number(rank);
     if (isNaN(R) || R <= 0) {
       return res.status(400).json({ error: 'invalid_rank', message: 'Please enter a valid positive rank number.' });

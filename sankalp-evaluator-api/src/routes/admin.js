@@ -967,9 +967,14 @@ router.get('/test-email', requirePermission('settings', 'edit'), async (req, res
 
 // ── College Predictor Cutoff Excel Upload (Requires Admin) ─────────────────────
 router.post('/predictor/upload', requirePermission('collegePredictor', 'edit'), upload.single('file'), async (req, res) => {
-  const year = Number(req.body.year);
-  if (!year || isNaN(year) || year < 2000 || year > 2100) {
-    return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year between 2000 and 2100.' });
+  const year = String(req.body.year || '').trim();
+  const yearMatch = year.match(/^(\d{4})\b/);
+  if (!yearMatch) {
+    return res.status(400).json({ error: 'invalid_year', message: 'Please specify a valid academic year starting with a 4-digit year (e.g. 2024, 2024 Mop Up).' });
+  }
+  const yearNum = parseInt(yearMatch[1], 10);
+  if (yearNum < 2000 || yearNum > 2100) {
+    return res.status(400).json({ error: 'invalid_year', message: 'The academic year must be between 2000 and 2100.' });
   }
   if (!req.file) {
     return res.status(400).json({ error: 'missing_file', message: 'Please upload an Excel file.' });
@@ -1256,11 +1261,15 @@ router.get('/predictor/quotas', requirePermission('collegePredictor', 'view'), a
 router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {
     const { rank, category, courseType, collegeType, seatType, quota, year } = req.query;
-    let targetYear = year ? Number(year) : 2025;
-    if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
-      targetYear = 2025;
+    let targetYear = year ? String(year).trim() : '2025';
+    const yearMatch = targetYear.match(/^(\d{4})\b/);
+    let parsedYear = 2025;
+    if (yearMatch) {
+      parsedYear = parseInt(yearMatch[1], 10);
+    } else {
+      targetYear = '2025';
     }
-    const prevYear = targetYear - 1;
+    const prevYear = parsedYear - 1;
     const R = Number(rank);
     if (isNaN(R) || R <= 0) {
       return res.status(400).json({ error: 'invalid_rank', message: 'Please enter a valid positive rank number.' });

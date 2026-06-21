@@ -4097,11 +4097,15 @@ function renderPredictionResults(results) {
 
     let cutoffsHtml = '';
     yearsToShow.forEach(yr => {
-      const val = row.cutoffs && row.cutoffs[yr] !== undefined ? row.cutoffs[yr] : '—';
+      const isMissing = row.cutoffs === undefined || row.cutoffs[yr] === undefined;
+      const val = isMissing ? '—' : row.cutoffs[yr];
+      const valHtml = isMissing 
+        ? `<span title="No cutoff data is available (this usually means no seats were left in the final round, or the course/category was not offered this year)" style="cursor:help; border-bottom:1px dotted var(--ink-mute);">—</span>`
+        : val;
       cutoffsHtml += `
         <div>
           <div style="font-size:9px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">${yr} Cutoff</div>
-          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${val}</div>
+          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-top:2px;">${valHtml}</div>
         </div>
       `;
     });

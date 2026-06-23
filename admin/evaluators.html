@@ -831,9 +831,11 @@
 
             <div class="predictor-form-group">
               <label for="predCategory">Reservation Category *</label>
-              <select id="predCategory" class="predictor-input-field" required>
-                <option value="">-- Select Category --</option>
-              </select>
+              <div style="position: relative;" id="predCategoryContainer">
+                <select id="predCategory" class="predictor-input-field" required>
+                  <option value="">-- Select Category --</option>
+                </select>
+              </div>
             </div>
 
             <div class="predictor-form-group">
@@ -3774,8 +3776,22 @@ let savedAdminCategoryValue = '';
 function setupAdminQuotaRestriction() {
   const quotaSelect = document.getElementById('predQuota');
   const catSelect = document.getElementById('predCategory');
+  const catContainer = document.getElementById('predCategoryContainer');
 
-  if (!quotaSelect || !catSelect) return;
+  if (!quotaSelect || !catSelect || !catContainer) return;
+
+  // Create overlay element
+  let overlay = document.getElementById('predCategoryOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'predCategoryOverlay';
+    overlay.style.cssText = 'position: absolute; inset: 0; cursor: not-allowed; z-index: 50;';
+    overlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toast('For All India quota, only General (Open) category is allowed.');
+    });
+  }
 
   if (quotaSelect.dataset.hasRestrictionListener === 'true') {
     handleQuotaChange();
@@ -3789,15 +3805,23 @@ function setupAdminQuotaRestriction() {
         savedAdminCategoryValue = catSelect.value;
       }
       catSelect.value = 'Open';
-      Array.from(catSelect.options).forEach(opt => {
-        if (opt.value && opt.value !== 'Open') {
-          opt.disabled = true;
-        }
-      });
+      
+      // Disable select element
+      catSelect.disabled = true;
+      
+      // Append overlay
+      if (!catContainer.contains(overlay)) {
+        catContainer.appendChild(overlay);
+      }
     } else {
-      Array.from(catSelect.options).forEach(opt => {
-        opt.disabled = false;
-      });
+      // Re-enable select element
+      catSelect.disabled = false;
+      
+      // Remove overlay
+      if (catContainer.contains(overlay)) {
+        overlay.remove();
+      }
+      
       if (savedAdminCategoryValue && quotaSelect.value !== 'All India') {
         const opt = Array.from(catSelect.options).find(o => o.value === savedAdminCategoryValue);
         if (opt) {
@@ -3809,13 +3833,6 @@ function setupAdminQuotaRestriction() {
   }
 
   quotaSelect.addEventListener('change', handleQuotaChange);
-
-  catSelect.addEventListener('change', () => {
-    if (quotaSelect.value === 'All India' && catSelect.value !== 'Open') {
-      catSelect.value = 'Open';
-      toast('For All India quota, only the Open category is applicable.');
-    }
-  });
 
   handleQuotaChange();
 }

@@ -25,7 +25,41 @@
       --border-glass: rgba(255, 255, 255, 0.08);
     }
     
+    /* Toggle Switch Styles */
+    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(15,23,42,0.1); border-radius: 100px; transition: 0.3s; border: 1px solid var(--ink); }
+    .toggle-slider:before { position: absolute; content: ''; height: 12px; width: 12px; left: 3px; bottom: 3px; background: var(--ink); border-radius: 50%; transition: 0.3s; }
+    .toggle-switch input:checked + .toggle-slider { background: var(--rust); border-color: var(--rust); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: var(--paper); }
+    .toggle-switch input:disabled + .toggle-slider { opacity: 0.45 !important; cursor: not-allowed !important; pointer-events: none !important; }
 
+    /* Print styles */
+    @media print {
+      body * { visibility: hidden; }
+      #cfResultsContainer, #cfResultsContainer * { visibility: visible; }
+      #cfResultsContainer { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #CBD5E1 !important; padding: 10px !important; text-align: left; }
+    }
+
+    /* Mobile Responsiveness for Choice Filling Table */
+    @media (max-width: 640px) {
+      #cfResultsContainer table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      #cfResultsContainer th, #cfResultsContainer td {
+        padding: 10px 8px !important;
+        font-size: 11px !important;
+      }
+      #cfBranchContainer {
+        grid-template-columns: 1fr !important;
+      }
+    }
     
     /* Premium Paywall CSS Overlay */
     .paywall-overlay {
@@ -430,6 +464,16 @@
     </div>
   </div>
 
+  <!-- Premium Tab Navigation -->
+  <div style="display:flex; border-bottom: 1px solid var(--rule-strong); margin-bottom: 24px; gap: 8px;" id="premiumTabNav">
+    <button onclick="switchTab('predictor')" id="tabPredictor" class="px-6 py-3 font-bold text-sm transition-all border-b-2 border-[var(--rust)] text-[var(--rust)]" style="margin-bottom: -1px; outline: none;">
+      <i class="fas fa-graduation-cap" style="margin-right:8px;"></i> College Predictor
+    </button>
+    <button onclick="switchTab('choiceFilling')" id="tabChoiceFilling" class="px-6 py-3 font-bold text-sm transition-all border-b-2 border-transparent text-[var(--ink-mute)] hover:text-[var(--ink)]" style="margin-bottom: -1px; outline: none;">
+      <i class="fa-solid fa-list-check" style="margin-right:8px;"></i> Choice Filling Assistant
+    </button>
+  </div>
+
   <!-- Main Predictor Grid -->
   <div class="predictor-grid" id="predictorMainView">
     
@@ -552,7 +596,146 @@
 
   </div>
 
+  <!-- Choice Filling Main Grid -->
+  <div class="predictor-grid" id="choiceFillingMainView" style="display:none;">
+    <!-- Left Panel: Choice Filling Form -->
+    <div class="predictor-card" style="height: fit-content;">
+      <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; margin-bottom:18px; color:var(--ink);"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px; color:var(--rust);"></i>Preference Filters</h3>
+      
+      <form onsubmit="event.preventDefault(); runChoiceFilling();" style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">GMR Rank *</label>
+          <input type="number" id="cfRank" class="predictor-input" placeholder="Enter your rank" required min="1">
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Reservation Category *</label>
+          <div style="position: relative;" id="cfCategoryContainer">
+            <select id="cfCategory" class="predictor-input" required>
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Quota (Home State / All India)</label>
+          <select id="cfQuota" class="predictor-input">
+            <option value="All">All Quotas</option>
+          </select>
+        </div>
+
+        <!-- TFW Domicile Eligibility -->
+        <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
+            <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfTfwToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Preferred Branches Multi-Select -->
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:8px; letter-spacing:0.5px;">Preferred Branches</label>
+          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; background: var(--paper-deep); padding: 12px; border: 1px solid var(--rule-strong); border-radius: 8px;" id="cfBranchContainer">
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CSE" checked> CSE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="IT" checked> IT</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ECE" checked> ECE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="EE"> EE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ME"> ME</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CE"> CE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CHE"> Chemical</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="PHM"> Pharmacy</label>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">College Type</label>
+          <select id="cfCollegeType" class="predictor-input">
+            <option value="All">All Types</option>
+            <option value="GovtGroup">Government Only</option>
+            <option value="PrivateGroup">Private Only</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Max Recommendations</label>
+          <select id="cfMaxChoices" class="predictor-input">
+            <option value="20">Top 20 Choices</option>
+            <option value="30" selected>Top 30 Choices</option>
+            <option value="50">Top 50 Choices</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px;" id="cfPredictBtn" disabled>
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Choice List
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Panel: Choice Filling Results -->
+    <div>
+      <!-- Choice Paywall Alert Banner (if locked) -->
+      <div id="cfLockedAccessBanner" class="locked-access-banner" style="display:none; margin-bottom: 24px;">
+        <div class="locked-access-copy">
+          <span class="locked-access-icon"><i class="fas fa-lock"></i></span>
+          <span>
+            <strong style="display:block; color:var(--ink); font-size:14px; margin-bottom:2px;">Choice Filling Assistant is locked</strong>
+            Unlock lifetime access for <strong id="cfLockedPriceDisplay">&#8377;199</strong> to generate your optimized choice filling sheet.
+          </span>
+        </div>
+        <button type="button" onclick="showCfPaywall()" class="btn-rust" style="padding:12px 18px; font-size:13px; font-weight:700;">
+          <i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Now
+        </button>
+      </div>
+
+      <!-- Choice Filling Results Area -->
+      <div id="cfResultsContainer" style="min-height: 350px;">
+        <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+          <i class="fa-solid fa-list-check" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+          <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Choice List Generated</h4>
+          <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select your branches, rank, and TFW status, and click Generate to build your optimized counseling choice list.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
+
+  <!-- Choice Filling Paywall Modal -->
+  <div id="cfPaywallOverlay" class="paywall-overlay" style="display:none; z-index: 101;">
+    <div class="paywall-card">
+      <button type="button" class="paywall-close" onclick="dismissCfPaywall()" aria-label="Close premium unlock dialog" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div style="width:58px; height:58px; border-radius:50%; background:rgba(10, 116, 245, 0.1); border:2px solid var(--rust); display:flex; align-items:center; justify-content:center; font-size:24px; color:var(--rust); margin:0 auto 20px;">
+        <i class="fa-solid fa-list-check"></i>
+      </div>
+      <span style="background:rgba(10,116,245,0.1); color:var(--rust); font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:12px; border:1px solid rgba(10,116,245,0.2);">PREMIUM ASSISTANT</span>
+      <h2 style="font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--ink); margin-bottom:8px;">Choice-Filling Preference Assistant</h2>
+      <p style="color:var(--ink-soft); font-size:13px; line-height:1.6; margin-bottom:20px; text-align:left; padding:0 8px;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to print or copy directly into the counseling portal.</p>
+      
+      <!-- Key benefits -->
+      <div style="background:var(--paper-deep); border:1px solid var(--rule); border-radius:10px; padding:14px; text-align:left; margin-bottom:24px; font-size:12px; display:flex; flex-direction:column; gap:10px; color:var(--ink-soft);">
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Optimized sorting strictly by base cutoffs</span></div>
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Automatic safety-net auditor checks</span></div>
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Official WBJEE institute choice codes</span></div>
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>One-click clipboard copy and PDF print</span></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <div style="text-align:left;">
+          <div style="font-size:11px; color:#64748B; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Premium Upgrade Price</div>
+          <div style="font-size:26px; font-weight:900; color:var(--forest-deep); font-family:var(--font-display);" id="cfPaywallPriceDisplay">&#8377;199</div>
+        </div>
+        <button onclick="triggerChoicePayment()" id="cfUnlockBtn" class="btn-rust" style="padding:14px 28px; font-size:14px; font-weight:700;"><i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant</button>
+      </div>
+      
+      <div style="font-size:11px; color:var(--ink-mute);"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> Secured by Razorpay checkout gateway</div>
+    </div>
+  </div>
 
   <!-- Cutoff Trend Chart Modal -->
   <div id="trendChartModal" class="paywall-overlay" style="display:none; z-index: 100;">
@@ -1373,6 +1556,394 @@
       const filtered = lastPredictionResults.filter(row => row.chance === chance);
       renderResults(filtered);
     }
+  }
+
+  // ── CHOICE FILLING ASSISTANT JAVASCRIPT CONTROLLERS ──────────────────
+  let isChoicePaid = false;
+  let choicePrice = 199;
+  let lastChoiceResults = [];
+  let currentActiveTab = 'predictor';
+
+  function switchTab(tab) {
+    if (tab === currentActiveTab) return;
+    currentActiveTab = tab;
+
+    const tabPred = document.getElementById('tabPredictor');
+    const tabCf = document.getElementById('tabChoiceFilling');
+    const viewPred = document.getElementById('predictorMainView');
+    const viewCf = document.getElementById('choiceFillingMainView');
+
+    if (tab === 'choiceFilling') {
+      // Sync values from Predictor to Choice Filling
+      document.getElementById('cfRank').value = document.getElementById('inpRank').value;
+      document.getElementById('cfQuota').value = document.getElementById('inpQuota').value;
+      
+      // Populate categories dropdown from predictor if loaded
+      const predCat = document.getElementById('inpCategory');
+      const cfCat = document.getElementById('cfCategory');
+      if (predCat && cfCat) {
+        cfCat.innerHTML = predCat.innerHTML;
+        cfCat.value = predCat.value;
+      }
+
+      // Populate quota dropdown from predictor if loaded
+      const predQuota = document.getElementById('inpQuota');
+      const cfQuota = document.getElementById('cfQuota');
+      if (predQuota && cfQuota) {
+        cfQuota.innerHTML = predQuota.innerHTML;
+        cfQuota.value = predQuota.value;
+      }
+
+      // Manage active classes (electric blue theme style)
+      tabPred.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-transparent text-[var(--ink-mute)] hover:text-[var(--ink)]";
+      tabCf.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-[var(--rust)] text-[var(--rust)]";
+      
+      viewPred.style.display = 'none';
+      viewCf.style.display = 'grid';
+
+      // Check access status for choice filling
+      checkChoiceAccessAndInit();
+    } else {
+      // Sync values from Choice Filling to Predictor
+      document.getElementById('inpRank').value = document.getElementById('cfRank').value;
+      document.getElementById('inpQuota').value = document.getElementById('cfQuota').value;
+      
+      const predCat = document.getElementById('inpCategory');
+      const cfCat = document.getElementById('cfCategory');
+      if (predCat && cfCat) {
+        predCat.value = cfCat.value;
+      }
+
+      // Manage active classes
+      tabCf.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-transparent text-[var(--ink-mute)] hover:text-[var(--ink)]";
+      tabPred.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-[var(--rust)] text-[var(--rust)]";
+
+      viewCf.style.display = 'none';
+      viewPred.style.display = 'grid';
+      
+      // Re-apply quota restrictions if any
+      setupQuotaRestriction();
+    }
+  }
+
+  async function checkChoiceAccessAndInit() {
+    try {
+      const res = await apiJson('/api/choice-filling/status');
+      choicePrice = res.price || choicePrice;
+      
+      const priceDisplay = document.getElementById('cfPaywallPriceDisplay');
+      const lockedPrice = document.getElementById('cfLockedPriceDisplay');
+      if (priceDisplay) priceDisplay.textContent = `\u20B9${choicePrice}`;
+      if (lockedPrice) lockedPrice.textContent = `\u20B9${choicePrice}`;
+
+      if (res.enabled === false) {
+        document.getElementById('cfResultsContainer').innerHTML = `
+          <div style="text-align:center; padding:58px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+            <i class="fas fa-exclamation-triangle" style="font-size:42px; margin-bottom:16px; color:var(--danger); opacity:0.8;"></i>
+            <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">Assistant Temporarily Disabled</h4>
+            <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">The Choice-Filling Assistant has been disabled by the administrator. Please check back later.</p>
+          </div>
+        `;
+        setChoiceControlsLocked(true);
+        document.getElementById('cfLockedAccessBanner').style.display = 'none';
+        return;
+      }
+
+      isChoicePaid = res.hasAccess;
+
+      if (!isChoicePaid) {
+        setChoiceControlsLocked(true);
+        document.getElementById('cfLockedAccessBanner').style.display = 'flex';
+        showCfPaywall();
+      } else {
+        document.getElementById('cfPaywallOverlay').style.display = 'none';
+        setChoiceControlsLocked(false);
+        document.getElementById('cfLockedAccessBanner').style.display = 'none';
+      }
+    } catch (err) {
+      console.error('Choice status initialization failed:', err);
+      toast('Failed to load Choice Filling status', 'error');
+    }
+  }
+
+  function setChoiceControlsLocked(locked) {
+    const controls = ['cfRank', 'cfCategory', 'cfQuota', 'cfTfwToggle', 'cfCollegeType', 'cfMaxChoices', 'cfPredictBtn'];
+    controls.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = locked;
+    });
+
+    // Disable checkboxes in branch container
+    const checkboxes = document.querySelectorAll('#cfBranchContainer input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.disabled = locked);
+  }
+
+  function showCfPaywall() {
+    if (isChoicePaid) return;
+    setChoiceUnlockButtonIdle();
+    document.getElementById('cfPaywallOverlay').style.display = 'flex';
+  }
+
+  function dismissCfPaywall() {
+    document.getElementById('cfPaywallOverlay').style.display = 'none';
+    setChoiceControlsLocked(true);
+    toast('Choice-Filling Assistant remains locked.', 'info');
+  }
+
+  function setChoiceUnlockButtonIdle() {
+    const btn = document.getElementById('cfUnlockBtn');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant';
+    }
+  }
+
+  async function triggerChoicePayment() {
+    const btn = document.getElementById('cfUnlockBtn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+
+    try {
+      // Create a Razorpay order specifically for choice filling
+      const order = await apiJson('/api/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ product: 'choice_filling' })
+      });
+
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Sankalp Aspirant',
+        description: 'WBJEE Choice-Filling Assistant Premium Unlock',
+        order_id: order.order_id,
+        handler: async function (response) {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+          try {
+            const verifyRes = await apiJson('/api/verify-payment', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                product: 'choice_filling'
+              })
+            });
+
+            if (verifyRes.success) {
+              toast('Choice Filling Assistant successfully unlocked!', 'success');
+              document.getElementById('cfPaywallOverlay').style.display = 'none';
+              checkChoiceAccessAndInit();
+            } else {
+              toast('Verification failed.', 'error');
+              setChoiceUnlockButtonIdle();
+            }
+          } catch (e) {
+            toast('Payment verification failed: ' + e.message, 'error');
+            setChoiceUnlockButtonIdle();
+          }
+        },
+        prefill: { name: currentUser.displayName, email: currentUser.email },
+        theme: { color: "#0A74F5" },
+        modal: {
+          ondismiss: function () {
+            toast('Payment window closed.', 'info');
+            setChoiceUnlockButtonIdle();
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast('Failed to start checkout: ' + err.message, 'error');
+      setChoiceUnlockButtonIdle();
+    }
+  }
+
+  async function runChoiceFilling() {
+    if (!isChoicePaid) {
+      showCfPaywall();
+      return;
+    }
+
+    const rank = document.getElementById('cfRank').value;
+    const category = document.getElementById('cfCategory').value;
+    const quota = document.getElementById('cfQuota').value;
+    const tfw = document.getElementById('cfTfwToggle').checked;
+    const collegeType = document.getElementById('cfCollegeType').value;
+    const maxChoices = document.getElementById('cfMaxChoices').value;
+
+    // Collect checked branches
+    const branches = [];
+    document.querySelectorAll('#cfBranchContainer input[type="checkbox"]:checked').forEach(cb => {
+      branches.push(cb.value);
+    });
+
+    if (!rank || !category) {
+      toast('Please fill in rank and category.', 'error');
+      return;
+    }
+
+    if (branches.length === 0) {
+      toast('Please select at least one preferred branch.', 'error');
+      return;
+    }
+
+    const container = document.getElementById('cfResultsContainer');
+    container.innerHTML = `
+      <div style="text-align:center; padding:80px; color:var(--ink-soft);">
+        <i class="fas fa-spinner fa-spin" style="font-size:36px; margin-bottom:16px; color:var(--rust);"></i>
+        <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">Generating Optimized Choice List...</h4>
+        <p style="font-size:12px; color:var(--ink-soft);">Analyzing multiple cutoff tables and running safety audit audits...</p>
+      </div>
+    `;
+
+    try {
+      const res = await apiJson('/api/choice-filling/predict', {
+        method: 'POST',
+        body: JSON.stringify({ rank, category, quota, tfw, branches, collegeType, maxChoices })
+      });
+
+      lastChoiceResults = res.choices || [];
+      renderChoiceList(res);
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `
+        <div style="text-align:center; padding:48px; border:1px solid var(--danger); background:var(--paper); color:var(--danger); border-radius:12px;">
+          <i class="fas fa-exclamation-triangle" style="font-size:36px; margin-bottom:12px; color:var(--danger);"></i>
+          <h4 style="font-weight:700; margin-bottom:4px;">Generation Failed</h4>
+          <p style="font-size:12px; color:var(--ink-soft);">${err.message || 'Error communicating with database.'}</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderChoiceList(data) {
+    const container = document.getElementById('cfResultsContainer');
+    container.innerHTML = '';
+
+    const list = data.choices || [];
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+          <i class="fas fa-info-circle" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+          <h4 style="font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px;">No Matching Preferences Found</h4>
+          <p style="font-size:12px; color:var(--ink-soft);">Try expanding your preferred branches or selecting a broader college type filter.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Header buttons (no-print)
+    const headerActions = document.createElement('div');
+    headerActions.className = 'no-print';
+    headerActions.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;';
+    headerActions.innerHTML = `
+      <div>
+        <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Your Optimized Preference Sheet</h4>
+        <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} optimized choices ordered strictly by counseling priority.</p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="copyChoiceListToClipboard()" class="btn-secondary btn-sm"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
+        <button onclick="printChoiceList()" class="btn-primary btn-sm"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
+      </div>
+    `;
+    container.appendChild(headerActions);
+
+    // Table container for styling
+    const tableContainer = document.createElement('div');
+    tableContainer.style.cssText = 'background:var(--paper); border:1px solid var(--rule-strong); border-radius:12px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom:20px;';
+
+    let rowsHtml = '';
+    list.forEach((choice, index) => {
+      let badgeClass = 'bg-slate-100 text-slate-700';
+      if (choice.tier === 'Dream') {
+        badgeClass = 'bg-purple-50 text-purple-600 border border-purple-100';
+      } else if (choice.tier === 'Target') {
+        badgeClass = 'bg-blue-50 text-blue-600 border border-blue-100';
+      } else if (choice.tier === 'Safety') {
+        badgeClass = 'bg-emerald-50 text-emerald-600 border border-emerald-100';
+      }
+
+      rowsHtml += `
+        <tr style="border-bottom:1px solid var(--rule); transition: background 0.15s;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
+          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:60px;">${index + 1}</td>
+          <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);">${choice.choiceCode}</span></td>
+          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); line-height:1.4;">
+            ${choice.institute}
+            <div style="font-size:11px; color:var(--ink-mute); font-weight:500; margin-top:3px;">${choice.program} <span style="margin-left:6px; font-weight:400; opacity:0.8;">(${choice.seatType} | ${choice.quota})</span></div>
+          </td>
+          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center;">${choice.baseCutoff.toLocaleString()}</td>
+          <td style="padding:14px 16px; text-align:center; width:120px;">
+            <span class="text-[10px] px-2.5 py-1 font-bold rounded ${badgeClass}" style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px;">${choice.tier}</span>
+          </td>
+        </tr>
+      `;
+    });
+
+    tableContainer.innerHTML = `
+      <table style="width:100%; border-collapse:collapse; text-align:left;">
+        <thead>
+          <tr style="background:var(--paper-deep); border-bottom:1px solid var(--rule-strong);">
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    `;
+    container.appendChild(tableContainer);
+
+    // Safety net auditor warning (no-print)
+    if (data.summary.insufficientSafeties) {
+      const warningBanner = document.createElement('div');
+      warningBanner.className = 'no-print';
+      warningBanner.style.cssText = 'background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:12px; padding:16px; margin-top:20px; display:flex; gap:14px; align-items:flex-start; text-align:left;';
+      
+      let backupRows = '';
+      (data.suggestedBackups || []).forEach(b => {
+        backupRows += `<div style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:6px;"><i class="fa-solid fa-square-plus" style="color:var(--rust); margin-right:6px;"></i><strong>[${b.choiceCode}]</strong> ${b.institute} - ${b.program} (Cutoff: ${b.baseCutoff.toLocaleString()})</div>`;
+      });
+
+      warningBanner.innerHTML = `
+        <div style="width:36px; height:36px; border-radius:50%; background:rgba(245,158,11,0.12); color:#D97706; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; font-size:18px;"><i class="fas fa-exclamation-triangle"></i></div>
+        <div>
+          <strong style="font-size:13px; color:var(--ink); display:block; margin-bottom:4px;">Safety Net Auditor Warning: Insufficient Backups</strong>
+          <span style="font-size:12px; color:var(--ink-soft); line-height:1.5; display:block;">Your list currently contains only <strong>${data.summary.safetyCount} safe option(s)</strong>. If cutoffs drop this year, you risk not getting allocated any seat. We strongly recommend adding these safety backups at the bottom of your list:</span>
+          ${backupRows}
+        </div>
+      `;
+      container.appendChild(warningBanner);
+    }
+  }
+
+  function copyChoiceListToClipboard() {
+    if (lastChoiceResults.length === 0) return;
+    
+    let text = `=== WBJEE OPTIMIZED CHOICE FILLING PREFERENCE SHEET ===\n`;
+    text += `Generated via Sankalp Aspirants Counseling Portal\n`;
+    text += `Student Rank: ${document.getElementById('cfRank').value} | Category: ${document.getElementById('cfCategory').value}\n\n`;
+    
+    lastChoiceResults.forEach((c, index) => {
+      text += `${index + 1}. [Choice Code: ${c.choiceCode}] ${c.institute} — ${c.program} (${c.seatType}) — [Cutoff: ${c.baseCutoff}] [Tier: ${c.tier}]\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      toast('Choice list copied to clipboard successfully!', 'success');
+    }).catch(err => {
+      toast('Failed to copy list: ' + err.message, 'error');
+    });
+  }
+
+  function printChoiceList() {
+    window.print();
   }
 
   auth.onAuthStateChanged(async (user) => {

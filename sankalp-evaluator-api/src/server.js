@@ -18,6 +18,7 @@ const subadminsRouter = require('./routes/subadmins');
 const notesRouter = require('./routes/notes');
 const testsRouter = require('./routes/tests');
 const prepRouter = require('./routes/prep');
+const choiceFillingRouter = require('./routes/choice-filling');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
 const { sendEmail } = require('./mailer');
@@ -42,6 +43,7 @@ app.get('/api/debug-routes', (_req, res) => {
       let routerPath = path;
       if (layer.regexp.toString().includes('admin')) routerPath += '/api/admin';
       else if (layer.regexp.toString().includes('predictor')) routerPath += '/api/predictor';
+      else if (layer.regexp.toString().includes('choice-filling')) routerPath += '/api/choice-filling';
       else if (layer.regexp.toString().includes('exams')) routerPath += '/api/exams';
       else if (layer.regexp.toString().includes('submit')) routerPath += '/api/submit';
       else if (layer.regexp.toString().includes('result')) routerPath += '/api/result';
@@ -68,6 +70,7 @@ app.use('/api/payment', paymentRouter);
 // Standard Razorpay endpoint aliases: /api/create-order and /api/verify-payment.
 app.use('/api', paymentRouter);
 app.use('/api/predictor', predictorRouter);
+app.use('/api/choice-filling', choiceFillingRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/tests', testsRouter);
 app.use('/api/prep', prepRouter);

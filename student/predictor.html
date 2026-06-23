@@ -474,7 +474,7 @@
           </select>
         </div>
 
-        <div style="display:none;">
+        <div>
           <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Quota (Home State / All India)</label>
           <select id="inpQuota" class="predictor-input">
             <option value="All">All Quotas</option>
@@ -734,6 +734,7 @@
         if (!hasLoadedDropdowns) {
           await loadDynamicDropdowns();
           hasLoadedDropdowns = true;
+          setupQuotaRestriction();
         }
       }
     } catch (err) {
@@ -820,6 +821,60 @@
       console.error('Failed to load dynamic categories:', err);
       toast('Failed to load filters metadata', 'error');
     }
+  }
+
+  let savedCategoryValue = '';
+
+  function setupQuotaRestriction() {
+    const quotaSelect = document.getElementById('inpQuota');
+    const catSelect = document.getElementById('inpCategory');
+
+    if (!quotaSelect || !catSelect) return;
+
+    function handleQuotaChange() {
+      if (quotaSelect.value === 'All India') {
+        // Save current category selection if it is not already 'Open'
+        if (catSelect.value && catSelect.value !== 'Open') {
+          savedCategoryValue = catSelect.value;
+        }
+        // Force Category to Open
+        catSelect.value = 'Open';
+        
+        // Disable other options
+        Array.from(catSelect.options).forEach(opt => {
+          if (opt.value && opt.value !== 'Open') {
+            opt.disabled = true;
+          }
+        });
+      } else {
+        // Re-enable all options
+        Array.from(catSelect.options).forEach(opt => {
+          opt.disabled = false;
+        });
+        // Restore saved category selection if available
+        if (savedCategoryValue && quotaSelect.value !== 'All India') {
+          const opt = Array.from(catSelect.options).find(o => o.value === savedCategoryValue);
+          if (opt) {
+            catSelect.value = savedCategoryValue;
+          }
+          savedCategoryValue = '';
+        }
+      }
+    }
+
+    // Event listener for quota changes
+    quotaSelect.addEventListener('change', handleQuotaChange);
+
+    // Event listener for category changes (safeguard)
+    catSelect.addEventListener('change', () => {
+      if (quotaSelect.value === 'All India' && catSelect.value !== 'Open') {
+        catSelect.value = 'Open';
+        toast('For All India quota, only the Open category is applicable.', 'error');
+      }
+    });
+
+    // Run once initially to apply restrictions if prefilled
+    handleQuotaChange();
   }
 
   // ── 3. Paywall Unlock Flow ──────────────────────────────────────────

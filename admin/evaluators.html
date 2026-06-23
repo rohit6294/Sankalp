@@ -852,7 +852,7 @@
               </select>
             </div>
 
-            <div class="predictor-form-group" style="display:none;">
+            <div class="predictor-form-group">
               <label for="predQuota">Quota (Home State / All India)</label>
               <select id="predQuota" class="predictor-input-field">
                 <option value="All">All Quotas</option>
@@ -3770,6 +3770,56 @@ function triggerExcelSelect(year) {
   document.getElementById(`file${year}`).click();
 }
 
+let savedAdminCategoryValue = '';
+function setupAdminQuotaRestriction() {
+  const quotaSelect = document.getElementById('predQuota');
+  const catSelect = document.getElementById('predCategory');
+
+  if (!quotaSelect || !catSelect) return;
+
+  if (quotaSelect.dataset.hasRestrictionListener === 'true') {
+    handleQuotaChange();
+    return;
+  }
+  quotaSelect.dataset.hasRestrictionListener = 'true';
+
+  function handleQuotaChange() {
+    if (quotaSelect.value === 'All India') {
+      if (catSelect.value && catSelect.value !== 'Open') {
+        savedAdminCategoryValue = catSelect.value;
+      }
+      catSelect.value = 'Open';
+      Array.from(catSelect.options).forEach(opt => {
+        if (opt.value && opt.value !== 'Open') {
+          opt.disabled = true;
+        }
+      });
+    } else {
+      Array.from(catSelect.options).forEach(opt => {
+        opt.disabled = false;
+      });
+      if (savedAdminCategoryValue && quotaSelect.value !== 'All India') {
+        const opt = Array.from(catSelect.options).find(o => o.value === savedAdminCategoryValue);
+        if (opt) {
+          catSelect.value = savedAdminCategoryValue;
+        }
+        savedAdminCategoryValue = '';
+      }
+    }
+  }
+
+  quotaSelect.addEventListener('change', handleQuotaChange);
+
+  catSelect.addEventListener('change', () => {
+    if (quotaSelect.value === 'All India' && catSelect.value !== 'Open') {
+      catSelect.value = 'Open';
+      toast('For All India quota, only the Open category is applicable.');
+    }
+  });
+
+  handleQuotaChange();
+}
+
 async function loadPredictorDashboard() {
   if (!adminCan('collegePredictor', 'view')) return;
 
@@ -3840,6 +3890,8 @@ async function loadPredictorDashboard() {
     console.error('Failed to load predictor dropdown details:', err);
     toast('Error loading filters. Make sure Excel cutoffs are imported.');
   }
+
+  setupAdminQuotaRestriction();
 
   // Refresh stats in background
   loadPredictorStatus().catch(console.error);

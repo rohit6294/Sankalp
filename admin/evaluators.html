@@ -13,6 +13,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../js/firebase-config.js"></script>
   <script src="../js/admin-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .tab-btn { padding: 12px 24px; border: 1px solid var(--ink); border-bottom: none; background: var(--paper-soft); cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--font-sans); border-radius: 4px 4px 0 0; transition: all 0.15s ease; }
     .tab-btn.active { background: var(--ink); color: var(--paper); }
@@ -1199,6 +1200,31 @@
     </div>
   </div>
 </main>
+
+  <!-- Cutoff Trend Chart Modal -->
+  <div id="trendChartModal" class="modal-overlay" style="z-index: 2000;">
+    <div style="background:var(--paper); border:1px solid var(--rule-strong); border-radius:16px; padding:32px; max-width:600px; width:100%; position:relative; box-shadow: 0 24px 70px rgba(15, 23, 42, 0.15);">
+      <button onclick="closeTrendChartModal()" style="position:absolute; top:16px; right:16px; background:none; border:1px solid var(--rule-strong); border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; font-size:14px; color:var(--ink-mute); cursor:pointer; transition: all 0.2s; outline:none;" onmouseover="this.style.color='var(--rust)'; this.style.borderColor='var(--rust)';" onmouseout="this.style.color='var(--ink-mute)'; this.style.borderColor='var(--rule-strong)';"><i class="fas fa-times"></i></button>
+      <div style="text-align:left; margin-bottom:16px;">
+        <span style="background:rgba(10, 116, 245, 0.1); color:var(--rust); font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:8px; border:1px solid rgba(10, 116, 245, 0.2);">
+          <i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> Cutoff Analytics
+        </span>
+        <h2 id="chartModalCollegeName" style="font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--ink); line-height: 1.4; margin-bottom:4px;">Heritage Institute of Technology</h2>
+        <p id="chartModalProgramName" style="color:var(--rust); font-size:12px; font-weight:600; margin-bottom:16px;">Computer Science & Engineering</p>
+      </div>
+
+      <!-- Canvas for Chart.js -->
+      <div style="position: relative; height: 250px; width: 100%; margin-bottom: 20px;">
+        <canvas id="trendChartCanvas"></canvas>
+      </div>
+
+      <!-- Dynamic Insights Banner -->
+      <div id="chartInsightBanner" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 12px; text-align: left; background: var(--paper-deep); border: 1px solid var(--rule-strong);">
+        <i class="fas fa-info-circle" style="color: var(--rust);"></i>
+        <span id="chartInsightText" style="color: var(--ink-soft); line-height: 1.4;">Analyzing cutoff trends...</span>
+      </div>
+    </div>
+  </div>
 
 <div id="createExamModal" class="modal-overlay">
   <div style="background:var(--paper); border:1px solid var(--ink); padding:32px; max-width:480px; width:100%;">
@@ -3763,6 +3789,141 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
+let currentTrendChartInstance = null;
+
+function openTrendChart(btn) {
+  const institute = btn.getAttribute('data-institute');
+  const program = btn.getAttribute('data-program');
+  const cutoffs = JSON.parse(btn.getAttribute('data-cutoffs') || '{}');
+
+  // Populate Modal Text
+  document.getElementById('chartModalCollegeName').textContent = institute;
+  document.getElementById('chartModalProgramName').textContent = program;
+
+  // Get sorted chronological list of years that have data
+  const years = Object.keys(cutoffs).sort((a, b) => {
+    const numA = parseInt(String(a).match(/^\d+/) || 0, 10);
+    const numB = parseInt(String(b).match(/^\d+/) || 0, 10);
+    if (numA !== numB) return numA - numB; // Sort ascending
+    return String(a).localeCompare(String(b));
+  });
+
+  const ranks = years.map(yr => cutoffs[yr]);
+
+  // Calculate Trend Insight
+  const insightText = document.getElementById('chartInsightText');
+  if (years.length >= 2) {
+    const firstYear = years[0];
+    const lastYear = years[years.length - 1];
+    const firstRank = cutoffs[firstYear];
+    const lastRank = cutoffs[lastYear];
+    
+    if (lastRank < firstRank) {
+      const percent = Math.round(((firstRank - lastRank) / firstRank) * 100);
+      insightText.innerHTML = `<strong>Popularity Rising</strong>: cutoff rank fell by <strong>${percent}%</strong> from ${firstYear} to ${lastYear}. This course is becoming <strong>more competitive</strong>.`;
+    } else if (lastRank > firstRank) {
+      const percent = Math.round(((lastRank - firstRank) / firstRank) * 100);
+      insightText.innerHTML = `<strong>Competition Decreasing</strong>: cutoff rank rose by <strong>${percent}%</strong> from ${firstYear} to ${lastYear}. This course is becoming <strong>more accessible</strong>.`;
+    } else {
+      insightText.innerHTML = `<strong>Stable Cutoff</strong>: the competition levels for this course have remained consistent across recent years.`;
+    }
+  } else {
+    insightText.innerHTML = `<strong>Single Year Data</strong>: showing cutoffs for ${years[0] || 'N/A'}. Historical trend analysis requires multiple years of data.`;
+  }
+
+  // Show Modal
+  document.getElementById('trendChartModal').style.display = 'flex';
+
+  // Render/Update Chart.js Canvas
+  const ctx = document.getElementById('trendChartCanvas').getContext('2d');
+  if (currentTrendChartInstance) {
+    currentTrendChartInstance.destroy();
+  }
+
+  // Create glowing area background gradient
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, 'rgba(10, 116, 245, 0.3)'); // Electric blue alpha
+  gradient.addColorStop(1, 'rgba(10, 116, 245, 0.0)');
+
+  currentTrendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'Closing Rank',
+        data: ranks,
+        borderColor: '#0A74F5', // Website brand electric blue
+        borderWidth: 3,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.35, // Smooth curves
+        pointBackgroundColor: '#0A74F5',
+        pointBorderColor: '#FFF',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: '#0F172A', // Match website dark slate components
+          titleColor: '#FFFFFF',
+          bodyColor: '#FFFFFF',
+          titleFont: { family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          bodyFont: { family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          borderColor: 'rgba(10, 116, 245, 0.2)',
+          borderWidth: 1,
+          cornerRadius: 8,
+          padding: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return `Closing Rank: ${context.parsed.y.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(15, 23, 42, 0.06)' // Faint slate grid lines (visible on white)
+          },
+          ticks: {
+            color: '#64748B', // slate-500 (--ink-mute)
+            font: { weight: 'bold', family: "'Plus Jakarta Sans', sans-serif" }
+          }
+        },
+        y: {
+          reverse: true, // Inverted for ranks
+          grid: {
+            color: 'rgba(15, 23, 42, 0.06)'
+          },
+          ticks: {
+            color: '#64748B',
+            font: { family: "'Plus Jakarta Sans', sans-serif" },
+            callback: function(value) {
+              return value.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function closeTrendChartModal() {
+  document.getElementById('trendChartModal').style.display = 'none';
+  if (currentTrendChartInstance) {
+    currentTrendChartInstance.destroy();
+    currentTrendChartInstance = null;
+  }
+}
 
 function triggerExcelSelect(year) {
   if (!adminCan('collegePredictor', 'edit')) {
@@ -4209,6 +4370,16 @@ function renderPredictionResults(results) {
       </div>
       <div style="border-top:1px solid var(--rule); padding-top:12px; margin-top:12px; display:grid; grid-template-columns:repeat(auto-fit, minmax(65px, 1fr)); gap:10px;">
         ${cutoffsHtml}
+      </div>
+      <div style="margin-top:14px; border-top:1px dashed var(--rule); padding-top:10px;">
+        <button onclick="openTrendChart(this)" 
+                data-institute="${escapeHTML(row.institute)}" 
+                data-program="${escapeHTML(row.program)}" 
+                data-cutoffs='${JSON.stringify(row.cutoffs)}'
+                class="btn-ghost btn-sm" 
+                style="width:100%; justify-content:center; font-size:11px; padding:6px 0;">
+          <i class="fa-solid fa-chart-line" style="margin-right:6px;"></i> View Cutoff Trend
+        </button>
       </div>
     `;
     grid.appendChild(card);

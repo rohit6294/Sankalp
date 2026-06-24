@@ -1802,7 +1802,7 @@ function applyEvaluatorPermissions() {
   setHidden('.sidebar-link[href="evaluators.html"]', !adminCan('evaluators', 'view'));
   setHidden('#sidebarStudentListBtn', !adminCan('students', 'view'));
   setHidden('#sidebarCollegePredictorBtn', !adminCan('collegePredictor', 'view'));
-  setHidden('#sidebarChoiceFillingBtn', !adminCan('collegePredictor', 'view'));
+  setHidden('#sidebarChoiceFillingBtn', !adminCan('evaluators', 'view'));
   setHidden('#sidebarPrepPortalBtn', !adminCan('evaluators', 'view'));
   setHidden('[data-tab="exams"], [data-tab="rank"], [data-tab="submissions"]', !adminCan('evaluators', 'view'));
   setHidden('[data-tab="settings"]', !adminCan('settings', 'view'));

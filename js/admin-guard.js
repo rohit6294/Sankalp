@@ -78,7 +78,7 @@
       const hash = (window.location.hash || '').replace('#', '');
       if (hash === 'studentList') return 'students';
       if (hash === 'collegePredictor') return 'collegePredictor';
-      if (hash === 'choiceFilling') return 'collegePredictor';
+      if (hash === 'choiceFilling') return 'evaluators';
       if (hash === 'settings') return 'settings';
       return 'evaluators';
     }
@@ -103,7 +103,7 @@
     if (!link) return null;
     if (link.id === 'sidebarStudentListBtn') return 'students';
     if (link.id === 'sidebarCollegePredictorBtn') return 'collegePredictor';
-    if (link.id === 'sidebarChoiceFillingBtn') return 'collegePredictor';
+    if (link.id === 'sidebarChoiceFillingBtn') return 'evaluators';
     const file = normalizeHref(link.getAttribute('href'));
     return PAGE_SECTIONS[file] || null;
   }

@@ -5,12 +5,14 @@ const DEFAULT_PREDICTOR_SETTINGS = Object.freeze({
   choiceFillingEnabled: true,
   choiceFillingRequiresPayment: true,
   choiceFillingPrice: 199,
+  choiceFillingMaxAttempts: 30,
 });
 
 function normalizePredictorSettings(value) {
   const source = value && typeof value === 'object' ? value : {};
   const price = Number(source.price);
   const cfPrice = Number(source.choiceFillingPrice);
+  const cfMaxAttempts = Number(source.choiceFillingMaxAttempts);
 
   return {
     enabled: source.enabled !== false,
@@ -23,6 +25,9 @@ function normalizePredictorSettings(value) {
     choiceFillingPrice: Number.isFinite(cfPrice) && cfPrice >= 1
       ? cfPrice
       : DEFAULT_PREDICTOR_SETTINGS.choiceFillingPrice,
+    choiceFillingMaxAttempts: Number.isFinite(cfMaxAttempts) && cfMaxAttempts >= 1
+      ? cfMaxAttempts
+      : DEFAULT_PREDICTOR_SETTINGS.choiceFillingMaxAttempts,
   };
 }
 
@@ -30,6 +35,7 @@ function validatePredictorSettings(value) {
   const source = value && typeof value === 'object' ? value : {};
   const price = Number(source.price);
   const cfPrice = Number(source.choiceFillingPrice);
+  const cfMaxAttempts = Number(source.choiceFillingMaxAttempts);
 
   if (typeof source.enabled !== 'boolean') {
     return { error: 'invalid_enabled', message: 'Predictor visibility must be enabled or disabled.' };
@@ -50,6 +56,9 @@ function validatePredictorSettings(value) {
   if (!Number.isFinite(cfPrice) || cfPrice < 1) {
     return { error: 'invalid_cf_price', message: 'Choice Filling price must be at least INR 1.' };
   }
+  if (!Number.isFinite(cfMaxAttempts) || cfMaxAttempts < 1) {
+    return { error: 'invalid_cf_attempts', message: 'Choice Filling max attempts must be at least 1.' };
+  }
 
   return {
     settings: {
@@ -59,6 +68,7 @@ function validatePredictorSettings(value) {
       choiceFillingEnabled: source.choiceFillingEnabled,
       choiceFillingRequiresPayment: source.choiceFillingRequiresPayment,
       choiceFillingPrice: cfPrice,
+      choiceFillingMaxAttempts: cfMaxAttempts,
     },
   };
 }

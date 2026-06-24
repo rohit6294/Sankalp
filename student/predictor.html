@@ -384,6 +384,7 @@
     <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
     <a href="prep.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal</a>
     <a href="predictor.html" class="sidebar-link active"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="choice-filling.html" class="sidebar-link"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
     <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
@@ -462,16 +463,6 @@
         <i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Predictor
       </button>
     </div>
-  </div>
-
-  <!-- Premium Tab Navigation -->
-  <div style="display:flex; border-bottom: 1px solid var(--rule-strong); margin-bottom: 24px; gap: 8px;" id="premiumTabNav">
-    <button onclick="switchTab('predictor')" id="tabPredictor" class="px-6 py-3 font-bold text-sm transition-all border-b-2 border-[var(--rust)] text-[var(--rust)]" style="margin-bottom: -1px; outline: none;">
-      <i class="fas fa-graduation-cap" style="margin-right:8px;"></i> College Predictor
-    </button>
-    <button onclick="switchTab('choiceFilling')" id="tabChoiceFilling" class="px-6 py-3 font-bold text-sm transition-all border-b-2 border-transparent text-[var(--ink-mute)] hover:text-[var(--ink)]" style="margin-bottom: -1px; outline: none;">
-      <i class="fa-solid fa-list-check" style="margin-right:8px;"></i> Choice Filling Assistant
-    </button>
   </div>
 
   <!-- Main Predictor Grid -->
@@ -667,6 +658,14 @@
             <option value="30" selected>Top 30 Choices</option>
             <option value="50">Top 50 Choices</option>
           </select>
+        </div>
+
+        <!-- Terms and Conditions Agreement Checkbox -->
+        <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
+            <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;">
+            <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counseling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
+          </label>
         </div>
 
         <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px;" id="cfPredictBtn" disabled>
@@ -1765,6 +1764,12 @@
   async function runChoiceFilling() {
     if (!isChoicePaid) {
       showCfPaywall();
+      return;
+    }
+
+    const agreeCheckbox = document.getElementById('cfAgreeCheckbox');
+    if (agreeCheckbox && !agreeCheckbox.checked) {
+      toast('Please review and agree to the Terms and Conditions disclaimer.', 'warning');
       return;
     }
 

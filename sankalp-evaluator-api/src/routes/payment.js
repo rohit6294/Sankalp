@@ -55,6 +55,12 @@ async function createOrder(req, res) {
       if (!settings.enabled) return res.status(403).json({ error: 'feature_disabled', message: 'College Predictor is disabled.' });
       if (!settings.requiresPayment) return res.status(409).json({ error: 'paywall_disabled', message: 'Currently available without payment.' });
       price = settings.price;
+    } else if (product === 'choice_filling') {
+      const settingsDoc = await db.collection('settings').doc('college_predictor').get();
+      const settings = normalizePredictorSettings(settingsDoc.exists ? settingsDoc.data() : {});
+      if (!settings.choiceFillingEnabled) return res.status(403).json({ error: 'feature_disabled', message: 'Choice Filling is disabled.' });
+      if (!settings.choiceFillingRequiresPayment) return res.status(409).json({ error: 'paywall_disabled', message: 'Currently available without payment.' });
+      price = settings.choiceFillingPrice;
     } else if (product === 'mock_test_subscription') {
       const settingsDoc = await db.collection('settings').doc('mock_test_subscription').get();
       const settings = settingsDoc.exists ? settingsDoc.data() : { price: 999 };
@@ -211,6 +217,18 @@ async function verifyPayment(req, res) {
       productId: pendingOrder.productId || null,
       status: 'success'
     });
+
+    if (pendingOrder.product === 'choice_filling') {
+      const settingsDoc = await db.collection('settings').doc('college_predictor').get();
+      const settings = normalizePredictorSettings(settingsDoc.exists ? settingsDoc.data() : {});
+      const maxAttempts = settings.choiceFillingMaxAttempts || 30;
+
+      await db.collection('users').doc(req.user.uid).set({
+        choiceFillingUnlocked: true,
+        choiceFillingAttemptsLeft: admin.firestore.FieldValue.increment(maxAttempts)
+      }, { merge: true });
+      console.log(`[Payment Verify] Credited ${maxAttempts} choice filling attempts for user ${req.user.uid}`);
+    }
 
     if (pendingOrder.product === 'mock_test_subscription') {
       const validUntil = new Date();

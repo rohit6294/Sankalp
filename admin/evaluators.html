@@ -105,6 +105,7 @@
     <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
     <a href="#" class="sidebar-link" id="sidebarStudentListBtn" onclick="switchMainTab('studentList', this); return false;"><i class="fas fa-users" style="width:18px"></i> Student List</a>
     <a href="#" class="sidebar-link" id="sidebarCollegePredictorBtn" onclick="switchMainTab('collegePredictor', this); return false;"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="#" class="sidebar-link" id="sidebarChoiceFillingBtn" onclick="switchMainTab('choiceFilling', this); return false;"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling Tool</a>
     <a href="#" class="sidebar-link" id="sidebarPrepPortalBtn" onclick="switchMainTab('prepPortal', this); return false;"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal Admin</a>
     <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
     <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
@@ -926,6 +927,7 @@
       </div>
     </div>
 
+
     <!-- DATA SETTINGS VIEW -->
     <div id="predictorImportView" style="display:none;">
       <div style="display:grid; grid-template-columns:1fr; gap:24px;">
@@ -1052,6 +1054,11 @@
                 <input type="number" id="cfPaywallPrice" class="predictor-input-field" placeholder="199" min="1" style="padding-left:32px;">
               </div>
             </div>
+
+            <div class="predictor-form-group">
+              <label for="cfPaywallAttempts">Choice Filling Attempts Limit per Payment</label>
+              <input type="number" id="cfPaywallAttempts" class="predictor-input-field" placeholder="30" min="1" value="30">
+            </div>
           </div>
         </div>
       </div>
@@ -1108,6 +1115,117 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- ===== CHOICE FILLING TOOL TAB ===== -->
+  <div id="tabChoiceFilling" style="display:none;">
+    <div style="margin-bottom:24px;">
+      <h1 class="display-lg">Choice-Filling Preference Assistant</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Test and generate optimized college counseling preference lists</p>
+    </div>
+
+    <div class="predictor-grid">
+      <!-- Sidebar Controls -->
+      <div class="predictor-panel-card" style="height: fit-content;">
+        <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:18px; color:var(--ink);"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px; color:var(--rust);"></i>Preference Filters</h3>
+
+        <form onsubmit="event.preventDefault(); runAdminChoiceFilling();" style="display:flex; flex-direction:column; gap:16px;">
+          <div class="predictor-form-group">
+            <label for="adminCfRank">WBJEE Rank *</label>
+            <input type="number" id="adminCfRank" class="predictor-input-field" placeholder="Enter GMR Rank" required min="1">
+          </div>
+
+          <div class="predictor-form-group">
+            <label for="adminCfCategory">Reservation Category *</label>
+            <div style="position: relative;" id="adminCfCategoryContainer">
+              <select id="adminCfCategory" class="predictor-input-field" required>
+                <option value="">-- Select Category --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="predictor-form-group">
+            <label for="adminCfQuota">Quota (Home State / All India)</label>
+            <select id="adminCfQuota" class="predictor-input-field">
+              <option value="All">All Quotas</option>
+            </select>
+          </div>
+
+          <!-- TFW Domicile Eligibility -->
+          <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
+              <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="adminCfTfwToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Preferred Branches Multi-Select -->
+          <div class="predictor-form-group">
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:8px; letter-spacing:0.5px;">Preferred Branches</label>
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; background: var(--paper-deep); padding: 12px; border: 1px solid var(--rule-strong); border-radius: 8px;" id="adminCfBranchContainer">
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CSE" checked> CSE</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="IT" checked> IT</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="AI_ML_DS" checked> AI / ML / DS</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CS_BS"> CS & Business</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ECE" checked> ECE / ETC</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="EE"> EE / EEE</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="AEIE"> AEIE / Instr.</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ME"> Mechanical</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CE"> Civil</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CHE"> Chemical</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="BT"> Bio-Tech / BME</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="PHM"> Pharmacy</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft); grid-column: span 2;"><input type="checkbox" value="ALLIED" checked> Other Allied Branches</label>
+            </div>
+          </div>
+
+          <div class="predictor-form-group">
+            <label for="adminCfCollegeType">College Type</label>
+            <select id="adminCfCollegeType" class="predictor-input-field">
+              <option value="All">All Types</option>
+              <option value="GovtGroup">Government Only</option>
+              <option value="PrivateGroup">Private Only</option>
+            </select>
+          </div>
+
+          <div class="predictor-form-group">
+            <label for="adminCfMaxChoices">Max Recommendations</label>
+            <select id="adminCfMaxChoices" class="predictor-input-field">
+              <option value="20">Top 20 Choices</option>
+              <option value="30" selected>Top 30 Choices</option>
+              <option value="50">Top 50 Choices</option>
+            </select>
+          </div>
+
+          <!-- Disclaimer Checkbox -->
+          <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
+              <input type="checkbox" id="adminCfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;">
+              <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in counseling rounds fluctuate, so admission to any specific college is not guaranteed.</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px; font-weight:600;" id="adminCfPredictBtn">
+            <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 6px;"></i> Generate Choice List
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Panel: Choice Filling Results -->
+      <div>
+        <div id="adminCfResultsContainer" style="min-height: 350px;">
+          <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+            <i class="fa-solid fa-list-check" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+            <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Choice List Generated</h4>
+            <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select criteria, rank, and branches, and click Generate to test the optimized counseling choice list.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ===== PREPARATION PORTAL ADMIN TAB ===== -->
@@ -1663,6 +1781,7 @@ function applyEvaluatorPermissions() {
   setHidden('.sidebar-link[href="evaluators.html"]', !adminCan('evaluators', 'view'));
   setHidden('#sidebarStudentListBtn', !adminCan('students', 'view'));
   setHidden('#sidebarCollegePredictorBtn', !adminCan('collegePredictor', 'view'));
+  setHidden('#sidebarChoiceFillingBtn', !adminCan('collegePredictor', 'view'));
   setHidden('#sidebarPrepPortalBtn', !adminCan('evaluators', 'view'));
   setHidden('[data-tab="exams"], [data-tab="rank"], [data-tab="submissions"]', !adminCan('evaluators', 'view'));
   setHidden('[data-tab="settings"]', !adminCan('settings', 'view'));
@@ -1746,6 +1865,7 @@ function switchMainTab(tab, btn) {
   // Handle sidebar vs tab-bar distinction
   const isStudentList = tab === 'studentList';
   const isCollegePredictor = tab === 'collegePredictor';
+  const isChoiceFilling = tab === 'choiceFilling';
   const isPrepPortal = tab === 'prepPortal';
 
   // Manage sidebar active states
@@ -1754,6 +1874,8 @@ function switchMainTab(tab, btn) {
     document.getElementById('sidebarStudentListBtn').classList.add('active');
   } else if (isCollegePredictor) {
     document.getElementById('sidebarCollegePredictorBtn').classList.add('active');
+  } else if (isChoiceFilling) {
+    document.getElementById('sidebarChoiceFillingBtn').classList.add('active');
   } else if (isPrepPortal) {
     document.getElementById('sidebarPrepPortalBtn').classList.add('active');
   } else {
@@ -1766,7 +1888,7 @@ function switchMainTab(tab, btn) {
   // Show/hide the evaluator header, tabs, and tab panels
   const evalHeader = document.getElementById('evaluatorsHeader');
   const evalTabBar = document.getElementById('evaluatorsTabBar');
-  const isSidebarTab = isStudentList || isCollegePredictor || isPrepPortal;
+  const isSidebarTab = isStudentList || isCollegePredictor || isChoiceFilling || isPrepPortal;
   if (evalHeader) evalHeader.style.display = isSidebarTab ? 'none' : 'flex';
   if (evalTabBar) evalTabBar.style.display = isSidebarTab ? 'none' : 'flex';
 
@@ -1776,11 +1898,12 @@ function switchMainTab(tab, btn) {
   document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
   document.getElementById('tabStudentList').style.display = isStudentList ? 'block' : 'none';
   document.getElementById('tabCollegePredictor').style.display = isCollegePredictor ? 'block' : 'none';
+  document.getElementById('tabChoiceFilling').style.display = isChoiceFilling ? 'block' : 'none';
   document.getElementById('tabPrepPortal').style.display = isPrepPortal ? 'block' : 'none';
 
   if (tab === 'submissions') loadSubmissions();
   if (isStudentList && !slStudentsLoaded) loadStudentList();
-  if (isCollegePredictor) loadPredictorDashboard();
+  if (isCollegePredictor || isChoiceFilling) loadPredictorDashboard();
   if (isPrepPortal) loadPrepPortalAdmin();
   applyEvaluatorPermissions();
 }
@@ -3642,7 +3765,7 @@ let predictorSubView = 'tool';
 let predictorStats = {};
 
 function changePredictorSubView(view) {
-  if (view === 'tool' && !adminCan('collegePredictor', 'view')) {
+  if ((view === 'tool' || view === 'choiceTool') && !adminCan('collegePredictor', 'view')) {
     toast('College Predictor view permission is not enabled for this account.');
     return;
   }
@@ -3657,11 +3780,13 @@ function changePredictorSubView(view) {
 
   predictorSubView = view;
   document.getElementById('btnPredictorTool').classList.toggle('active', view === 'tool');
+  document.getElementById('btnPredictorChoiceTool').classList.toggle('active', view === 'choiceTool');
   document.getElementById('btnPredictorImport').classList.toggle('active', view === 'import');
   document.getElementById('btnPredictorPaywall').classList.toggle('active', view === 'paywall');
   document.getElementById('btnPredictorPurchases').classList.toggle('active', view === 'purchases');
 
   document.getElementById('predictorToolView').style.display = view === 'tool' ? 'block' : 'none';
+  document.getElementById('predictorChoiceToolView').style.display = view === 'choiceTool' ? 'block' : 'none';
   document.getElementById('predictorImportView').style.display = view === 'import' ? 'block' : 'none';
   document.getElementById('predictorPaywallView').style.display = view === 'paywall' ? 'block' : 'none';
   document.getElementById('predictorPurchasesView').style.display = view === 'purchases' ? 'block' : 'none';
@@ -3693,6 +3818,7 @@ function applyPredictorPaywallSettings(settings = {}) {
   document.getElementById('cfFeatureToggle').checked = settings.choiceFillingEnabled !== false;
   document.getElementById('cfPaywallToggle').checked = settings.choiceFillingRequiresPayment !== false;
   document.getElementById('cfPaywallPrice').value = settings.choiceFillingPrice !== undefined ? settings.choiceFillingPrice : 199;
+  document.getElementById('cfPaywallAttempts').value = settings.choiceFillingMaxAttempts !== undefined ? settings.choiceFillingMaxAttempts : 30;
 }
 
 async function savePredictorPaywallSettings() {
@@ -3708,6 +3834,7 @@ async function savePredictorPaywallSettings() {
   const choiceFillingEnabled = document.getElementById('cfFeatureToggle').checked;
   const choiceFillingRequiresPayment = document.getElementById('cfPaywallToggle').checked;
   const choiceFillingPrice = document.getElementById('cfPaywallPrice').value;
+  const choiceFillingMaxAttempts = document.getElementById('cfPaywallAttempts').value;
 
   const button = document.getElementById('savePredictorSettingsBtn');
   const status = document.getElementById('predictorSettingsStatus');
@@ -3719,6 +3846,11 @@ async function savePredictorPaywallSettings() {
 
   if (choiceFillingPrice === '' || isNaN(choiceFillingPrice) || Number(choiceFillingPrice) < 1) {
     alert('Please enter a valid choice filling price of at least INR 1.');
+    return;
+  }
+
+  if (choiceFillingMaxAttempts === '' || isNaN(choiceFillingMaxAttempts) || Number(choiceFillingMaxAttempts) < 1) {
+    alert('Please enter a valid attempts limit of at least 1.');
     return;
   }
 
@@ -3735,7 +3867,8 @@ async function savePredictorPaywallSettings() {
         price: Number(price),
         choiceFillingEnabled,
         choiceFillingRequiresPayment,
-        choiceFillingPrice: Number(choiceFillingPrice)
+        choiceFillingPrice: Number(choiceFillingPrice),
+        choiceFillingMaxAttempts: Number(choiceFillingMaxAttempts)
       })
     });
     applyPredictorPaywallSettings(res.settings);
@@ -4129,6 +4262,17 @@ async function loadPredictorDashboard() {
   }
 
   setupAdminQuotaRestriction();
+
+  // Sync to Admin Choice Filling dropdowns
+  const adminCfCategory = document.getElementById('adminCfCategory');
+  const adminCfQuota = document.getElementById('adminCfQuota');
+  if (adminCfCategory && dropdown) {
+    adminCfCategory.innerHTML = dropdown.innerHTML;
+  }
+  if (adminCfQuota && dropdownQuota) {
+    adminCfQuota.innerHTML = dropdownQuota.innerHTML;
+  }
+  setupAdminCfQuotaRestriction();
 
   // Refresh stats in background
   loadPredictorStatus().catch(console.error);
@@ -4754,6 +4898,243 @@ async function handlePrepAdminEdit(e) {
   } catch (err) {
     toast('Error updating chapter: ' + err.message);
   }
+}
+
+// ===== ADMIN CHOICE FILLING CONTROLLERS =====
+let lastAdminChoiceResults = [];
+
+function setupAdminCfQuotaRestriction() {
+  const quotaSelect = document.getElementById('adminCfQuota');
+  const catSelect = document.getElementById('adminCfCategory');
+  const catContainer = document.getElementById('adminCfCategoryContainer');
+
+  if (!quotaSelect || !catSelect || !catContainer) return;
+
+  let overlay = document.getElementById('adminCfCategoryOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'adminCfCategoryOverlay';
+    overlay.style.cssText = 'position: absolute; inset: 0; cursor: not-allowed; z-index: 50;';
+    overlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toast('For All India quota, only General (Open) category is allowed.');
+    });
+  }
+
+  if (quotaSelect.dataset.hasRestrictionListener === 'true') {
+    handleQuotaChange();
+    return;
+  }
+  quotaSelect.dataset.hasRestrictionListener = 'true';
+
+  function handleQuotaChange() {
+    if (quotaSelect.value === 'All India') {
+      catSelect.value = 'Open';
+      catSelect.disabled = true;
+      if (!overlay.parentNode) {
+        catContainer.appendChild(overlay);
+      }
+    } else {
+      catSelect.disabled = false;
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    }
+  }
+
+  quotaSelect.addEventListener('change', handleQuotaChange);
+  handleQuotaChange();
+}
+
+async function runAdminChoiceFilling() {
+  if (!adminCan('collegePredictor', 'view')) {
+    toast('College Predictor view permission is required.');
+    return;
+  }
+
+  const rank = document.getElementById('adminCfRank').value;
+  const category = document.getElementById('adminCfCategory').value;
+  const quota = document.getElementById('adminCfQuota').value;
+  const tfw = document.getElementById('adminCfTfwToggle').checked;
+  const collegeType = document.getElementById('adminCfCollegeType').value;
+  const maxChoices = document.getElementById('adminCfMaxChoices').value;
+
+  const agreeCheckbox = document.getElementById('adminCfAgreeCheckbox');
+  if (agreeCheckbox && !agreeCheckbox.checked) {
+    toast('Please agree to the disclaimer terms to generate the choice list.');
+    return;
+  }
+
+  // Collect checked branches
+  const branches = [];
+  document.querySelectorAll('#adminCfBranchContainer input[type="checkbox"]:checked').forEach(cb => {
+    branches.push(cb.value);
+  });
+
+  if (!rank || !category) {
+    toast('Please fill in rank and category.');
+    return;
+  }
+
+  if (branches.length === 0) {
+    toast('Please select at least one preferred branch.');
+    return;
+  }
+
+  const container = document.getElementById('adminCfResultsContainer');
+  container.innerHTML = `
+    <div style="text-align:center; padding:64px; color:var(--ink-mute);">
+      <i class="fas fa-spinner fa-spin" style="font-size:36px; color:var(--rust); margin-bottom:16px;"></i>
+      <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">Generating Choice-Filling List...</h4>
+      <p style="font-size:12px;">Running sorting algorithms and safety net audits...</p>
+    </div>
+  `;
+
+  try {
+    const res = await apiJson('/api/choice-filling/predict', {
+      method: 'POST',
+      body: JSON.stringify({ rank, category, quota, tfw, branches, collegeType, maxChoices })
+    });
+
+    lastAdminChoiceResults = res.choices || [];
+    renderAdminChoiceList(res);
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `
+      <div style="text-align:center; padding:48px; border:1px solid rgba(239,68,68,0.2); background:rgba(239,68,68,0.02); color:#EF4444; border-radius:8px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:36px; margin-bottom:12px;"></i>
+        <h4 style="font-weight:600; margin-bottom:4px;">Generation Failed</h4>
+        <p style="font-size:12px;">${err.message || 'Error communicating with choice-filling service.'}</p>
+      </div>
+    `;
+  }
+}
+
+function renderAdminChoiceList(data) {
+  const container = document.getElementById('adminCfResultsContainer');
+  container.innerHTML = '';
+
+  const list = data.choices || [];
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+        <i class="fas fa-info-circle" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+        <h4 style="font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px;">No Matching Preferences Found</h4>
+        <p style="font-size:12px;">Try expanding branches or choosing All College Types.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Header actions (no-print)
+  const headerActions = document.createElement('div');
+  headerActions.className = 'no-print';
+  headerActions.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;';
+  headerActions.innerHTML = `
+    <div>
+      <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Optimized Preference Sheet</h4>
+      <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} choices ordered strictly by priority.</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="copyAdminChoiceListToClipboard()" class="btn-secondary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600;"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
+      <button onclick="printAdminChoiceList()" class="btn-primary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600; background:var(--rust); color:white; border:none; border-radius:6px; cursor:pointer;"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
+    </div>
+  `;
+  container.appendChild(headerActions);
+
+  // Table container
+  const tableContainer = document.createElement('div');
+  tableContainer.style.cssText = 'background:var(--paper); border:1px solid var(--rule-strong); border-radius:12px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom:20px;';
+
+  let rowsHtml = '';
+  list.forEach((choice, index) => {
+    let badgeStyle = 'background:#F1F5F9; color:#475569;';
+    if (choice.tier === 'Dream') {
+      badgeStyle = 'background:rgba(147, 51, 234, 0.08); color:#9333EA; border:1px solid rgba(147, 51, 234, 0.15);';
+    } else if (choice.tier === 'Target') {
+      badgeStyle = 'background:rgba(10, 116, 245, 0.08); color:#0A74F5; border:1px solid rgba(10, 116, 245, 0.15);';
+    } else if (choice.tier === 'Safety') {
+      badgeStyle = 'background:rgba(16, 185, 129, 0.08); color:#10B981; border:1px solid rgba(16, 185, 129, 0.15);';
+    }
+
+    rowsHtml += `
+      <tr style="border-bottom:1px solid var(--rule); transition: background 0.15s;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
+        <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:60px;">${index + 1}</td>
+        <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);">${choice.choiceCode}</span></td>
+        <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); line-height:1.4;">
+          ${choice.institute}
+          <div style="font-size:11px; color:var(--ink-mute); font-weight:500; margin-top:3px;">${choice.program} <span style="margin-left:6px; font-weight:400; opacity:0.8;">(${choice.seatType} | ${choice.quota})</span></div>
+        </td>
+        <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center;">${choice.baseCutoff.toLocaleString()}</td>
+        <td style="padding:14px 16px; text-align:center; width:120px;">
+          <span style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px; font-size:10px; font-weight:700; padding:4px 8px; border-radius:4px; ${badgeStyle}">${choice.tier}</span>
+        </td>
+      </tr>
+    `;
+  });
+
+  tableContainer.innerHTML = `
+    <table style="width:100%; border-collapse:collapse; text-align:left;">
+      <thead>
+        <tr style="background:var(--paper-deep); border-bottom:1px solid var(--rule-strong);">
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref</th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code</th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference</th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank</th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+  `;
+  container.appendChild(tableContainer);
+
+  // Safety Net Auditor warning
+  if (data.summary.insufficientSafeties) {
+    const warningBanner = document.createElement('div');
+    warningBanner.className = 'no-print';
+    warningBanner.style.cssText = 'background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:12px; padding:16px; margin-top:20px; display:flex; gap:14px; align-items:flex-start; text-align:left;';
+    
+    let backupRows = '';
+    (data.suggestedBackups || []).forEach(b => {
+      backupRows += `<div style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:6px;"><i class="fa-solid fa-square-plus" style="color:var(--rust); margin-right:6px;"></i><strong>[${b.choiceCode}]</strong> ${b.institute} - ${b.program} (Cutoff: ${b.baseCutoff.toLocaleString()})</div>`;
+    });
+
+    warningBanner.innerHTML = `
+      <div style="width:36px; height:36px; border-radius:50%; background:rgba(245,158,11,0.12); color:#D97706; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; font-size:18px;"><i class="fas fa-exclamation-triangle"></i></div>
+      <div>
+        <strong style="font-size:13px; color:var(--ink); display:block; margin-bottom:4px;">Safety Net Auditor Warning: Insufficient Backups</strong>
+        <span style="font-size:12px; color:var(--ink-soft); line-height:1.5; display:block;">The list contains only <strong>${data.summary.safetyCount} safe option(s)</strong>. Real cutoffs can drop. Consider recommending these safety backups at the bottom of the list:</span>
+        ${backupRows}
+      </div>
+    `;
+    container.appendChild(warningBanner);
+  }
+}
+
+function copyAdminChoiceListToClipboard() {
+  if (lastAdminChoiceResults.length === 0) return;
+  
+  let text = `=== WBJEE OPTIMIZED CHOICE FILLING PREFERENCE SHEET ===\n`;
+  text += `Generated via Sankalp Aspirants Admin Panel\n`;
+  text += `Student Rank: ${document.getElementById('adminCfRank').value} | Category: ${document.getElementById('adminCfCategory').value}\n\n`;
+  
+  lastAdminChoiceResults.forEach((c, index) => {
+    text += `${index + 1}. [Choice Code: ${c.choiceCode}] ${c.institute} — ${c.program} (${c.seatType}) — [Cutoff: ${c.baseCutoff}] [Tier: ${c.tier}]\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    toast('Choice list copied to clipboard successfully!');
+  }).catch(err => {
+    toast('Failed to copy list: ' + err.message);
+  });
+}
+
+function printAdminChoiceList() {
+  window.print();
 }
 
 auth.onAuthStateChanged(async (user) => {

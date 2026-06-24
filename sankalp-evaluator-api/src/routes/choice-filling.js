@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
-const { db } = require('../firebase');
+const { db, admin } = require('../firebase');
 const { verifyToken } = require('../auth');
 const { normalizePredictorSettings } = require('../predictor-settings');
 
@@ -36,46 +36,53 @@ function isAdminEmail(email) {
 // Access check for Choice Filling
 async function userHasChoiceAccess(req) {
   try {
-    if (isAdminEmail(req.user.email) || req.user.admin === true || req.user.role === 'admin') {
-      return true;
+    // Admins and evaluators always have access
+    if (isAdminEmail(req.user.email) || req.user.admin === true || req.user.role === 'admin' || req.user.role === 'evaluator') {
+      return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
     }
 
     const doc = await db.collection('settings').doc('college_predictor').get();
     const settings = normalizePredictorSettings(doc.exists ? doc.data() : {});
     if (!settings.choiceFillingEnabled) {
-      return false;
+      return { hasAccess: false, unlimited: false, attemptsLeft: 0 };
     }
     if (!settings.choiceFillingRequiresPayment) {
-      return true;
-    }
-
-    // Auto-reconcile payments
-    try {
-      const { autoReconcileUserPayments } = require('../payment-verifier');
-      await autoReconcileUserPayments(req.user.uid);
-    } catch (reconcileErr) {
-      console.error('Auto-reconcile failed during choice access check:', reconcileErr);
-    }
-
-    // Check purchase status in Firestore
-    const purchaseDoc = await db.collection('purchases').doc(`${req.user.uid}_choice_filling`).get();
-    if (purchaseDoc.exists && purchaseDoc.data().status === 'success') {
-      return true;
+      return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
     }
 
     // Check user profile attributes
     const userDoc = await db.collection('users').doc(req.user.uid).get();
-    if (userDoc.exists) {
-      const userData = userDoc.data();
-      if (userData.role === 'admin' || userData.role === 'evaluator' || userData.choiceFillingUnlocked === true) {
-        return true;
+    const userData = userDoc.exists ? userDoc.data() : {};
+    
+    if (userData.role === 'admin' || userData.role === 'evaluator') {
+      return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
+    }
+
+    // Check if they have attempts left
+    let attemptsLeft = userData.choiceFillingAttemptsLeft !== undefined ? Number(userData.choiceFillingAttemptsLeft) : null;
+
+    if (attemptsLeft !== null && attemptsLeft > 0) {
+      return { hasAccess: true, unlimited: false, attemptsLeft };
+    }
+
+    // If attemptsLeft is null or 0, check if they have a successful purchase that we can reconcile or initialize
+    const purchaseDoc = await db.collection('purchases').doc(`${req.user.uid}_choice_filling`).get();
+    if (purchaseDoc.exists && purchaseDoc.data().status === 'success') {
+      // If they have a purchase, but attemptsLeft is null, initialize it to the configured attempts!
+      if (attemptsLeft === null) {
+        const maxAttempts = settings.choiceFillingMaxAttempts || 30;
+        await db.collection('users').doc(req.user.uid).set({
+          choiceFillingUnlocked: true,
+          choiceFillingAttemptsLeft: maxAttempts
+        }, { merge: true });
+        return { hasAccess: true, unlimited: false, attemptsLeft: maxAttempts };
       }
     }
 
-    return false;
+    return { hasAccess: false, unlimited: false, attemptsLeft: 0 };
   } catch (err) {
     console.error('Choice access check failed:', err);
-    return false;
+    return { hasAccess: false, unlimited: false, attemptsLeft: 0 };
   }
 }
 
@@ -117,13 +124,16 @@ router.get('/status', verifyToken, async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('college_predictor').get();
     const settings = normalizePredictorSettings(doc.exists ? doc.data() : {});
-    const hasAccess = settings.choiceFillingEnabled ? await userHasChoiceAccess(req) : false;
+    const access = settings.choiceFillingEnabled ? await userHasChoiceAccess(req) : { hasAccess: false, unlimited: false, attemptsLeft: 0 };
 
     res.json({
       enabled: settings.choiceFillingEnabled,
       requiresPayment: settings.choiceFillingRequiresPayment,
       price: settings.choiceFillingPrice,
-      hasAccess
+      maxAttempts: settings.choiceFillingMaxAttempts || 30,
+      hasAccess: access.hasAccess,
+      unlimited: access.unlimited,
+      attemptsLeft: access.attemptsLeft
     });
   } catch (err) {
     res.status(500).json({ error: 'cf_status_failed', message: err.message });
@@ -136,15 +146,16 @@ router.post('/predict', verifyToken, async (req, res) => {
     const doc = await db.collection('settings').doc('college_predictor').get();
     const settings = normalizePredictorSettings(doc.exists ? doc.data() : {});
 
-    if (!settings.choiceFillingEnabled) {
+    const userIsAdmin = isAdminEmail(req.user.email) || req.user.admin === true || req.user.role === 'admin' || req.user.role === 'evaluator';
+    if (!settings.choiceFillingEnabled && !userIsAdmin) {
       return res.status(403).json({
         error: 'feature_disabled',
         message: 'Choice Filling Preference Assistant is currently disabled.'
       });
     }
 
-    const hasAccess = await userHasChoiceAccess(req);
-    if (!hasAccess) {
+    const access = await userHasChoiceAccess(req);
+    if (!access.hasAccess) {
       return res.status(402).json({
         error: 'payment_required',
         message: 'Please unlock the Choice Filling Preference Assistant to generate your preference list.'
@@ -161,12 +172,18 @@ router.post('/predict', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'missing_category', message: 'Please specify your reservation category.' });
     }
 
+    const categoriesToQuery = [category];
+    if (tfw === 'true' || tfw === true) {
+      categoriesToQuery.push('Tuition Fee Waiver');
+    }
+    const placeholders = categoriesToQuery.map(() => '?').join(',');
+
     // Query SQLite database for categories
     sqliteDb.all(`
       SELECT institute, program, stream, college_type, seat_type, quota, year, closing_rank, round
       FROM cutoffs
-      WHERE category = ?
-    `, [category], (err, rows) => {
+      WHERE category IN (${placeholders})
+    `, categoriesToQuery, (err, rows) => {
       if (err) {
         return res.status(500).json({ error: 'query_failed', message: err.message });
       }
@@ -241,32 +258,61 @@ router.post('/predict', verifyToken, async (req, res) => {
 
         // 4. Branch/Stream filter
         if (branchFilters.length > 0) {
-          const streamText = String(item.stream || item.program).toUpperCase();
+          const streamText = String(item.program || '').toUpperCase();
           const matchesBranch = branchFilters.some(b => {
             const bUpper = String(b).toUpperCase();
             if (bUpper === 'CSE') {
-              return streamText.includes('COMPUTER SCIENCE') || streamText.includes('CSE') || streamText.includes('COMP. SC.');
+              return streamText.includes('COMPUTER SCIENCE') || streamText.includes('CSE') || streamText.includes('CST') || streamText.includes('COMP. SC.');
             }
             if (bUpper === 'IT') {
               return streamText.includes('INFORMATION TECHNOLOGY') || streamText.includes('IT');
+            }
+            if (bUpper === 'AI_ML_DS') {
+              return streamText.includes('ARTIFICIAL') || streamText.includes('DATA SCIENCE') || streamText.includes('MACHINE LEARNING') || streamText.includes('DATASCIENCE');
+            }
+            if (bUpper === 'CS_BS') {
+              return streamText.includes('BUSINESS SYSTEM') || streamText.includes('CSBS');
             }
             if (bUpper === 'ECE') {
               return streamText.includes('ELECTRONICS') || streamText.includes('ECE') || streamText.includes('TELECOMMUNICATION');
             }
             if (bUpper === 'EE') {
-              return streamText.includes('ELECTRICAL') || streamText.includes('EE');
+              return streamText.includes('ELECTRICAL') || streamText.includes('EE') || streamText.includes('EEE');
+            }
+            if (bUpper === 'AEIE') {
+              return streamText.includes('INSTRUMENTATION') || streamText.includes('AEIE') || streamText.includes('EIE') || streamText.includes('APPLIED ELECTRONICS');
             }
             if (bUpper === 'ME') {
-              return streamText.includes('MECHANICAL') || streamText.includes('ME');
+              return streamText.includes('MECHANICAL') || streamText.includes('ME') || streamText.includes('AUTOMOBILE');
             }
             if (bUpper === 'CE') {
-              return streamText.includes('CIVIL') || streamText.includes('CE');
+              return streamText.includes('CIVIL') || streamText.includes('CE') || streamText.includes('CONSTRUCTION');
             }
             if (bUpper === 'CHE') {
               return streamText.includes('CHEMICAL') || streamText.includes('CHE');
             }
+            if (bUpper === 'BT') {
+              return streamText.includes('BIOTECHNOLOGY') || streamText.includes('BIOMEDICAL') || streamText.includes('BIO-TECHNOLOGY');
+            }
             if (bUpper === 'PHM') {
-              return streamText.includes('PHARMACY') || streamText.includes('PHARMA');
+              return streamText.includes('PHARMACY') || streamText.includes('PHARMA') || streamText.includes('PHM') || streamText.includes('B.PHARM');
+            }
+            if (bUpper === 'ALLIED') {
+              // Matches other minor/allied branches that do not fall into the main categories
+              const isMainCategory = 
+                streamText.includes('COMPUTER SCIENCE') || streamText.includes('CSE') || streamText.includes('CST') || streamText.includes('COMP. SC.') ||
+                streamText.includes('INFORMATION TECHNOLOGY') || streamText.includes('IT') ||
+                streamText.includes('ARTIFICIAL') || streamText.includes('DATA SCIENCE') || streamText.includes('MACHINE LEARNING') || streamText.includes('DATASCIENCE') ||
+                streamText.includes('BUSINESS SYSTEM') || streamText.includes('CSBS') ||
+                streamText.includes('ELECTRONICS') || streamText.includes('ECE') || streamText.includes('TELECOMMUNICATION') ||
+                streamText.includes('ELECTRICAL') || streamText.includes('EE') || streamText.includes('EEE') ||
+                streamText.includes('INSTRUMENTATION') || streamText.includes('AEIE') || streamText.includes('EIE') || streamText.includes('APPLIED ELECTRONICS') ||
+                streamText.includes('MECHANICAL') || streamText.includes('ME') || streamText.includes('AUTOMOBILE') ||
+                streamText.includes('CIVIL') || streamText.includes('CE') || streamText.includes('CONSTRUCTION') ||
+                streamText.includes('CHEMICAL') || streamText.includes('CHE') ||
+                streamText.includes('BIOTECHNOLOGY') || streamText.includes('BIOMEDICAL') || streamText.includes('BIO-TECHNOLOGY') ||
+                streamText.includes('PHARMACY') || streamText.includes('PHARMA') || streamText.includes('PHM') || streamText.includes('B.PHARM');
+              return !isMainCategory;
             }
             return streamText.includes(bUpper);
           });
@@ -341,6 +387,15 @@ router.post('/predict', verifyToken, async (req, res) => {
         suggestedBackups = allSafeties
           .filter(c => !finalChoices.some(fc => fc.institute === c.institute && fc.program === c.program))
           .slice(0, 3);
+      }
+
+      // Decrement attempts if not unlimited
+      if (access && !access.unlimited) {
+        db.collection('users').doc(req.user.uid).update({
+          choiceFillingAttemptsLeft: admin.firestore.FieldValue.increment(-1)
+        }).catch(updateErr => {
+          console.error('[Choice Filling] Failed to decrement attempts:', updateErr);
+        });
       }
 
       res.json({

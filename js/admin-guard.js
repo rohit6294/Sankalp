@@ -75,10 +75,10 @@
   function sectionForCurrentPage() {
     const file = pageFileName();
     if (file === 'evaluators.html') {
-      const hash = (window.location.hash || '').replace('#', '');
-      if (hash === 'studentList') return 'students';
-      if (hash === 'collegePredictor') return 'collegePredictor';
-      if (hash === 'choiceFilling') return 'evaluators';
+      const hash = (window.location.hash || '').replace('#', '').replace(/[\s_-]+/g, '').toLowerCase();
+      if (hash === 'studentlist') return 'students';
+      if (hash === 'collegepredictor') return 'collegePredictor';
+      if (hash === 'choicefilling') return 'evaluators';
       if (hash === 'settings') return 'settings';
       return 'evaluators';
     }

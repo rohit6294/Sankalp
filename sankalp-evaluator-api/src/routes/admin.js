@@ -1,7 +1,7 @@
 const express = require('express');
 const { admin, db } = require('../firebase');
-const { requireAdmin, verifyToken, requirePermission } = require('../auth');
-const { ADMIN_SECTIONS } = require('../permissions');
+const { requireAdmin, verifyToken, requirePermission, requireAnyPermission } = require('../auth');
+const { ADMIN_SECTIONS, hasPermission } = require('../permissions');
 const { resolveCollegeType } = require('../college-types');
 const { COUNTS, START, END, categoryFor } = require('../categories');
 const { getExamReadiness } = require('../exam-readiness');
@@ -15,6 +15,7 @@ const path = require('path');
 const router = express.Router();
 const { sendEmail } = require('../mailer');
 const { bustSettingsCache } = require('./predictor');
+const { validatePredictorSettings } = require('../predictor-settings');
 const { backupYearToFirestore } = require('../database-backup');
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -634,7 +635,7 @@ router.put('/settings/mandatory-fields', requirePermission('settings', 'edit'), 
 });
 
 // Fetch college predictor settings
-router.get('/predictor/settings', requirePermission('collegePredictor', 'view'), async (req, res) => {
+router.get('/predictor/settings', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('college_predictor').get();
     res.json({ settings: doc.exists ? doc.data() : {} });
@@ -644,19 +645,70 @@ router.get('/predictor/settings', requirePermission('collegePredictor', 'view'),
 });
 
 // Update college predictor settings
-router.put('/predictor/settings', requirePermission('collegePredictor', 'edit'), async (req, res) => {
+router.put('/predictor/settings', requireAnyPermission([['collegePredictor', 'edit'], ['evaluators', 'edit']]), async (req, res) => {
   const payload = ensurePlainObject(req.body);
   try {
-    await db.collection('settings').doc('college_predictor').set(payload, { merge: true });
+    const doc = await db.collection('settings').doc('college_predictor').get();
+    const existing = doc.exists ? doc.data() : {};
+
+    const profile = req.adminProfile;
+    const canEditPredictor = profile.isSuperAdmin || hasPermission(profile.permissions, 'collegePredictor', 'edit');
+    const canEditCf = profile.isSuperAdmin || hasPermission(profile.permissions, 'evaluators', 'edit');
+
+    const update = {};
+
+    if (canEditPredictor) {
+      if (payload.enabled !== undefined) update.enabled = payload.enabled === true;
+      if (payload.requiresPayment !== undefined) update.requiresPayment = payload.requiresPayment === true;
+      if (payload.price !== undefined) {
+        const price = Number(payload.price);
+        if (Number.isFinite(price) && price >= 1) {
+          update.price = price;
+        }
+      }
+    } else {
+      // Preserve existing predictor settings
+      if (existing.enabled !== undefined) update.enabled = existing.enabled;
+      if (existing.requiresPayment !== undefined) update.requiresPayment = existing.requiresPayment;
+      if (existing.price !== undefined) update.price = existing.price;
+    }
+
+    if (canEditCf) {
+      if (payload.choiceFillingEnabled !== undefined) update.choiceFillingEnabled = payload.choiceFillingEnabled === true;
+      if (payload.choiceFillingRequiresPayment !== undefined) update.choiceFillingRequiresPayment = payload.choiceFillingRequiresPayment === true;
+      if (payload.choiceFillingPrice !== undefined) {
+        const cfPrice = Number(payload.choiceFillingPrice);
+        if (Number.isFinite(cfPrice) && cfPrice >= 1) {
+          update.choiceFillingPrice = cfPrice;
+        }
+      }
+      if (payload.choiceFillingMaxAttempts !== undefined) {
+        const cfMaxAttempts = Number(payload.choiceFillingMaxAttempts);
+        if (Number.isFinite(cfMaxAttempts) && cfMaxAttempts >= 1) {
+          update.choiceFillingMaxAttempts = cfMaxAttempts;
+        }
+      }
+    } else {
+      // Preserve existing choice filling settings
+      if (existing.choiceFillingEnabled !== undefined) update.choiceFillingEnabled = existing.choiceFillingEnabled;
+      if (existing.choiceFillingRequiresPayment !== undefined) update.choiceFillingRequiresPayment = existing.choiceFillingRequiresPayment;
+      if (existing.choiceFillingPrice !== undefined) update.choiceFillingPrice = existing.choiceFillingPrice;
+      if (existing.choiceFillingMaxAttempts !== undefined) update.choiceFillingMaxAttempts = existing.choiceFillingMaxAttempts;
+    }
+
+    // Now validate the merged settings to ensure the final object is 100% valid
+    const merged = { ...existing, ...update };
+    const { error, message, settings } = validatePredictorSettings(merged);
+    if (error) {
+      return res.status(400).json({ error, message });
+    }
+
+    await db.collection('settings').doc('college_predictor').set(settings);
     
-    // Clear the in-memory predictor settings cache so student requests
-    // see the update immediately
+    // Clear the in-memory predictor settings cache so student requests see the update immediately
     bustSettingsCache();
 
-    // Read back saved settings so frontend can verify the save was correct
-    const savedDoc = await db.collection('settings').doc('college_predictor').get();
-    const savedSettings = savedDoc.exists ? savedDoc.data() : {};
-    res.json({ ok: true, settings: savedSettings, message: 'Settings saved successfully.' });
+    res.json({ ok: true, settings, message: 'Settings saved successfully.' });
   } catch (e) {
     res.status(500).json({ error: 'settings_save_failed', message: e.message });
   }

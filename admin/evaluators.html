@@ -1821,7 +1821,8 @@ function applyEvaluatorPermissions() {
   setHidden('#btnPredictorImport', !adminCan('collegePredictor', 'edit'));
   setHidden('#btnPredictorPaywall', !adminCan('collegePredictor', 'edit'));
   setHidden('#btnPredictorPurchases', !adminCan('payments', 'transactions'));
-  setDisabled('#uploadFileInput, #uploadYear, #predFeatureToggle, #predPaywallToggle, #predPaywallPrice, #cfFeatureToggle, #cfPaywallToggle, #cfPaywallPrice, #savePredictorSettingsBtn', !adminCan('collegePredictor', 'edit'));
+  setDisabled('#uploadFileInput, #uploadYear, #predFeatureToggle, #predPaywallToggle, #predPaywallPrice, #savePredictorSettingsBtn', !adminCan('collegePredictor', 'edit'));
+  setDisabled('#cfFeatureToggle, #cfPaywallToggle, #cfPaywallPrice, #cfPaywallAttempts, #saveCfSettingsBtn', !adminCan('evaluators', 'edit'));
   setDisabled('[onclick="clearCutoffs()"]', !adminCan('collegePredictor', 'edit'));
 
   const predictorEdit = adminCan('collegePredictor', 'edit');
@@ -3857,72 +3858,89 @@ function applyPredictorPaywallSettings(settings = {}) {
 }
 
 async function savePredictorPaywallSettings() {
-  if (!adminCan('collegePredictor', 'edit')) {
-    toast('College Predictor edit permission is required.');
+  if (!adminCan('collegePredictor', 'edit') && !adminCan('evaluators', 'edit')) {
+    toast('Edit permission is required.');
     return;
   }
 
-  const enabled = document.getElementById('predFeatureToggle').checked;
-  const requiresPayment = document.getElementById('predPaywallToggle').checked;
-  const price = document.getElementById('predPaywallPrice').value;
+  const payload = {};
+  const canEditPredictor = adminCan('collegePredictor', 'edit');
+  const canEditCf = adminCan('evaluators', 'edit');
 
-  const choiceFillingEnabled = document.getElementById('cfFeatureToggle').checked;
-  const choiceFillingRequiresPayment = document.getElementById('cfPaywallToggle').checked;
-  const choiceFillingPrice = document.getElementById('cfPaywallPrice').value;
-  const choiceFillingMaxAttempts = document.getElementById('cfPaywallAttempts').value;
+  if (canEditPredictor) {
+    const price = document.getElementById('predPaywallPrice').value;
+    if (price === '' || isNaN(price) || Number(price) < 1) {
+      alert('Please enter a valid predictor price of at least INR 1.');
+      return;
+    }
+    payload.enabled = document.getElementById('predFeatureToggle').checked;
+    payload.requiresPayment = document.getElementById('predPaywallToggle').checked;
+    payload.price = Number(price);
+  }
 
-  const button = document.getElementById('savePredictorSettingsBtn');
+  if (canEditCf) {
+    const choiceFillingPrice = document.getElementById('cfPaywallPrice').value;
+    const choiceFillingMaxAttempts = document.getElementById('cfPaywallAttempts').value;
+
+    if (choiceFillingPrice === '' || isNaN(choiceFillingPrice) || Number(choiceFillingPrice) < 1) {
+      alert('Please enter a valid choice filling price of at least INR 1.');
+      return;
+    }
+    if (choiceFillingMaxAttempts === '' || isNaN(choiceFillingMaxAttempts) || Number(choiceFillingMaxAttempts) < 1) {
+      alert('Please enter a valid attempts limit of at least 1.');
+      return;
+    }
+
+    payload.choiceFillingEnabled = document.getElementById('cfFeatureToggle').checked;
+    payload.choiceFillingRequiresPayment = document.getElementById('cfPaywallToggle').checked;
+    payload.choiceFillingPrice = Number(choiceFillingPrice);
+    payload.choiceFillingMaxAttempts = Number(choiceFillingMaxAttempts);
+  }
+
+  const btnPred = document.getElementById('savePredictorSettingsBtn');
+  const btnCf = document.getElementById('saveCfSettingsBtn');
   const status = document.getElementById('predictorSettingsStatus');
   const status2 = document.getElementById('cfSettingsStatus');
-  if(status2) status2.textContent = '';
 
-  if (price === '' || isNaN(price) || Number(price) < 1) {
-    alert('Please enter a valid predictor price of at least INR 1.');
-    return;
+  if (status) status.textContent = 'Saving settings...';
+  if (status2) status2.textContent = 'Saving settings...';
+
+  if (btnPred) {
+    btnPred.disabled = true;
+    btnPred.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Saving...';
   }
-
-  if (choiceFillingPrice === '' || isNaN(choiceFillingPrice) || Number(choiceFillingPrice) < 1) {
-    alert('Please enter a valid choice filling price of at least INR 1.');
-    return;
+  if (btnCf) {
+    btnCf.disabled = true;
+    btnCf.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Saving...';
   }
-
-  if (choiceFillingMaxAttempts === '' || isNaN(choiceFillingMaxAttempts) || Number(choiceFillingMaxAttempts) < 1) {
-    alert('Please enter a valid attempts limit of at least 1.');
-    return;
-  }
-
-  button.disabled = true;
-  button.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Saving...';
-  status.textContent = 'Saving settings...';
-  if(status2) status2.textContent = 'Saving settings...';
 
   try {
     const res = await apiJson('/api/admin/predictor/settings', {
       method: 'PUT',
-      body: JSON.stringify({
-        enabled,
-        requiresPayment,
-        price: Number(price),
-        choiceFillingEnabled,
-        choiceFillingRequiresPayment,
-        choiceFillingPrice: Number(choiceFillingPrice),
-        choiceFillingMaxAttempts: Number(choiceFillingMaxAttempts)
-      })
+      body: JSON.stringify(payload)
     });
     applyPredictorPaywallSettings(res.settings);
+    
     const verified = await apiJson('/api/admin/predictor/settings');
     applyPredictorPaywallSettings(verified.settings);
-    status.textContent = 'Saved and verified.';
-  if(status2) status2.textContent = 'Saved and verified.';
-    toast(res.message || 'Predictor and Choice Filling settings saved successfully.');
+
+    if (status) status.textContent = 'Saved and verified.';
+    if (status2) status2.textContent = 'Saved and verified.';
+    toast(res.message || 'Settings saved successfully.');
   } catch (err) {
     console.error('Failed to save paywall settings:', err);
-    status.textContent = 'Save failed.';
-  if(status2) status2.textContent = 'Save failed.';
+    if (status) status.textContent = 'Save failed.';
+    if (status2) status2.textContent = 'Save failed.';
     alert('Failed to save paywall settings: ' + err.message);
   } finally {
-    button.disabled = false;
-    button.innerHTML = '<i class="fas fa-save" style="margin-right:6px;"></i>Save Settings';
+    if (btnPred) {
+      btnPred.disabled = false;
+      btnPred.innerHTML = '<i class="fas fa-save" style="margin-right:6px;"></i>Save Settings';
+    }
+    if (btnCf) {
+      btnCf.disabled = false;
+      btnCf.innerHTML = '<i class="fas fa-save" style="margin-right:6px;"></i>Save Settings';
+    }
   }
 }
 

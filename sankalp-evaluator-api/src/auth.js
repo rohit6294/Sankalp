@@ -127,6 +127,37 @@ function requirePermission(section, action) {
   };
 }
 
+function requireAnyPermission(perms) {
+  return async (req, res, next) => {
+    try {
+      const profile = req.adminProfile || await getAdminProfile(req.user);
+      if (!profile) {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+      req.adminProfile = profile;
+
+      // Super Admins have all permissions implicitly
+      if (profile.isSuperAdmin === true) {
+        return next();
+      }
+
+      for (const [section, action] of perms) {
+        if (hasPermission(profile.permissions, section, action)) {
+          return next();
+        }
+      }
+
+      res.status(403).json({
+        error: 'forbidden_permission',
+        message: 'Access denied. You do not have the required permissions for this action.'
+      });
+    } catch (e) {
+      console.error('Permission check failed for requireAnyPermission:', e);
+      res.status(500).json({ error: 'permission_check_failed', message: e.message });
+    }
+  };
+}
+
 module.exports = {
   DEFAULT_ADMIN_EMAILS,
   adminEmailSet,
@@ -136,4 +167,5 @@ module.exports = {
   requireAdmin,
   requireSuperAdmin,
   requirePermission,
+  requireAnyPermission,
 };

@@ -5072,15 +5072,31 @@ function renderAdminChoiceList(data) {
   // Header actions (no-print)
   const headerActions = document.createElement('div');
   headerActions.className = 'no-print';
-  headerActions.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;';
+  headerActions.style.cssText = 'display:flex; flex-direction:column; gap:16px; margin-bottom:16px;';
   headerActions.innerHTML = `
-    <div>
-      <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Optimized Preference Sheet</h4>
-      <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} choices ordered strictly by priority.</p>
+    <div style="width:100%; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Optimized Preference Sheet</h4>
+        <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} choices ordered strictly by priority.</p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="copyAdminChoiceListToClipboard()" class="btn-secondary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600;"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
+        <button onclick="printAdminChoiceList()" class="btn-primary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600; background:var(--rust); color:white; border:none; border-radius:6px; cursor:pointer;"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
+      </div>
     </div>
-    <div style="display:flex; gap:8px;">
-      <button onclick="copyAdminChoiceListToClipboard()" class="btn-secondary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600;"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
-      <button onclick="printAdminChoiceList()" class="btn-primary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600; background:var(--rust); color:white; border:none; border-radius:6px; cursor:pointer;"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
+    <div class="cf-legend no-print" style="width:100%; display:flex; gap:16px; font-size:11px; flex-wrap:wrap; padding:12px 16px; background:var(--paper-soft); border-radius:8px; border:1px dashed var(--rule-strong);">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="background:rgba(147, 51, 234, 0.08); color:#9333EA; border:1px solid rgba(147, 51, 234, 0.15); padding:3px 8px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase;">Dream</span>
+        <span style="color:var(--ink-soft); line-height:1.4;"><strong>Ambitious</strong> (Tough to get, but placed at top for upward sliding)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="background:rgba(10, 116, 245, 0.08); color:#0A74F5; border:1px solid rgba(10, 116, 245, 0.15); padding:3px 8px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase;">Target</span>
+        <span style="color:var(--ink-soft); line-height:1.4;"><strong>Realistic</strong> (High probability of admission based on cutoffs)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="background:rgba(16, 185, 129, 0.08); color:#10B981; border:1px solid rgba(16, 185, 129, 0.15); padding:3px 8px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase;">Safety</span>
+        <span style="color:var(--ink-soft); line-height:1.4;"><strong>Fallback</strong> (Guaranteed options to ensure you secure a seat)</span>
+      </div>
     </div>
   `;
   container.appendChild(headerActions);

@@ -832,13 +832,29 @@
     headerActions.className = 'no-print';
     headerActions.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;';
     headerActions.innerHTML = `
-      <div>
-        <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Your Optimized Preference Sheet</h4>
-        <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} optimized choices ordered strictly by counseling priority.</p>
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Your Optimized Preference Sheet</h4>
+          <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} optimized choices ordered strictly by counseling priority.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button onclick="copyChoiceListToClipboard()" class="btn-secondary btn-sm"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
+          <button onclick="printChoiceList()" class="btn-primary btn-sm"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
+        </div>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button onclick="copyChoiceListToClipboard()" class="btn-secondary btn-sm"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
-        <button onclick="printChoiceList()" class="btn-primary btn-sm"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
+      <div class="cf-legend no-print" style="width:100%; display:flex; gap:16px; margin-top:16px; font-size:11px; flex-wrap:wrap; padding:12px 16px; background:var(--paper-soft); border-radius:8px; border:1px dashed var(--rule-strong);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="bg-purple-50 border border-purple-100 text-purple-600" style="padding:3px 8px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase;">Dream</span>
+          <span style="color:var(--ink-soft); line-height:1.4;"><strong>Ambitious</strong> (Tough to get, but placed at top for upward sliding)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="bg-blue-50 border border-blue-100 text-blue-600" style="padding:3px 8px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase;">Target</span>
+          <span style="color:var(--ink-soft); line-height:1.4;"><strong>Realistic</strong> (High probability of admission based on cutoffs)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="bg-emerald-50 border border-emerald-100 text-emerald-600" style="padding:3px 8px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase;">Safety</span>
+          <span style="color:var(--ink-soft); line-height:1.4;"><strong>Fallback</strong> (Guaranteed options to ensure you secure a seat)</span>
+        </div>
       </div>
     `;
     container.appendChild(headerActions);

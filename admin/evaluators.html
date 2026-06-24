@@ -1017,53 +1017,7 @@
           </div>
         </div>
 
-        <!-- Card 2: Choice Filling Assistant Settings -->
-        <div class="predictor-panel-card">
-          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:4px; color:var(--ink);"><i class="fa-solid fa-list-check" style="margin-right:8px; color:var(--rust);"></i>Choice Filling Assistant Settings</h3>
-          <p style="font-size:12px; color:var(--ink-mute); margin-bottom:20px;">Configure visibility and payment verification for the Choice Filling Assistant.</p>
-
-          <div style="display:flex; flex-direction:column; gap:18px; margin-top:20px;">
-            <div class="predictor-settings-list">
-              <div class="predictor-setting-row">
-                <div>
-                  <div style="font-size:14px;font-weight:600;color:var(--ink);">Enable Choice Filling Assistant</div>
-                  <div style="font-size:12px;color:var(--ink-mute);">Allow students to access the preference choice list generator</div>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="cfFeatureToggle">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div class="predictor-setting-row">
-                <div>
-                  <div style="font-size:14px;font-weight:600;color:var(--ink);">Enable Paywall</div>
-                  <div style="font-size:12px;color:var(--ink-mute);">Require payment from students to unlock this assistant</div>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="cfPaywallToggle">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="predictor-form-group">
-              <label for="cfPaywallPrice">Choice Filling Unlock Price (INR)</label>
-              <div style="position:relative;">
-                <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px; font-weight:700;">₹</span>
-                <input type="number" id="cfPaywallPrice" class="predictor-input-field" placeholder="199" min="1" style="padding-left:32px;">
-              </div>
-            </div>
-
-            <div class="predictor-form-group">
-              <label for="cfPaywallAttempts">Choice Filling Attempts Limit per Payment</label>
-              <input type="number" id="cfPaywallAttempts" class="predictor-input-field" placeholder="30" min="1" value="30">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Unified Save Button Bar -->
+        <!-- Unified Save Button Bar -->
       <div style="margin-top:24px; padding:20px; background:var(--paper); border:1px solid var(--rule-strong); border-radius:12px; display:flex; align-items:center; gap:16px;">
         <button onclick="savePredictorPaywallSettings()" id="savePredictorSettingsBtn" class="btn-rust" style="width:fit-content; padding:10px 24px; font-size:13px; font-weight:600;"><i class="fas fa-save" style="margin-right:6px;"></i>Save Settings</button>
         <span id="predictorSettingsStatus" style="font-size:12px; color:var(--ink-mute);"></span>
@@ -1123,6 +1077,71 @@
       <h1 class="display-lg">Choice-Filling Preference Assistant</h1>
       <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Test and generate optimized college counseling preference lists</p>
     </div>
+    <div id="cfTabBar" style="display:flex; gap:8px; margin-bottom:24px; margin-top:24px;">
+      <button class="tab-btn active" id="btnCfTool" onclick="changeCfSubView('tool')"><i class="fas fa-search" style="margin-right:6px;"></i> Testing Tool</button>
+      <button class="tab-btn" id="btnCfSettings" onclick="changeCfSubView('settings')"><i class="fas fa-key" style="margin-right:6px;"></i> Paywall & Settings</button>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="cfSettingsView" style="display:none; max-width:600px;">
+      <!-- Card 2: Choice Filling Assistant Settings -->
+        <div class="predictor-panel-card">
+          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:4px; color:var(--ink);"><i class="fa-solid fa-list-check" style="margin-right:8px; color:var(--rust);"></i>Choice Filling Assistant Settings</h3>
+          <p style="font-size:12px; color:var(--ink-mute); margin-bottom:20px;">Configure visibility and payment verification for the Choice Filling Assistant.</p>
+
+          <div style="display:flex; flex-direction:column; gap:18px; margin-top:20px;">
+            <div class="predictor-settings-list">
+              <div class="predictor-setting-row">
+                <div>
+                  <div style="font-size:14px;font-weight:600;color:var(--ink);">Enable Choice Filling Assistant</div>
+                  <div style="font-size:12px;color:var(--ink-mute);">Allow students to access the preference choice list generator</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="cfFeatureToggle">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="predictor-setting-row">
+                <div>
+                  <div style="font-size:14px;font-weight:600;color:var(--ink);">Enable Paywall</div>
+                  <div style="font-size:12px;color:var(--ink-mute);">Require payment from students to unlock this assistant</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="cfPaywallToggle">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="cfPaywallPrice">Choice Filling Unlock Price (INR)</label>
+              <div style="position:relative;">
+                <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px; font-weight:700;">₹</span>
+                <input type="number" id="cfPaywallPrice" class="predictor-input-field" placeholder="199" min="1" style="padding-left:32px;">
+              </div>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="cfPaywallAttempts">Choice Filling Attempts Limit per Payment</label>
+              <input type="number" id="cfPaywallAttempts" class="predictor-input-field" placeholder="30" min="1" value="30">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      
+      <!-- Save Button Bar -->
+      <div style="margin-top:24px; padding:20px; background:var(--paper); border:1px solid var(--rule-strong); border-radius:12px; display:flex; align-items:center; gap:16px;">
+        <button onclick="savePredictorPaywallSettings()" id="saveCfSettingsBtn" class="btn-rust" style="width:fit-content; padding:10px 24px; font-size:13px; font-weight:600;"><i class="fas fa-save" style="margin-right:6px;"></i>Save Settings</button>
+        <span id="cfSettingsStatus" style="font-size:12px; color:var(--ink-mute);"></span>
+      </div>
+    </div>
+
+    <!-- TOOL VIEW -->
+    <div id="cfToolView">
+
 
     <div class="predictor-grid">
       <!-- Sidebar Controls -->
@@ -1358,7 +1377,9 @@
       </div>
 
     </div>
-  </div>
+  
+    </div>
+</div>
 </main>
 
   <!-- Cutoff Trend Chart Modal -->
@@ -3760,6 +3781,22 @@ function exportStudentListCSV() {
   toast('Student list exported as CSV!');
 }
 
+
+function changeCfSubView(view) {
+  if (view === 'settings' && !adminCan('collegePredictor', 'edit')) {
+    toast('Settings edit permission is required.');
+    view = 'tool';
+  }
+  document.getElementById('btnCfTool').classList.toggle('active', view === 'tool');
+  document.getElementById('btnCfSettings').classList.toggle('active', view === 'settings');
+  document.getElementById('cfToolView').style.display = view === 'tool' ? 'block' : 'none';
+  document.getElementById('cfSettingsView').style.display = view === 'settings' ? 'block' : 'none';
+  
+  if (view === 'settings') {
+    loadPredictorPaywallSettings();
+  }
+}
+
 // ===== COLLEGE PREDICTOR SECTION =====
 let predictorSubView = 'tool';
 let predictorStats = {};
@@ -3838,6 +3875,8 @@ async function savePredictorPaywallSettings() {
 
   const button = document.getElementById('savePredictorSettingsBtn');
   const status = document.getElementById('predictorSettingsStatus');
+  const status2 = document.getElementById('cfSettingsStatus');
+  if(status2) status2.textContent = '';
 
   if (price === '' || isNaN(price) || Number(price) < 1) {
     alert('Please enter a valid predictor price of at least INR 1.');
@@ -3857,6 +3896,7 @@ async function savePredictorPaywallSettings() {
   button.disabled = true;
   button.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Saving...';
   status.textContent = 'Saving settings...';
+  if(status2) status2.textContent = 'Saving settings...';
 
   try {
     const res = await apiJson('/api/admin/predictor/settings', {
@@ -3875,10 +3915,12 @@ async function savePredictorPaywallSettings() {
     const verified = await apiJson('/api/admin/predictor/settings');
     applyPredictorPaywallSettings(verified.settings);
     status.textContent = 'Saved and verified.';
+  if(status2) status2.textContent = 'Saved and verified.';
     toast(res.message || 'Predictor and Choice Filling settings saved successfully.');
   } catch (err) {
     console.error('Failed to save paywall settings:', err);
     status.textContent = 'Save failed.';
+  if(status2) status2.textContent = 'Save failed.';
     alert('Failed to save paywall settings: ' + err.message);
   } finally {
     button.disabled = false;

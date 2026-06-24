@@ -3802,7 +3802,7 @@ let predictorSubView = 'tool';
 let predictorStats = {};
 
 function changePredictorSubView(view) {
-  if ((view === 'tool' || view === 'choiceTool') && !adminCan('collegePredictor', 'view')) {
+  if (view === 'tool' && !adminCan('collegePredictor', 'view')) {
     toast('College Predictor view permission is not enabled for this account.');
     return;
   }
@@ -3817,13 +3817,11 @@ function changePredictorSubView(view) {
 
   predictorSubView = view;
   document.getElementById('btnPredictorTool').classList.toggle('active', view === 'tool');
-  document.getElementById('btnPredictorChoiceTool').classList.toggle('active', view === 'choiceTool');
   document.getElementById('btnPredictorImport').classList.toggle('active', view === 'import');
   document.getElementById('btnPredictorPaywall').classList.toggle('active', view === 'paywall');
   document.getElementById('btnPredictorPurchases').classList.toggle('active', view === 'purchases');
 
   document.getElementById('predictorToolView').style.display = view === 'tool' ? 'block' : 'none';
-  document.getElementById('predictorChoiceToolView').style.display = view === 'choiceTool' ? 'block' : 'none';
   document.getElementById('predictorImportView').style.display = view === 'import' ? 'block' : 'none';
   document.getElementById('predictorPaywallView').style.display = view === 'paywall' ? 'block' : 'none';
   document.getElementById('predictorPurchasesView').style.display = view === 'purchases' ? 'block' : 'none';

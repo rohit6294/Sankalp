@@ -365,7 +365,7 @@
         <!-- Terms and Conditions Agreement Checkbox -->
         <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
           <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
-            <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;">
+            <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;" onchange="document.getElementById('cfPredictBtn').disabled = !this.checked;">
             <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counseling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
           </label>
         </div>

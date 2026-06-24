@@ -652,7 +652,11 @@ router.put('/predictor/settings', requirePermission('collegePredictor', 'edit'),
     // Clear the in-memory predictor settings cache so student requests
     // see the update immediately
     bustSettingsCache();
-    res.json({ ok: true });
+
+    // Read back saved settings so frontend can verify the save was correct
+    const savedDoc = await db.collection('settings').doc('college_predictor').get();
+    const savedSettings = savedDoc.exists ? savedDoc.data() : {};
+    res.json({ ok: true, settings: savedSettings, message: 'Settings saved successfully.' });
   } catch (e) {
     res.status(500).json({ error: 'settings_save_failed', message: e.message });
   }

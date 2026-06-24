@@ -243,7 +243,7 @@ function runAlgorithm({ rank, category, quota, tfw, branches, collegeType, maxCh
 }
 
 // ── TEST RUNNER CONFIGURATION ──────────────────────────────────────────────────
-const TOTAL_TEST_CASES = 1000;
+const TOTAL_TEST_CASES = 100000;
 let passedCount = 0;
 let failedCount = 0;
 

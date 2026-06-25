@@ -4210,7 +4210,7 @@ function applyPredictorPaywallSettings(settings = {}) {
   const container = document.getElementById('cfTiersContainer');
   if (container) {
     container.innerHTML = '';
-    const tiers = settings.choiceFillingTiers && settings.choiceFillingTiers.length > 0
+    const tiers = settings.choiceFillingTiers !== undefined && settings.choiceFillingTiers !== null
       ? settings.choiceFillingTiers
       : [
           { id: 'tier_1', price: 9, attempts: 3, label: '3 Attempts' },

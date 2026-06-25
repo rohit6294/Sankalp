@@ -1243,7 +1243,7 @@
             ${isActive ? '<span style="font-size:9px; background:var(--rust); color:var(--paper); padding:1px 4px; border-radius:3px; font-weight:700;">Active</span>' : ''}
           </div>
           <div style="font-size:10px; color:var(--ink-mute); margin-top:2px;">
-            Rank: ${draft.rank.toLocaleString()} | ${draft.choices.length} choices | ${dateStr}
+            Rank: ${draft.rank !== undefined && draft.rank !== null ? Number(draft.rank).toLocaleString() : 'N/A'} | ${draft.choices ? draft.choices.length : 0} choices | ${dateStr}
           </div>
         </div>
         <button onclick="deleteDraft('${draft.draftId}', event)" style="color:var(--ink-mute); background:none; border:none; padding:4px; cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--ink-mute)'" title="Delete Draft">

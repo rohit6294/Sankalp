@@ -232,6 +232,17 @@
       border-color: rgba(239, 68, 68, 0.2);
       color: #EF4444;
     }
+    
+    .draggable-row {
+      cursor: grab;
+    }
+    .draggable-row:active {
+      cursor: grabbing;
+    }
+    .draggable-row.dragging {
+      opacity: 0.4;
+      background: var(--paper-deep) !important;
+    }
   </style>
 </head>
 <body class="bg-[var(--paper-deep)] text-[var(--ink)] font-sans">
@@ -282,103 +293,132 @@
 
   <!-- Choice Filling Main Grid -->
   <div class="predictor-grid" id="choiceFillingMainView">
-    <!-- Left Panel: Choice Filling Form -->
-    <div class="predictor-card no-print" style="height: fit-content;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-        <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink);"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px; color:var(--rust);"></i>Preference Filters</h3>
-        <!-- Attempts Remaining Badge -->
-        <div id="attemptsBadgeContainer"></div>
-      </div>
-      
-      <form onsubmit="event.preventDefault(); runChoiceFilling();" style="display:flex; flex-direction:column; gap:16px;">
-        <div>
-          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">GMR Rank *</label>
-          <input type="number" id="cfRank" class="predictor-input" placeholder="Enter your rank" required min="1">
+    <!-- Left Panel: Choice Filling Form & Saved Drafts -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <!-- Preference Filters Card -->
+      <div class="predictor-card no-print" style="height: fit-content;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+          <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink);"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px; color:var(--rust);"></i>Preference Filters</h3>
+          <!-- Attempts Remaining Badge -->
+          <div id="attemptsBadgeContainer"></div>
         </div>
+        
+        <form onsubmit="event.preventDefault(); runChoiceFilling();" style="display:flex; flex-direction:column; gap:16px;">
+          <div>
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">GMR Rank *</label>
+            <input type="number" id="cfRank" class="predictor-input" placeholder="Enter your rank" required min="1">
+          </div>
 
-        <div>
-          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Reservation Category *</label>
-          <div style="position: relative;" id="cfCategoryContainer">
-            <select id="cfCategory" class="predictor-input" required>
-              <option value="">Loading categories...</option>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Reservation Category *</label>
+            <div style="position: relative;" id="cfCategoryContainer">
+              <select id="cfCategory" class="predictor-input" required>
+                <option value="">Loading categories...</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Quota (Home State / All India)</label>
+            <select id="cfQuota" class="predictor-input">
+              <option value="All">All Quotas</option>
             </select>
           </div>
-        </div>
 
-        <div>
-          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Quota (Home State / All India)</label>
-          <select id="cfQuota" class="predictor-input">
-            <option value="All">All Quotas</option>
-          </select>
-        </div>
+          <!-- TFW Domicile Eligibility -->
+          <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
+              <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="cfTfwToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
 
-        <!-- TFW Domicile Eligibility -->
-        <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <!-- TFW Prioritization Toggle -->
+          <div id="cfTfwPrioritizeContainer" style="display: none; padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; align-items: center; justify-content: space-between; margin-top: -8px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">Prioritize TFW Seats</div>
+              <div style="font-size:10px; color:var(--ink-mute);">Pull TFW seats to the very top</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="cfTfwPrioritizedToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Preferred Branches Multi-Select -->
           <div>
-            <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
-            <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:8px; letter-spacing:0.5px;">Preferred Branches</label>
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; background: var(--paper-deep); padding: 12px; border: 1px solid var(--rule-strong); border-radius: 8px;" id="cfBranchContainer">
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CSE" checked> CSE</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="IT" checked> IT</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="AI_ML_DS" checked> AI / ML / DS</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CS_BS"> CS & Business</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ECE" checked> ECE / ETC</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="EE"> EE / EEE</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="AEIE"> AEIE / Instr.</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ME"> Mechanical</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CE"> Civil</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CHE"> Chemical</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="BT"> Bio-Tech / BME</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="PHM"> Pharmacy</label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft); grid-column: span 2;"><input type="checkbox" value="ALLIED" checked> Other Allied Branches</label>
+            </div>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="cfTfwToggle">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
 
-        <!-- Preferred Branches Multi-Select -->
-        <div>
-          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:8px; letter-spacing:0.5px;">Preferred Branches</label>
-          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; background: var(--paper-deep); padding: 12px; border: 1px solid var(--rule-strong); border-radius: 8px;" id="cfBranchContainer">
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CSE" checked> CSE</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="IT" checked> IT</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="AI_ML_DS" checked> AI / ML / DS</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CS_BS"> CS & Business</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ECE" checked> ECE / ETC</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="EE"> EE / EEE</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="AEIE"> AEIE / Instr.</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ME"> Mechanical</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CE"> Civil</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CHE"> Chemical</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="BT"> Bio-Tech / BME</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="PHM"> Pharmacy</label>
-            <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft); grid-column: span 2;"><input type="checkbox" value="ALLIED" checked> Other Allied Branches</label>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">College Type</label>
+            <select id="cfCollegeType" class="predictor-input">
+              <option value="All">All Types</option>
+              <option value="GovtGroup">Government Only</option>
+              <option value="PrivateGroup">Private Only</option>
+            </select>
           </div>
-        </div>
 
-        <div>
-          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">College Type</label>
-          <select id="cfCollegeType" class="predictor-input">
-            <option value="All">All Types</option>
-            <option value="GovtGroup">Government Only</option>
-            <option value="PrivateGroup">Private Only</option>
-          </select>
-        </div>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Max Recommendations</label>
+            <select id="cfMaxChoices" class="predictor-input">
+              <option value="20">Top 20 Choices</option>
+              <option value="30" selected>Top 30 Choices</option>
+              <option value="50">Top 50 Choices</option>
+              <option value="100">Top 100 Choices</option>
+              <option value="200">Top 200 Choices</option>
+              <option value="300">Top 300 Choices</option>
+              <option value="500">Top 500 Choices</option>
+              <option value="5000">All Available Choices</option>
+            </select>
+          </div>
 
-        <div>
-          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Max Recommendations</label>
-          <select id="cfMaxChoices" class="predictor-input">
-            <option value="20">Top 20 Choices</option>
-            <option value="30" selected>Top 30 Choices</option>
-            <option value="50">Top 50 Choices</option>
-            <option value="100">Top 100 Choices</option>
-            <option value="200">Top 200 Choices</option>
-            <option value="300">Top 300 Choices</option>
-            <option value="500">Top 500 Choices</option>
-            <option value="5000">All Available Choices</option>
-          </select>
-        </div>
+          <!-- Terms and Conditions Agreement Checkbox -->
+          <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
+              <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;" onchange="document.getElementById('cfPredictBtn').disabled = !this.checked;">
+              <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counseling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
+            </label>
+          </div>
 
-        <!-- Terms and Conditions Agreement Checkbox -->
-        <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
-          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
-            <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;" onchange="document.getElementById('cfPredictBtn').disabled = !this.checked;">
-            <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counseling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
-          </label>
-        </div>
+          <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px;" id="cfPredictBtn" disabled>
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Choice List
+          </button>
+        </form>
+      </div>
 
-        <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px;" id="cfPredictBtn" disabled>
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Choice List
-        </button>
-      </form>
+      <!-- Saved Drafts Card -->
+      <div class="predictor-card no-print" id="cfSavedDraftsCard" style="display:none; height: fit-content;">
+        <h3 style="font-family:var(--font-display); font-size:14px; font-weight:800; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-folder-open" style="color:var(--rust);"></i> Saved Drafts
+        </h3>
+        <div id="cfDraftsListContainer" style="display:flex; flex-direction:column; gap:10px; max-height:300px; overflow-y:auto; padding-right:4px;">
+          <!-- Draft items will be injected here -->
+        </div>
+      </div>
+      
+      <!-- Hidden inputs for active draft tracking -->
+      <input type="hidden" id="cfEditingDraftId">
+      <input type="hidden" id="cfDraftNameInput" value="">
     </div>
 
     <!-- Right Panel: Choice Filling Results -->
@@ -430,6 +470,26 @@
         <div style="font-size:24px; font-weight:800; color:var(--ink); line-height:1;" id="cfPaywallPriceDisplay">&#8377;199</div>
       </div>
       <button onclick="triggerChoicePayment()" id="cfUnlockBtn" class="btn-rust" style="padding:14px 28px; font-size:14px; font-weight:700;"><i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save Draft Modal -->
+<div id="cfSaveDraftModal" class="paywall-overlay no-print" style="display:none; z-index:90;">
+  <div class="paywall-card" style="max-width: 420px; padding: 24px;">
+    <button class="paywall-close" onclick="closeSaveDraftModal()"><i class="fas fa-times"></i></button>
+    <div style="width:48px; height:48px; border-radius:50%; background:rgba(245,158,11,0.1); color:var(--rust); display:inline-flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:12px;"><i class="fas fa-save"></i></div>
+    <h3 style="font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--ink); margin-bottom:6px;">Save Preference Sheet Draft</h3>
+    <p style="color:var(--ink-soft); font-size:12px; line-height:1.5; margin-bottom:16px;">Save this current sequence to compare or load later. You can save multiple versions.</p>
+    
+    <div style="text-align:left; margin-bottom:20px;">
+      <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Draft Name *</label>
+      <input type="text" id="cfDraftNameRealInput" class="predictor-input" placeholder="e.g. Draft 1: Govt Only" required>
+    </div>
+
+    <div style="display:flex; justify-content:end; gap:10px;">
+      <button onclick="closeSaveDraftModal()" class="btn-secondary btn-sm" style="padding:10px 16px; font-size: 13px;">Cancel</button>
+      <button onclick="submitSaveDraft()" class="btn-rust btn-sm" style="padding:10px 20px; font-size: 13px;" id="cfSaveDraftSubmitBtn">Save Draft</button>
     </div>
   </div>
 </div>
@@ -765,6 +825,7 @@
     const category = document.getElementById('cfCategory').value;
     const quota = document.getElementById('cfQuota').value;
     const tfw = document.getElementById('cfTfwToggle').checked;
+    const tfwPrioritized = document.getElementById('cfTfwPrioritizedToggle').checked;
     const collegeType = document.getElementById('cfCollegeType').value;
     const maxChoices = document.getElementById('cfMaxChoices').value;
 
@@ -784,6 +845,10 @@
       return;
     }
 
+    // Reset editing draft state when generating a new search
+    document.getElementById('cfEditingDraftId').value = '';
+    document.getElementById('cfDraftNameInput').value = '';
+
     const container = document.getElementById('cfResultsContainer');
     container.innerHTML = `
       <div style="text-align:center; padding:80px; color:var(--ink-soft);">
@@ -796,10 +861,11 @@
     try {
       const res = await apiJson('/api/choice-filling/predict', {
         method: 'POST',
-        body: JSON.stringify({ rank, category, quota, tfw, branches, collegeType, maxChoices })
+        body: JSON.stringify({ rank, category, quota, tfw, tfwPrioritized, branches, collegeType, maxChoices })
       });
 
       lastChoiceResults = res.choices || [];
+      lastResponseData = res; // Save full response for drag-and-drop re-rendering
       renderChoiceList(res);
       
       // Reload access & status to sync attempts Left immediately!
@@ -836,13 +902,19 @@
     const headerActions = document.createElement('div');
     headerActions.className = 'no-print';
     headerActions.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;';
+    
+    // Check if there is an active draft being edited
+    const activeDraftId = document.getElementById('cfEditingDraftId').value;
+    const saveButtonText = activeDraftId ? 'Update Draft' : 'Save Draft';
+
     headerActions.innerHTML = `
       <div style="width:100%; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
         <div>
           <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Your Optimized Preference Sheet</h4>
-          <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} optimized choices ordered strictly by counseling priority.</p>
+          <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} optimized choices. Drag rows to manually customize the order.</p>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button onclick="openSaveDraftModal()" class="btn-secondary btn-sm" style="background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.25); color:var(--rust);"><i class="fas fa-save" style="margin-right:6px;"></i>${saveButtonText}</button>
           <button onclick="copyChoiceListToClipboard()" class="btn-secondary btn-sm"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
           <button onclick="printChoiceList()" class="btn-primary btn-sm"><i class="fas fa-print" style="margin-right:6px;"></i>Print / Save PDF</button>
         </div>
@@ -879,14 +951,31 @@
         badgeClass = 'bg-emerald-50 text-emerald-600 border border-emerald-100';
       }
 
+      // Format the tuition fee
+      let feeText = '';
+      if (choice.isTfw) {
+        feeText = `<span class="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] px-2 py-0.5 rounded font-bold" style="display:inline-block; letter-spacing:0.3px;">₹0 (TFW Waived)</span>`;
+      } else {
+        const annualFee = choice.tuitionFee || 0;
+        feeText = `<span style="font-weight:700; color:var(--ink); font-family:var(--font-mono); font-size:12px;">₹${annualFee.toLocaleString()}</span>`;
+      }
+
+      // Format average package
+      const lpaVal = choice.averagePackage || 0;
+      const lpaText = `<span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-2 py-0.5 rounded font-bold" style="display:inline-block; letter-spacing:0.3px;">${lpaVal.toFixed(1)} LPA</span>`;
+
       rowsHtml += `
-        <tr style="border-bottom:1px solid var(--rule); transition: background 0.15s;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
-          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:60px;">${index + 1}</td>
+        <tr draggable="true" ondragstart="rowDragStart(event)" ondragover="rowDragOver(event)" ondragleave="rowDragLeave(event)" ondragend="rowDragEnd(event)" ondrop="rowDrop(event)" class="draggable-row" data-index="${index}" style="border-bottom:1px solid var(--rule); transition: background 0.15s; cursor: grab;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
+          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:70px;">
+            <i class="fa-solid fa-grip-vertical text-slate-400 no-print" style="margin-right:8px; cursor:grab;" title="Drag to reorder"></i>${index + 1}
+          </td>
           <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);">${choice.choiceCode}</span></td>
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); line-height:1.4;">
             ${choice.institute}
             <div style="font-size:11px; color:var(--ink-mute); font-weight:500; margin-top:3px;">${choice.program} <span style="margin-left:6px; font-weight:400; opacity:0.8;">(${choice.seatType} | ${choice.quota})</span></div>
           </td>
+          <td style="padding:14px 16px; font-size:13px; text-align:center; white-space:nowrap;">${feeText}</td>
+          <td style="padding:14px 16px; font-size:13px; text-align:center; white-space:nowrap;">${lpaText}</td>
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center;">${choice.baseCutoff.toLocaleString()}</td>
           <td style="padding:14px 16px; text-align:center; width:120px;">
             <span class="text-[10px] px-2.5 py-1 font-bold rounded ${badgeClass}" style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px;">${choice.tier}</span>
@@ -902,6 +991,8 @@
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Annual Fee</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Avg Placement</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier</th>
           </tr>
@@ -959,6 +1050,297 @@
   }
 
   
+  // ── Drag & Drop Event Handlers ──────────────────────────────────────────────
+  let draggedRowIndex = null;
+
+  window.rowDragStart = function(e) {
+    draggedRowIndex = Number(e.currentTarget.getAttribute('data-index'));
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', draggedRowIndex);
+    e.currentTarget.classList.add('dragging');
+  };
+
+  window.rowDragOver = function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const targetRow = e.currentTarget.closest('tr');
+    if (targetRow && !targetRow.classList.contains('dragging')) {
+      targetRow.style.borderTop = '2px solid var(--rust)';
+    }
+  };
+
+  window.rowDragLeave = function(e) {
+    const targetRow = e.currentTarget.closest('tr');
+    if (targetRow) {
+      targetRow.style.borderTop = '';
+    }
+  };
+
+  window.rowDragEnd = function(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('#cfResultsContainer tbody tr').forEach(tr => {
+      tr.style.borderTop = '';
+    });
+  };
+
+  window.rowDrop = function(e) {
+    e.preventDefault();
+    const targetRow = e.currentTarget.closest('tr');
+    if (!targetRow) return;
+    
+    targetRow.style.borderTop = '';
+    const targetIndex = Number(targetRow.getAttribute('data-index'));
+    if (draggedRowIndex === null || draggedRowIndex === targetIndex) return;
+
+    // Reorder array in-place
+    const draggedChoice = lastChoiceResults[draggedRowIndex];
+    lastChoiceResults.splice(draggedRowIndex, 1);
+    lastChoiceResults.splice(targetIndex, 0, draggedChoice);
+
+    lastResponseData.choices = lastChoiceResults;
+    renderChoiceList(lastResponseData);
+  };
+
+  // ── Drafts Management Logic ──────────────────────────────────────────────────
+  let loadedDrafts = [];
+
+  window.loadSavedDrafts = async function() {
+    if (!isChoicePaid) return;
+    try {
+      const res = await apiJson('/api/choice-filling/drafts');
+      if (res.ok) {
+        loadedDrafts = res.drafts || [];
+        renderDraftsList(loadedDrafts);
+      }
+    } catch (err) {
+      console.error('Failed to load drafts:', err);
+    }
+  };
+
+  function renderDraftsList(drafts) {
+    const container = document.getElementById('cfDraftsListContainer');
+    const card = document.getElementById('cfSavedDraftsCard');
+    if (!container || !card) return;
+
+    if (drafts.length === 0) {
+      card.style.display = 'none';
+      return;
+    }
+
+    card.style.display = 'block';
+    container.innerHTML = '';
+
+    drafts.forEach(draft => {
+      const el = document.createElement('div');
+      el.style.cssText = 'padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.2s;';
+      
+      const dateStr = draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+      const activeId = document.getElementById('cfEditingDraftId').value;
+      const isActive = (activeId === draft.draftId);
+      
+      if (isActive) {
+        el.style.borderColor = 'var(--rust)';
+        el.style.background = 'rgba(245,158,11,0.04)';
+      }
+
+      el.innerHTML = `
+        <div style="flex:1; overflow:hidden; cursor:pointer;" onclick="loadDraft('${draft.draftId}')">
+          <div style="font-size:12px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px;">
+            ${draft.name}
+            ${isActive ? '<span style="font-size:9px; background:var(--rust); color:var(--paper); padding:1px 4px; border-radius:3px; font-weight:700;">Active</span>' : ''}
+          </div>
+          <div style="font-size:10px; color:var(--ink-mute); margin-top:2px;">
+            Rank: ${draft.rank.toLocaleString()} | ${draft.choices.length} choices | ${dateStr}
+          </div>
+        </div>
+        <button onclick="deleteDraft('${draft.draftId}', event)" style="color:var(--ink-mute); background:none; border:none; padding:4px; cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--ink-mute)'" title="Delete Draft">
+          <i class="fas fa-trash-alt" style="font-size:11px;"></i>
+        </button>
+      `;
+      container.appendChild(el);
+    });
+  }
+
+  window.openSaveDraftModal = function() {
+    const nameInput = document.getElementById('cfDraftNameRealInput');
+    const activeId = document.getElementById('cfEditingDraftId').value;
+    
+    if (activeId) {
+      const activeDraft = loadedDrafts.find(d => d.draftId === activeId);
+      if (activeDraft) {
+        nameInput.value = activeDraft.name;
+      }
+    } else {
+      nameInput.value = '';
+    }
+    
+    document.getElementById('cfSaveDraftModal').style.display = 'flex';
+  };
+
+  window.closeSaveDraftModal = function() {
+    document.getElementById('cfSaveDraftModal').style.display = 'none';
+  };
+
+  window.submitSaveDraft = async function() {
+    const nameInput = document.getElementById('cfDraftNameRealInput');
+    const name = nameInput.value.trim();
+    if (!name) {
+      toast('Please enter a name for the draft.', 'warning');
+      return;
+    }
+
+    const draftId = document.getElementById('cfEditingDraftId').value;
+    const rank = document.getElementById('cfRank').value;
+    const category = document.getElementById('cfCategory').value;
+    const quota = document.getElementById('cfQuota').value;
+    const tfw = document.getElementById('cfTfwToggle').checked;
+    const tfwPrioritized = document.getElementById('cfTfwPrioritizedToggle').checked;
+    const collegeType = document.getElementById('cfCollegeType').value;
+    const maxChoices = document.getElementById('cfMaxChoices').value;
+
+    const branches = [];
+    document.querySelectorAll('#cfBranchContainer input[type="checkbox"]:checked').forEach(cb => {
+      branches.push(cb.value);
+    });
+
+    const submitBtn = document.getElementById('cfSaveDraftSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    try {
+      const res = await apiJson('/api/choice-filling/drafts', {
+        method: 'POST',
+        body: JSON.stringify({
+          draftId: draftId || undefined,
+          name,
+          rank,
+          category,
+          quota,
+          tfw,
+          tfwPrioritized,
+          branches,
+          collegeType,
+          maxChoices,
+          choices: lastChoiceResults
+        })
+      });
+
+      if (res.ok) {
+        toast(res.message || 'Draft saved successfully!', 'success');
+        document.getElementById('cfEditingDraftId').value = res.draftId;
+        document.getElementById('cfDraftNameInput').value = name;
+        closeSaveDraftModal();
+        await loadSavedDrafts();
+        
+        // Re-render preference sheet to update save button to update button
+        if (lastResponseData) {
+          renderChoiceList(lastResponseData);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Failed to save draft: ' + err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Draft';
+    }
+  };
+
+  window.loadDraft = function(draftId) {
+    const draft = loadedDrafts.find(d => d.draftId === draftId);
+    if (!draft) return;
+
+    document.getElementById('cfEditingDraftId').value = draft.draftId;
+    document.getElementById('cfDraftNameInput').value = draft.name;
+
+    // Populate form fields
+    document.getElementById('cfRank').value = draft.rank;
+    document.getElementById('cfCategory').value = draft.category;
+    document.getElementById('cfQuota').value = draft.quota || 'All';
+    document.getElementById('cfTfwToggle').checked = draft.tfw;
+    
+    const tfwPrioritizeContainer = document.getElementById('cfTfwPrioritizeContainer');
+    const tfwPrioritizedToggle = document.getElementById('cfTfwPrioritizedToggle');
+    if (tfwPrioritizeContainer && tfwPrioritizedToggle) {
+      if (draft.tfw) {
+        tfwPrioritizeContainer.style.display = 'flex';
+        tfwPrioritizedToggle.checked = draft.tfwPrioritized || false;
+      } else {
+        tfwPrioritizeContainer.style.display = 'none';
+        tfwPrioritizedToggle.checked = false;
+      }
+    }
+
+    if (draft.collegeType) {
+      document.getElementById('cfCollegeType').value = draft.collegeType;
+    }
+    if (draft.maxChoices) {
+      document.getElementById('cfMaxChoices').value = draft.maxChoices;
+    }
+
+    // Populate branch checkboxes
+    const branchFilters = draft.branches || [];
+    document.querySelectorAll('#cfBranchContainer input[type="checkbox"]').forEach(cb => {
+      cb.checked = branchFilters.includes(cb.value);
+    });
+
+    // Load choices into memory
+    lastChoiceResults = draft.choices || [];
+    
+    const dreamCount = lastChoiceResults.filter(c => c.tier === 'Dream').length;
+    const targetCount = lastChoiceResults.filter(c => c.tier === 'Target').length;
+    const safetyCount = lastChoiceResults.filter(c => c.tier === 'Safety').length;
+
+    lastResponseData = {
+      choices: lastChoiceResults,
+      summary: {
+        totalGenerated: lastChoiceResults.length,
+        dreamCount,
+        targetCount,
+        safetyCount,
+        insufficientSafeties: safetyCount < 3
+      }
+    };
+
+    const agreeCheckbox = document.getElementById('cfAgreeCheckbox');
+    if (agreeCheckbox) {
+      agreeCheckbox.checked = true;
+      document.getElementById('cfPredictBtn').disabled = false;
+    }
+
+    renderChoiceList(lastResponseData);
+    renderDraftsList(loadedDrafts);
+    toast(`Draft "${draft.name}" loaded successfully!`, 'success');
+  };
+
+  window.deleteDraft = async function(draftId, event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    if (!confirm('Are you sure you want to delete this draft?')) return;
+
+    try {
+      const res = await apiJson(`/api/choice-filling/drafts/${draftId}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        toast('Draft deleted successfully.', 'success');
+        const activeId = document.getElementById('cfEditingDraftId').value;
+        if (activeId === draftId) {
+          document.getElementById('cfEditingDraftId').value = '';
+          document.getElementById('cfDraftNameInput').value = '';
+        }
+        await loadSavedDrafts();
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Failed to delete draft: ' + err.message, 'error');
+    }
+  };
+
   async function checkChoiceFillingVisibility() {
     try {
       const cfLink = document.getElementById('sidebarChoiceFillingLink');
@@ -973,6 +1355,24 @@
     } catch (e) {
       const cfLink = document.getElementById('sidebarChoiceFillingLink');
       if (cfLink) cfLink.style.display = 'none';
+    }
+  }
+
+  // Bind TFW toggle listener
+  function setupTfwToggleListener() {
+    const tfwToggle = document.getElementById('cfTfwToggle');
+    const tfwPrioritizeContainer = document.getElementById('cfTfwPrioritizeContainer');
+    const tfwPrioritizedToggle = document.getElementById('cfTfwPrioritizedToggle');
+
+    if (tfwToggle && tfwPrioritizeContainer) {
+      tfwToggle.addEventListener('change', () => {
+        if (tfwToggle.checked) {
+          tfwPrioritizeContainer.style.cssText = 'display: flex; padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; align-items: center; justify-content: space-between; margin-top: -8px;';
+        } else {
+          tfwPrioritizeContainer.style.display = 'none';
+          if (tfwPrioritizedToggle) tfwPrioritizedToggle.checked = false;
+        }
+      });
     }
   }
 
@@ -991,7 +1391,9 @@
     document.getElementById('sidebarEmail').textContent = user.email || '';
 
     await loadMetadata();
+    setupTfwToggleListener();
     await checkChoiceAccessAndInit();
+    await loadSavedDrafts();
   });
 </script>
 </body>

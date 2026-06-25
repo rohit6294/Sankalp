@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const { db, admin } = require('../firebase');
 const { verifyToken } = require('../auth');
 const { normalizePredictorSettings } = require('../predictor-settings');
+const { getCollegeMetadata } = require('../college-metadata');
 
 const router = express.Router();
 
@@ -350,6 +351,8 @@ router.post('/predict', verifyToken, async (req, res) => {
           chance = 'Medium';
         }
 
+        const metadata = getCollegeMetadata(item.institute, item.program, item.seat_type);
+
         processedChoices.push({
           institute: item.institute,
           program: item.program,
@@ -363,14 +366,24 @@ router.post('/predict', verifyToken, async (req, res) => {
           tier,
           chance,
           choiceCode: generateChoiceCode(item.institute, item.program),
-          cutoffs: item.cutoffs
+          cutoffs: item.cutoffs,
+          tuitionFee: metadata.tuitionFee,
+          averagePackage: metadata.averagePackage,
+          isTfw: metadata.isTfw
         });
       });
 
-      // Gold Standard Sorting Rule:
-      // Sort strictly by baseCutoff ascending (i.e. most competitive first), regardless of tier!
-      // Jadavpur CSE (cutoff 80) is ALWAYS above Heritage CSE (cutoff 3200).
-      processedChoices.sort((a, b) => a.baseCutoff - b.baseCutoff);
+      // Gold Standard Sorting Rule with optional TFW Prioritization:
+      const isTfwPrioritized = req.body.tfwPrioritized === 'true' || req.body.tfwPrioritized === true;
+      if (isTfwPrioritized) {
+        processedChoices.sort((a, b) => {
+          if (a.isTfw && !b.isTfw) return -1;
+          if (!a.isTfw && b.isTfw) return 1;
+          return a.baseCutoff - b.baseCutoff;
+        });
+      } else {
+        processedChoices.sort((a, b) => a.baseCutoff - b.baseCutoff);
+      }
 
       // Truncate list to the requested size
       const finalChoices = processedChoices.slice(0, Number(maxChoices));
@@ -414,6 +427,143 @@ router.post('/predict', verifyToken, async (req, res) => {
 
   } catch (e) {
     res.status(500).json({ error: 'generation_failed', message: e.message });
+  }
+});
+
+// ── 3. Get All Saved Choice Filling Drafts ───────────────────────────────────
+router.get('/drafts', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const draftsSnapshot = await db.collection('users')
+      .doc(userId)
+      .collection('choice_filling_drafts')
+      .orderBy('updatedAt', 'desc')
+      .get();
+
+    const drafts = [];
+    draftsSnapshot.forEach(doc => {
+      const data = doc.data();
+      drafts.push({
+        draftId: doc.id,
+        name: data.name,
+        rank: data.rank,
+        category: data.category,
+        quota: data.quota,
+        tfw: data.tfw,
+        tfwPrioritized: data.tfwPrioritized,
+        branches: data.branches,
+        collegeType: data.collegeType,
+        maxChoices: data.maxChoices,
+        choices: data.choices,
+        createdAt: data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : null,
+        updatedAt: data.updatedAt ? (data.updatedAt.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt) : null,
+      });
+    });
+
+    res.json({ ok: true, drafts });
+  } catch (err) {
+    console.error('Error fetching choice-filling drafts:', err);
+    res.status(500).json({ error: 'fetch_drafts_failed', message: err.message });
+  }
+});
+
+// ── 4. Save or Update Choice Filling Draft ───────────────────────────────────
+router.post('/drafts', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const {
+      draftId,
+      name,
+      rank,
+      category,
+      quota,
+      tfw,
+      tfwPrioritized,
+      branches,
+      collegeType,
+      maxChoices,
+      choices
+    } = req.body;
+
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'invalid_name', message: 'Please provide a valid name for your draft.' });
+    }
+
+    const draftData = {
+      name: name.trim(),
+      rank: Number(rank) || 0,
+      category: category || '',
+      quota: quota || '',
+      tfw: tfw === true || tfw === 'true',
+      tfwPrioritized: tfwPrioritized === true || tfwPrioritized === 'true',
+      branches: Array.isArray(branches) ? branches : [],
+      collegeType: collegeType || '',
+      maxChoices: Number(maxChoices) || 30,
+      choices: Array.isArray(choices) ? choices : [],
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    let targetDoc;
+    let isNew = false;
+
+    if (draftId) {
+      targetDoc = db.collection('users')
+        .doc(userId)
+        .collection('choice_filling_drafts')
+        .doc(draftId);
+      
+      const checkDoc = await targetDoc.get();
+      if (!checkDoc.exists) {
+        return res.status(404).json({ error: 'draft_not_found', message: 'The specified draft was not found.' });
+      }
+    } else {
+      targetDoc = db.collection('users')
+        .doc(userId)
+        .collection('choice_filling_drafts')
+        .doc(); // auto-generate ID
+      draftData.createdAt = admin.firestore.FieldValue.serverTimestamp();
+      isNew = true;
+    }
+
+    await targetDoc.set(draftData, { merge: true });
+
+    res.json({
+      ok: true,
+      draftId: targetDoc.id,
+      message: isNew ? 'Draft saved successfully.' : 'Draft updated successfully.'
+    });
+  } catch (err) {
+    console.error('Error saving choice-filling draft:', err);
+    res.status(500).json({ error: 'save_draft_failed', message: err.message });
+  }
+});
+
+// ── 5. Delete Choice Filling Draft ───────────────────────────────────────────
+router.delete('/drafts/:draftId', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const draftId = req.params.draftId;
+
+    if (!draftId) {
+      return res.status(400).json({ error: 'missing_draft_id', message: 'Please provide a draft ID to delete.' });
+    }
+
+    const draftDoc = db.collection('users')
+      .doc(userId)
+      .collection('choice_filling_drafts')
+      .doc(draftId);
+
+    const checkDoc = await draftDoc.get();
+    if (!checkDoc.exists) {
+      return res.status(404).json({ error: 'draft_not_found', message: 'The specified draft was not found.' });
+    }
+
+    await draftDoc.delete();
+
+    res.json({ ok: true, message: 'Draft deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting choice-filling draft:', err);
+    res.status(500).json({ error: 'delete_draft_failed', message: err.message });
   }
 });
 

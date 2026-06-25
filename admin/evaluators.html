@@ -1173,11 +1173,23 @@
           <!-- TFW Domicile Eligibility -->
           <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
             <div>
-              <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate? <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Tuition Fee Waiver candidates are eligible for TFW seats (₹0 tuition fee)."></i></div>
               <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="adminCfTfwToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- TFW Prioritization Toggle -->
+          <div id="adminCfTfwPrioritizeContainer" style="display: none; padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; align-items: center; justify-content: space-between; margin-top: -8px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">Prioritize TFW Seats <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Tuition Fee Waiver (TFW) seats offer 100% tuition waiver (₹0 fee). This pulls all eligible TFW seats to the very top, sorted by closing rank, to minimize your financial burden."></i></div>
+              <div style="font-size:10px; color:var(--ink-mute);">Pull TFW seats to the very top</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="adminCfTfwPrioritizedToggle">
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -4966,6 +4978,7 @@ async function handlePrepAdminEdit(e) {
 
 // ===== ADMIN CHOICE FILLING CONTROLLERS =====
 let lastAdminChoiceResults = [];
+let lastAdminResponseData = null;
 
 function setupAdminCfQuotaRestriction() {
   const quotaSelect = document.getElementById('adminCfQuota');
@@ -5021,6 +5034,7 @@ async function runAdminChoiceFilling() {
   const category = document.getElementById('adminCfCategory').value;
   const quota = document.getElementById('adminCfQuota').value;
   const tfw = document.getElementById('adminCfTfwToggle').checked;
+  const tfwPrioritized = document.getElementById('adminCfTfwPrioritizedToggle').checked;
   const collegeType = document.getElementById('adminCfCollegeType').value;
   const maxChoices = document.getElementById('adminCfMaxChoices').value;
 
@@ -5058,10 +5072,11 @@ async function runAdminChoiceFilling() {
   try {
     const res = await apiJson('/api/choice-filling/predict', {
       method: 'POST',
-      body: JSON.stringify({ rank, category, quota, tfw, branches, collegeType, maxChoices })
+      body: JSON.stringify({ rank, category, quota, tfw, tfwPrioritized, branches, collegeType, maxChoices })
     });
 
     lastAdminChoiceResults = res.choices || [];
+    lastAdminResponseData = res; // Save for drag-and-drop re-rendering
     renderAdminChoiceList(res);
   } catch (err) {
     console.error(err);
@@ -5099,7 +5114,7 @@ function renderAdminChoiceList(data) {
     <div style="width:100%; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
       <div>
         <h4 style="font-size:15px; font-weight:800; color:var(--ink);"><i class="fa-solid fa-list-check" style="color:var(--rust); margin-right:8px;"></i>Optimized Preference Sheet</h4>
-        <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} choices ordered strictly by priority.</p>
+        <p style="font-size:11px; color:var(--ink-mute); margin-top:2px;">Generated ${list.length} choices. Drag rows to manually customize the order.</p>
       </div>
       <div style="display:flex; gap:8px;">
         <button onclick="copyAdminChoiceListToClipboard()" class="btn-secondary btn-sm" style="padding: 8px 14px; font-size:12px; font-weight:600;"><i class="fas fa-copy" style="margin-right:6px;"></i>Copy List</button>
@@ -5138,14 +5153,31 @@ function renderAdminChoiceList(data) {
       badgeStyle = 'background:rgba(16, 185, 129, 0.08); color:#10B981; border:1px solid rgba(16, 185, 129, 0.15);';
     }
 
+    // Format the tuition fee
+    let feeText = '';
+    if (choice.isTfw) {
+      feeText = `<span class="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] px-2 py-0.5 rounded font-bold" style="display:inline-block; letter-spacing:0.3px;">₹0 (TFW Waived)</span>`;
+    } else {
+      const annualFee = choice.tuitionFee || 0;
+      feeText = `<span style="font-weight:700; color:var(--ink); font-family:var(--font-mono); font-size:12px;">₹${annualFee.toLocaleString()}</span>`;
+    }
+
+    // Format average package
+    const lpaVal = choice.averagePackage || 0;
+    const lpaText = `<span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-2 py-0.5 rounded font-bold" style="display:inline-block; letter-spacing:0.3px;">${lpaVal.toFixed(1)} LPA</span>`;
+
     rowsHtml += `
-      <tr style="border-bottom:1px solid var(--rule); transition: background 0.15s;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
-        <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:60px;">${index + 1}</td>
+      <tr draggable="true" ondragstart="adminRowDragStart(event)" ondragover="adminRowDragOver(event)" ondragleave="adminRowDragLeave(event)" ondragend="adminRowDragEnd(event)" ondrop="adminRowDrop(event)" class="draggable-row" data-index="${index}" style="border-bottom:1px solid var(--rule); transition: background 0.15s; cursor: grab;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
+        <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:70px;">
+          <i class="fa-solid fa-grip-vertical text-slate-400 no-print" style="margin-right:8px; cursor:grab;" title="Drag to reorder. Preference numbers will update automatically."></i>${index + 1}
+        </td>
         <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);">${choice.choiceCode}</span></td>
         <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); line-height:1.4;">
           ${choice.institute}
           <div style="font-size:11px; color:var(--ink-mute); font-weight:500; margin-top:3px;">${choice.program} <span style="margin-left:6px; font-weight:400; opacity:0.8;">(${choice.seatType} | ${choice.quota})</span></div>
         </td>
+        <td style="padding:14px 16px; font-size:13px; text-align:center; white-space:nowrap;">${feeText}</td>
+        <td style="padding:14px 16px; font-size:13px; text-align:center; white-space:nowrap;">${lpaText}</td>
         <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center;">${choice.baseCutoff.toLocaleString()}</td>
         <td style="padding:14px 16px; text-align:center; width:120px;">
           <span style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px; font-size:10px; font-weight:700; padding:4px 8px; border-radius:4px; ${badgeStyle}">${choice.tier}</span>
@@ -5161,6 +5193,8 @@ function renderAdminChoiceList(data) {
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref</th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code</th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference</th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Annual Fee <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Approximate annual tuition fee. TFW seats are displayed as ₹0 (TFW Waived)."></i></th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Avg Placement <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Average placement package in Lakhs Per Annum (LPA) compiled from official NIRF reports and placement cells."></i></th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank</th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier</th>
         </tr>
@@ -5217,6 +5251,75 @@ function printAdminChoiceList() {
   window.print();
 }
 
+// ── Admin Drag & Drop Event Handlers ──────────────────────────────────────────
+let draggedAdminRowIndex = null;
+
+window.adminRowDragStart = function(e) {
+  draggedAdminRowIndex = Number(e.currentTarget.getAttribute('data-index'));
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', draggedAdminRowIndex);
+  e.currentTarget.classList.add('dragging');
+};
+
+window.adminRowDragOver = function(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const targetRow = e.currentTarget.closest('tr');
+  if (targetRow && !targetRow.classList.contains('dragging')) {
+    targetRow.style.borderTop = '2px solid var(--rust)';
+  }
+};
+
+window.adminRowDragLeave = function(e) {
+  const targetRow = e.currentTarget.closest('tr');
+  if (targetRow) {
+    targetRow.style.borderTop = '';
+  }
+};
+
+window.adminRowDragEnd = function(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('#adminCfResultsContainer tbody tr').forEach(tr => {
+    tr.style.borderTop = '';
+  });
+};
+
+window.adminRowDrop = function(e) {
+  e.preventDefault();
+  const targetRow = e.currentTarget.closest('tr');
+  if (!targetRow) return;
+  
+  targetRow.style.borderTop = '';
+  const targetIndex = Number(targetRow.getAttribute('data-index'));
+  if (draggedAdminRowIndex === null || draggedAdminRowIndex === targetIndex) return;
+
+  // Reorder array in-place
+  const draggedChoice = lastAdminChoiceResults[draggedAdminRowIndex];
+  lastAdminChoiceResults.splice(draggedAdminRowIndex, 1);
+  lastAdminChoiceResults.splice(targetIndex, 0, draggedChoice);
+
+  lastAdminResponseData.choices = lastAdminChoiceResults;
+  renderAdminChoiceList(lastAdminResponseData);
+};
+
+// Bind Admin TFW toggle listener
+function setupAdminTfwToggleListener() {
+  const tfwToggle = document.getElementById('adminCfTfwToggle');
+  const tfwPrioritizeContainer = document.getElementById('adminCfTfwPrioritizeContainer');
+  const tfwPrioritizedToggle = document.getElementById('adminCfTfwPrioritizedToggle');
+
+  if (tfwToggle && tfwPrioritizeContainer) {
+    tfwToggle.addEventListener('change', () => {
+      if (tfwToggle.checked) {
+        tfwPrioritizeContainer.style.cssText = 'display: flex; padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; align-items: center; justify-content: space-between; margin-top: -8px; margin-bottom: 4px;';
+      } else {
+        tfwPrioritizeContainer.style.display = 'none';
+        if (tfwPrioritizedToggle) tfwPrioritizedToggle.checked = false;
+      }
+    });
+  }
+}
+
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.href = '../login.html';
@@ -5239,6 +5342,7 @@ auth.onAuthStateChanged(async (user) => {
 
   if (adminCan('evaluators', 'view')) {
     await loadExams();
+    setupAdminTfwToggleListener();
   }
   if (adminCan('settings', 'view')) {
     await loadMandatoryFields();

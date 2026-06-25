@@ -1325,7 +1325,7 @@
     currentUser = user;
     
     // Set sidebar profiles
-    await checkChoiceFillingVisibility();
+    checkChoiceFillingVisibility();
     const firstName = (user.displayName || 'Student').split(' ')[0];
     document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
     document.getElementById('sidebarName').textContent = user.displayName || 'Student';

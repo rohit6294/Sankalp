@@ -884,6 +884,14 @@
   // ── 1. Check Access State & Paywall Setup ────────────────────────────
   async function checkAccessAndInit() {
     try {
+      // Start loading dynamic dropdowns immediately in parallel
+      const dropdownPromise = !hasLoadedDropdowns ? loadDynamicDropdowns().then(() => {
+        hasLoadedDropdowns = true;
+        setupQuotaRestriction();
+      }).catch(err => {
+        console.error('Parallel loadDynamicDropdowns failed:', err);
+      }) : Promise.resolve();
+
       const res = await apiJson('/api/predictor/status');
       predictorPrice = res.price || predictorPrice;
       updatePriceDisplays();
@@ -904,6 +912,9 @@
 
       isPredictorPaid = res.hasAccess;
       
+      // Wait for dropdowns to finish loading before proceeding
+      await dropdownPromise;
+
       if (!isPredictorPaid) {
         setPredictorLocked(true);
         showLockedAccessUI();
@@ -914,11 +925,6 @@
         hideLockedAccessUI();
         if (document.getElementById('resultsContainer').dataset.lockedView === 'true') {
           showEmptyPredictionState();
-        }
-        if (!hasLoadedDropdowns) {
-          await loadDynamicDropdowns();
-          hasLoadedDropdowns = true;
-          setupQuotaRestriction();
         }
       }
     } catch (err) {
@@ -1666,7 +1672,7 @@
     currentUser = user;
     currentToken = null;
 
-    await checkChoiceFillingVisibility();
+    checkChoiceFillingVisibility();
     const firstName = (user.displayName || 'Student').split(' ')[0];
     document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
     document.getElementById('sidebarName').textContent = user.displayName || 'Student';

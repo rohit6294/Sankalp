@@ -483,7 +483,7 @@
   auth.onAuthStateChanged(async (user) => {
     if (!user) { window.location.href = '../login.html'; return; }
 
-    await checkChoiceFillingVisibility();
+    checkChoiceFillingVisibility();
 
     const name = user.displayName || '';
     const nameParts = name.split(' ');

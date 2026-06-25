@@ -1603,7 +1603,26 @@
     }
   }
 
-  async function (response) {
+  async function triggerChoicePayment() {
+    const btn = document.getElementById('cfUnlockBtn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+
+    try {
+      const order = await apiJson('/api/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ product: 'choice_filling' })
+      });
+
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Sankalp Aspirant',
+        description: 'Choice-Filling Assistant Premium Unlock',
+        order_id: order.order_id,
+        handler: async function (response) {
           btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
           try {
             const verifyRes = await apiJson('/api/verify-payment', {
@@ -1618,7 +1637,8 @@
 
             if (verifyRes.success) {
               toast('Choice Filling Assistant successfully unlocked!', 'success');
-              document.getElementById('cfPaywallOverlay').style.display = 'none';
+              const overlay = document.getElementById('cfPaywallOverlay');
+              if (overlay) overlay.style.display = 'none';
               checkChoiceAccessAndInit();
             } else {
               toast('Verification failed.', 'error');
@@ -1645,6 +1665,39 @@
       toast('Failed to start checkout: ' + err.message, 'error');
       setChoiceUnlockButtonIdle();
     }
+  }
+
+  function setChoiceUnlockButtonIdle() {
+    const btn = document.getElementById('cfUnlockBtn');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant';
+    }
+  }
+
+  async function checkChoiceAccessAndInit() {
+    try {
+      const res = await apiJson('/api/choice-filling/status');
+      isChoicePaid = res.hasAccess;
+      if (isChoicePaid) {
+        const overlay = document.getElementById('cfPaywallOverlay');
+        if (overlay) overlay.style.display = 'none';
+        const banner = document.getElementById('cfLockedAccessBanner');
+        if (banner) banner.style.display = 'none';
+      }
+    } catch (err) {
+      console.warn('Failed to check choice access:', err);
+    }
+  }
+
+  function showCfPaywall() {
+    const overlay = document.getElementById('cfPaywallOverlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+
+  function dismissCfPaywall() {
+    const overlay = document.getElementById('cfPaywallOverlay');
+    if (overlay) overlay.style.display = 'none';
   }
 
 

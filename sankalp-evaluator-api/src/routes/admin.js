@@ -688,6 +688,9 @@ router.put('/predictor/settings', requireAnyPermission([['collegePredictor', 'ed
           update.choiceFillingMaxAttempts = cfMaxAttempts;
         }
       }
+      if (payload.choiceFillingTiers !== undefined) {
+        update.choiceFillingTiers = payload.choiceFillingTiers;
+      }
     } else {
       // Preserve existing choice filling settings
       if (existing.choiceFillingEnabled !== undefined) update.choiceFillingEnabled = existing.choiceFillingEnabled;

@@ -1324,22 +1324,6 @@
     }
   };
 
-  async function checkChoiceFillingVisibility() {
-    try {
-      const cfLink = document.getElementById('sidebarChoiceFillingLink');
-      if (!cfLink) return;
-      const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${EVALUATOR_API}/api/choice-filling/status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      cfLink.style.display = data.enabled !== false ? '' : 'none';
-    } catch (e) {
-      const cfLink = document.getElementById('sidebarChoiceFillingLink');
-      if (cfLink) cfLink.style.display = 'none';
-    }
-  }
 
   // Bind TFW toggle listener
   function setupTfwToggleListener() {
@@ -1367,7 +1351,6 @@
     currentUser = user;
     currentToken = null;
 
-    checkChoiceFillingVisibility();
     const firstName = (user.displayName || 'Student').split(' ')[0];
     document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
     document.getElementById('sidebarName').textContent = user.displayName || 'Student';

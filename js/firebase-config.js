@@ -265,9 +265,46 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
       container.insertBefore(banner, container.firstChild);
     }
 
+    async function runGlobalChoiceFillingVisibilityCheck(user) {
+      const checkAndApply = async () => {
+        const cfLink = document.getElementById('sidebarChoiceFillingLink');
+        if (!cfLink) return;
+        try {
+          const baseUrl = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+          const cacheKey = `__sankalp_cf_status_${user.uid}__`;
+          let data = getCachedItem(cacheKey);
+          if (!data) {
+            const token = await user.getIdToken();
+            const res = await fetch(`${baseUrl}/api/choice-filling/status`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+              data = await res.json();
+              setCachedItem(cacheKey, data);
+            }
+          }
+          if (data) {
+            cfLink.style.display = data.enabled !== false ? '' : 'none';
+          }
+        } catch (e) {
+          console.warn('Choice-filling visibility check failed:', e);
+          cfLink.style.display = 'none';
+        }
+      };
+
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', checkAndApply);
+      } else {
+        await checkAndApply();
+      }
+    }
+
     // Verify on DOM loaded & Auth state changed
     auth.onAuthStateChanged(async (user) => {
       if (!user) return;
+      
+      // Run choice-filling visibility check globally and asynchronously
+      runGlobalChoiceFillingVisibilityCheck(user);
       
       try {
         // 1. Fetch mandatory fields from settings

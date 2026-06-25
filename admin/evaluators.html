@@ -3732,7 +3732,7 @@ function slRenderPage() {
   const tbody = document.getElementById('slTableBody');
 
   if (!pageItems.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-user-slash" style="margin-right:8px;"></i>No students found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:48px; color:var(--ink-mute);"><i class="fas fa-user-slash" style="margin-right:8px;"></i>No students found</td></tr>';
     document.getElementById('slPagerInfo').textContent = 'No results';
     document.getElementById('slPagerBtns').innerHTML = '';
     return;
@@ -3750,11 +3750,36 @@ function slRenderPage() {
     const joined = slFmtDate(s.createdAt);
     const bg = slAvatarColor(name);
     const init = slInitials(name);
+    
+    // Predictor Access
     const predictorUnlocked = s.predictorUnlocked === true;
     const predictorPurchased = s.predictorPurchased === true;
     const isUnlocked = predictorUnlocked || predictorPurchased;
     const canTogglePredictor = canGrantStudentPredictorAccess() && (s.role || 'student') !== 'admin' && !predictorPurchased;
     const predictorTitle = predictorPurchased ? 'Unlocked via student purchase (Paid)' : (canTogglePredictor ? 'Toggle free College Predictor access' : 'Requires Students edit and College Predictor edit permission');
+    
+    // Choice Filling Access
+    const cfUnlocked = s.choiceFillingUnlocked === true;
+    const cfPurchased = s.choiceFillingPurchased === true;
+    const isCfUnlocked = cfUnlocked || cfPurchased;
+    const canToggleCf = canGrantStudentChoiceFillingAccess() && (s.role || 'student') !== 'admin' && !cfPurchased;
+
+    let cfStatusText = 'Locked';
+    let cfStatusColor = 'var(--ink-mute)';
+    if (cfUnlocked) {
+      const attempts = s.choiceFillingAttemptsLeft;
+      const isUnlimited = s.choiceFillingUnlimited === true || attempts === -1;
+      cfStatusText = isUnlimited ? 'Free (Unlim)' : `Free (${attempts} Att)`;
+      cfStatusColor = '#1A6B3C';
+    } else if (cfPurchased) {
+      const attempts = s.choiceFillingAttemptsLeft;
+      const isUnlimited = s.choiceFillingUnlimited === true || attempts === -1;
+      cfStatusText = isUnlimited ? 'Paid (Unlim)' : `Paid (${attempts} Att)`;
+      cfStatusColor = '#1D4ED8';
+    }
+
+    const cfTitle = cfPurchased ? 'Unlocked via student purchase (Paid)' : (canToggleCf ? 'Toggle free Choice Filling access' : 'Requires Students edit and Choice Filling (Evaluators) edit permission');
+
     return `<tr>
       <td style="font-family:var(--font-mono); font-size:12px; color:var(--ink-mute); font-weight:700;">${start + i + 1}</td>
       <td>
@@ -3779,6 +3804,15 @@ function slRenderPage() {
             <span class="toggle-slider"></span>
           </label>
           <span style="font-size:11px; font-weight:800; color:${predictorUnlocked?'#1A6B3C':(predictorPurchased?'#1D4ED8':'var(--ink-mute)')};">${predictorUnlocked?'Free':(predictorPurchased?'Paid':'Locked')}</span>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex; align-items:center; gap:8px; min-width:120px;">
+          <label class="toggle-switch" title="${cfTitle}" style="${canToggleCf?'':'opacity:.5;'}">
+            <input type="checkbox" ${isCfUnlocked?'checked':''} ${canToggleCf?'':'disabled'} onchange="slToggleChoiceFillingAccess('${s.id}', this.checked, this)">
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:11px; font-weight:800; color:${cfStatusColor};">${cfStatusText}</span>
         </div>
       </td>
       <td style="font-size:12px; color:var(--ink-mute);">${joined}</td>
@@ -3836,12 +3870,92 @@ async function slTogglePredictorAccess(id, unlocked, input) {
   }
 }
 
+async function slToggleChoiceFillingAccess(id, unlocked, input) {
+  if (!canGrantStudentChoiceFillingAccess()) {
+    if (input) input.checked = !unlocked;
+    toast('Students edit + Choice Filling (Evaluators) edit permission required.');
+    return;
+  }
+
+  const student = slAllStudents.find(x => x.id === id);
+  const previous = student?.choiceFillingUnlocked === true;
+  
+  let attempts = 30;
+  if (unlocked) {
+    const val = prompt(`Grant free Choice-Filling access to ${student.name || 'this student'}.\n\nEnter number of attempts (or -1 for Unlimited):`, "30");
+    if (val === null) {
+      if (input) input.checked = false;
+      return;
+    }
+    attempts = Number(val);
+    if (isNaN(attempts) || (attempts < 1 && attempts !== -1)) {
+      alert("Invalid attempts. Please enter a positive integer or -1 for Unlimited.");
+      if (input) input.checked = false;
+      return;
+    }
+  }
+
+  if (input) input.disabled = true;
+
+  try {
+    const result = await apiJson(`/api/admin/students/${encodeURIComponent(id)}/choice-filling-access`, {
+      method: 'PATCH',
+      body: JSON.stringify({ unlocked, attempts }),
+    });
+    const idx = slAllStudents.findIndex(x => x.id === id);
+    if (idx >= 0) {
+      slAllStudents[idx] = { 
+        ...slAllStudents[idx], 
+        choiceFillingUnlocked: result.choiceFillingUnlocked === true,
+        choiceFillingUnlimited: result.choiceFillingUnlimited === true,
+        choiceFillingAttemptsLeft: result.choiceFillingAttemptsLeft
+      };
+    }
+    const name = student?.name || student?.displayName || 'Student';
+    toast(result.choiceFillingUnlocked ? `Choice Filling unlocked for ${name}` : `Choice Filling locked for ${name}`);
+    slRenderPage();
+  } catch (err) {
+    if (input) input.checked = previous;
+    toast(err.message || 'Unable to update Choice Filling access.');
+    slRenderPage();
+  }
+}
+
 function slViewStudent(id) {
   const s = slAllStudents.find(x => x.id === id);
   if (!s) return;
   const name = s.name || s.displayName || ((s.firstName||'') + ' ' + (s.lastName||'')).trim() || 'Unknown';
   document.getElementById('slDetailName').textContent = name;
   document.getElementById('slDetailEmail').textContent = s.email || '—';
+
+  let predictorStatusText = 'Locked (No Access)';
+  if (s.predictorUnlocked === true) predictorStatusText = 'Free Access (Admin-granted)';
+  else if (s.predictorPurchased === true) predictorStatusText = 'Paid Access (Student-purchased)';
+
+  let cfStatusText = 'Locked (No Access)';
+  if (s.choiceFillingUnlocked === true) {
+    const attempts = s.choiceFillingAttemptsLeft;
+    const isUnlimited = s.choiceFillingUnlimited === true || attempts === -1;
+    cfStatusText = isUnlimited ? 'Free Access (Unlimited Attempts)' : `Free Access (${attempts} Attempts Left)`;
+  } else if (s.choiceFillingPurchased === true) {
+    const attempts = s.choiceFillingAttemptsLeft;
+    const isUnlimited = s.choiceFillingUnlimited === true || attempts === -1;
+    cfStatusText = isUnlimited ? 'Paid Access (Unlimited Attempts)' : `Paid Access (${attempts} Attempts Left)`;
+  }
+
+  let cfPurchaseDetailsText = '—';
+  if (s.choiceFillingPurchased === true && s.choiceFillingPurchaseInfo) {
+    const info = s.choiceFillingPurchaseInfo;
+    const amt = info.amount || '—';
+    const dateStr = slFmtDate(info.purchasedAt);
+    let tierText = 'Premium Plan';
+    if (info.productId === 'tier_1') tierText = '3 Attempts (₹9)';
+    else if (info.productId === 'tier_2') tierText = '10 Attempts (₹19)';
+    else if (info.productId === 'tier_3') tierText = '40 Attempts (₹29)';
+    else if (info.productId === 'tier_4') tierText = 'Unlimited (₹99)';
+    
+    cfPurchaseDetailsText = `${tierText} — Paid ₹${amt} on ${dateStr}`;
+  }
 
   const fields = [
     ['User ID', s.id],
@@ -3854,7 +3968,9 @@ function slViewStudent(id) {
     ['TFW Status', s.tfw || '—'],
     ['Home State Status', s.homeState || '—'],
     ['WBJEE Target Year', s.wbjeeYear ? 'WBJEE ' + s.wbjeeYear : '—'],
-    ['College Predictor', s.predictorUnlocked === true ? 'Free access' : 'Payment required'],
+    ['College Predictor', predictorStatusText],
+    ['Choice Filling Access', cfStatusText],
+    ['Choice Filling Purchase', cfPurchaseDetailsText],
     ['Role', s.role || 'student'],
     ['Bio', s.bio || '—'],
     ['Status', s.status || 'active'],
@@ -3877,11 +3993,15 @@ document.getElementById('slDetailModal')?.addEventListener('click', function(e) 
 });
 
 function exportStudentListCSV() {
-  const headers = ['Name','Email','Phone','WBJEE Year','Gender','Category','TFW','Home State','Predictor Access','Role','Status','Bio'];
+  const headers = ['Name','Email','Phone','WBJEE Year','Gender','Category','TFW','Home State','Predictor Access','Choice Filling Access','Attempts Left','Role','Status','Bio'];
   const rows = slFiltered.map(s => [
     s.name||s.displayName||'', s.email||'', s.phone||'',
     s.wbjeeYear||'', s.gender||'', s.caste||'',
-    s.tfw||'', s.homeState||'', s.predictorUnlocked===true?'Free':'Payment Required', s.role||'student', s.status||'active', s.bio||''
+    s.tfw||'', s.homeState||'', 
+    s.predictorUnlocked===true?'Free':(s.predictorPurchased===true?'Paid':'Locked'),
+    s.choiceFillingUnlocked===true?'Free':(s.choiceFillingPurchased===true?'Paid':'Locked'),
+    s.choiceFillingAttemptsLeft !== null ? (s.choiceFillingAttemptsLeft === -1 ? 'Unlimited' : s.choiceFillingAttemptsLeft) : '0',
+    s.role||'student', s.status||'active', s.bio||''
   ]);
   const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');

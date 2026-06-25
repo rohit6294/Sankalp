@@ -1578,17 +1578,34 @@ router.get('/students', requirePermission('students', 'view'), async (req, res) 
   try {
     const userSnap = await db.collection('users').get();
     
-    // Fetch successful college predictor purchases
+    // Fetch all successful purchases
     const purchaseSnap = await db.collection('purchases')
-      .where('product', '==', 'college_predictor')
       .where('status', '==', 'success')
       .get();
     
-    const purchasedUserIds = new Set();
+    // Map of userId -> { predictorPurchased: true, choiceFillingPurchased: true, choiceFillingPurchaseInfo: { productId, amount, purchasedAt } }
+    const userPurchaseMap = {};
     purchaseSnap.forEach((doc) => {
       const pData = doc.data();
       if (pData && pData.userId) {
-        purchasedUserIds.add(pData.userId);
+        const uid = pData.userId;
+        if (!userPurchaseMap[uid]) {
+          userPurchaseMap[uid] = {
+            predictorPurchased: false,
+            choiceFillingPurchased: false,
+            choiceFillingPurchaseInfo: null
+          };
+        }
+        if (pData.product === 'college_predictor') {
+          userPurchaseMap[uid].predictorPurchased = true;
+        } else if (pData.product === 'choice_filling') {
+          userPurchaseMap[uid].choiceFillingPurchased = true;
+          userPurchaseMap[uid].choiceFillingPurchaseInfo = {
+            productId: pData.productId || null,
+            amount: pData.amount || null,
+            purchasedAt: pData.purchasedAt ? (pData.purchasedAt.toDate ? pData.purchasedAt.toDate().toISOString() : pData.purchasedAt) : null
+          };
+        }
       }
     });
 
@@ -1597,6 +1614,12 @@ router.get('/students', requirePermission('students', 'view'), async (req, res) 
       const data = doc.data() || {};
       const fullName = data.name || data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Student';
       
+      const purchaseInfo = userPurchaseMap[doc.id] || {
+        predictorPurchased: false,
+        choiceFillingPurchased: false,
+        choiceFillingPurchaseInfo: null
+      };
+
       students.push({
         id: doc.id,
         name: fullName,
@@ -1610,7 +1633,12 @@ router.get('/students', requirePermission('students', 'view'), async (req, res) 
         role: data.role || 'student',
         status: data.status || 'active',
         predictorUnlocked: data.predictorUnlocked === true,
-        predictorPurchased: purchasedUserIds.has(doc.id),
+        predictorPurchased: purchaseInfo.predictorPurchased,
+        choiceFillingUnlocked: data.choiceFillingUnlocked === true,
+        choiceFillingUnlimited: data.choiceFillingUnlimited === true,
+        choiceFillingAttemptsLeft: data.choiceFillingAttemptsLeft !== undefined ? Number(data.choiceFillingAttemptsLeft) : null,
+        choiceFillingPurchased: purchaseInfo.choiceFillingPurchased,
+        choiceFillingPurchaseInfo: purchaseInfo.choiceFillingPurchaseInfo,
         createdAt: data.createdAt || null
       });
     });
@@ -1666,6 +1694,70 @@ router.patch(
     } catch (err) {
       console.error('Failed to update predictor access:', err);
       res.status(500).json({ error: 'predictor_access_update_failed', message: err.message });
+    }
+  }
+);
+
+router.patch(
+  '/students/:userId/choice-filling-access',
+  requirePermission('students', 'edit'),
+  requirePermission('evaluators', 'edit'),
+  async (req, res) => {
+    try {
+      const userId = String(req.params.userId || '').trim();
+      const unlocked = req.body?.unlocked === true;
+      const attempts = req.body?.attempts !== undefined ? Number(req.body.attempts) : 30;
+
+      if (!userId) {
+        return res.status(400).json({ error: 'missing_user_id', message: 'Student id is required.' });
+      }
+
+      const userRef = db.collection('users').doc(userId);
+      const snap = await userRef.get();
+      if (!snap.exists) {
+        return res.status(404).json({ error: 'student_not_found', message: 'Student account was not found.' });
+      }
+
+      const data = snap.data() || {};
+      if (data.role === 'admin' || data.isSubAdmin === true) {
+        return res.status(400).json({
+          error: 'not_student_account',
+          message: 'Choice Filling access can only be toggled for student accounts.',
+        });
+      }
+
+      const update = {
+        choiceFillingUnlocked: unlocked,
+        choiceFillingUnlockedUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        choiceFillingUnlockedUpdatedBy: req.user.email || req.user.uid || 'admin',
+      };
+
+      if (unlocked) {
+        update.choiceFillingUnlockedAt = admin.firestore.FieldValue.serverTimestamp();
+        if (attempts === -1) {
+          update.choiceFillingUnlimited = true;
+          update.choiceFillingAttemptsLeft = -1;
+        } else {
+          update.choiceFillingUnlimited = false;
+          update.choiceFillingAttemptsLeft = attempts;
+        }
+      } else {
+        update.choiceFillingUnlockedAt = admin.firestore.FieldValue.delete();
+        update.choiceFillingUnlimited = false;
+        update.choiceFillingAttemptsLeft = 0;
+      }
+
+      await userRef.update(update);
+      res.json({
+        ok: true,
+        userId,
+        choiceFillingUnlocked: unlocked,
+        choiceFillingUnlimited: update.choiceFillingUnlimited,
+        choiceFillingAttemptsLeft: update.choiceFillingAttemptsLeft
+      });
+    } catch (err) {
+      console.error('Failed to update choice filling access:', err);
+      res.status(500).json({ error: 'choice_filling_access_update_failed', message: err.message });
     }
   }
 );

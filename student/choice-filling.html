@@ -1041,9 +1041,19 @@
       }
 
       // Format the historical cutoffs as a nice trend tooltip string
-      const yearsSorted = Object.keys(choice.cutoffs || {}).map(Number).sort((a, b) => b - a);
-      const trendTooltip = yearsSorted.map(yr => `${yr}: ${choice.cutoffs[yr].toLocaleString()}`).join('\n');
-      const stabilityExplanation = `Weighted Stability Cutoff: ${choice.weightedCutoff.toLocaleString()}\nCalculated as: (Latest Year Cutoff × 0.7) + (Previous Year Cutoff × 0.3)`;
+      const cutoffsObj = choice.cutoffs || {};
+      const baseCutoffVal = choice.baseCutoff !== undefined && choice.baseCutoff !== null ? choice.baseCutoff : (choice.cutoff || 0);
+      const weightedCutoffVal = choice.weightedCutoff !== undefined && choice.weightedCutoff !== null ? choice.weightedCutoff : baseCutoffVal;
+
+      const baseCutoffText = typeof baseCutoffVal === 'number' ? baseCutoffVal.toLocaleString() : String(baseCutoffVal);
+      const weightedCutoffText = typeof weightedCutoffVal === 'number' ? weightedCutoffVal.toLocaleString() : String(weightedCutoffVal);
+
+      const yearsSorted = Object.keys(cutoffsObj).map(Number).sort((a, b) => b - a);
+      const trendTooltip = yearsSorted.length > 0 
+        ? yearsSorted.map(yr => `${yr}: ${cutoffsObj[yr] !== undefined && cutoffsObj[yr] !== null ? cutoffsObj[yr].toLocaleString() : 'N/A'}`).join('\n')
+        : 'No historical trend data available';
+
+      const stabilityExplanation = `Weighted Stability Cutoff: ${weightedCutoffText}\nCalculated as: (Latest Year Cutoff × 0.7) + (Previous Year Cutoff × 0.3)`;
       const combinedTooltip = `5-Year Cutoff Trend:\n${trendTooltip}\n\n${stabilityExplanation}`;
 
       rowsHtml += `
@@ -1057,8 +1067,8 @@
             <div style="font-size:11px; color:var(--ink-mute); font-weight:500; margin-top:3px;">${choice.program} <span style="margin-left:6px; font-weight:400; opacity:0.8;">(${choice.seatType} | ${choice.quota})</span></div>
           </td>
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center; cursor:help;" title="${combinedTooltip}">
-            ${choice.baseCutoff.toLocaleString()}
-            <div style="font-size:10px; color:var(--ink-mute); font-weight:500; margin-top:2px;">Weighted: ${choice.weightedCutoff.toLocaleString()}</div>
+            ${baseCutoffText}
+            <div style="font-size:10px; color:var(--ink-mute); font-weight:500; margin-top:2px;">Weighted: ${weightedCutoffText}</div>
           </td>
           <td style="padding:14px 16px; text-align:center; width:120px;">
             <span class="text-[10px] px-2.5 py-1 font-bold rounded ${badgeClass}" style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px;" title="${choice.tier} Option: Allocation probability based on historical data.">${choice.tier}</span>
@@ -1093,7 +1103,9 @@
       
       let backupRows = '';
       (data.suggestedBackups || []).forEach(b => {
-        backupRows += `<div style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:6px;"><i class="fa-solid fa-square-plus" style="color:var(--rust); margin-right:6px;"></i><strong>[${b.choiceCode}]</strong> ${b.institute} - ${b.program} (Cutoff: ${b.baseCutoff.toLocaleString()})</div>`;
+        const bCutoffVal = b.baseCutoff !== undefined && b.baseCutoff !== null ? b.baseCutoff : (b.cutoff || 0);
+        const bCutoffText = typeof bCutoffVal === 'number' ? bCutoffVal.toLocaleString() : String(bCutoffVal);
+        backupRows += `<div style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:6px;"><i class="fa-solid fa-square-plus" style="color:var(--rust); margin-right:6px;"></i><strong>[${b.choiceCode}]</strong> ${b.institute} - ${b.program} (Cutoff: ${bCutoffText})</div>`;
       });
 
       warningBanner.innerHTML = `

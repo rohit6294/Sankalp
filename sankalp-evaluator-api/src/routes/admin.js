@@ -1331,7 +1331,7 @@ router.get('/predictor/quotas', requireAnyPermission([['collegePredictor', 'view
 // ── Admin Prediction Query Route ──────────────────────────────────────────────
 router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {
-    const { rank, category, courseType, collegeType, seatType, quota, year } = req.query;
+    const { rank, category, courseType, collegeType, seatType, quota, year, collegeName } = req.query;
     let targetYear = year ? String(year).trim() : '2025';
     const yearMatch = targetYear.match(/^(\d{4})\b/);
     let parsedYear = 2025;
@@ -1403,6 +1403,12 @@ router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), 
         const prev_cutoff = item.cutoffs[prevYear];
 
         if (!target_cutoff) return;
+
+        // College Name Filter: Case-insensitive partial match (admin only)
+        if (collegeName && String(collegeName).trim() !== '') {
+          const searchStr = String(collegeName).toLowerCase();
+          if (!String(item.institute).toLowerCase().includes(searchStr)) return;
+        }
 
         // Apply filters
         // Course Type: B.Tech, B.Pharm, All

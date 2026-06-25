@@ -1931,6 +1931,10 @@ function canGrantStudentPredictorAccess() {
   return adminCan('students', 'edit') && adminCan('collegePredictor', 'edit');
 }
 
+function canGrantStudentChoiceFillingAccess() {
+  return adminCan('students', 'edit') && adminCan('evaluators', 'edit');
+}
+
 function permissionForMainTab(tab) {
   if (tab === 'studentList') return { section: 'students', action: 'view' };
   if (tab === 'collegePredictor') return { section: 'collegePredictor', action: 'view' };

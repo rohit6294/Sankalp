@@ -59,6 +59,11 @@ async function userHasChoiceAccess(req) {
       return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
     }
 
+    // Check if they have unlimited access
+    if (userData.choiceFillingUnlimited === true || userData.choiceFillingAttemptsLeft === -1) {
+      return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
+    }
+
     // Check if they have attempts left
     let attemptsLeft = userData.choiceFillingAttemptsLeft !== undefined ? Number(userData.choiceFillingAttemptsLeft) : null;
 
@@ -134,7 +139,8 @@ router.get('/status', verifyToken, async (req, res) => {
       maxAttempts: settings.choiceFillingMaxAttempts || 30,
       hasAccess: access.hasAccess,
       unlimited: access.unlimited,
-      attemptsLeft: access.attemptsLeft
+      attemptsLeft: access.attemptsLeft,
+      tiers: settings.choiceFillingTiers
     });
   } catch (err) {
     res.status(500).json({ error: 'cf_status_failed', message: err.message });

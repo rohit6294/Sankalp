@@ -124,6 +124,25 @@
       background: rgba(10, 116, 245, 0.06);
     }
     
+    .cf-tier-card {
+      border: 1px solid var(--rule-strong);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      background: var(--paper);
+    }
+    .cf-tier-card:hover {
+      border-color: var(--rust);
+      background: var(--paper-deep);
+    }
+    .cf-tier-card.selected {
+      border-color: var(--rust);
+      background: rgba(201, 78, 31, 0.05);
+      box-shadow: 0 0 0 1px var(--rust);
+    }
+
     @keyframes slideUp {
       from { transform: translateY(30px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
@@ -451,25 +470,26 @@
 
 <!-- Choice Filling Paywall Modal -->
 <div id="cfPaywallOverlay" class="paywall-overlay no-print" style="display:none;">
-  <div class="paywall-card">
+  <div class="paywall-card" style="max-width: 460px; padding: 28px;">
     <button class="paywall-close" onclick="dismissCfPaywall()"><i class="fas fa-times"></i></button>
-    <div style="width:64px; height:64px; border-radius:50%; background:rgba(10, 116, 245, 0.1); color:var(--rust); display:inline-flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:16px;"><i class="fa-solid fa-list-check"></i></div>
-    <h2 style="font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--ink); margin-bottom:8px;">Premium Choice-Filling Assistant</h2>
-    <p style="color:var(--ink-soft); font-size:13px; line-height:1.6; margin-bottom:20px; text-align:left; padding:0 8px;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to print or copy directly into the counseling portal.</p>
+    <div style="width:54px; height:54px; border-radius:50%; background:rgba(10, 116, 245, 0.08); color:var(--rust); display:inline-flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;"><i class="fa-solid fa-list-check"></i></div>
+    <h2 style="font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--ink); margin-bottom:6px;">Premium Choice-Filling Assistant</h2>
+    <p style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:18px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.</p>
     
-    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px; text-align:left; font-size:13px; color:var(--ink-soft); padding:0 8px;">
-      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Official WBJEE institute choice codes</span></div>
-      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Safety-Net Auditor checks to prevent seat loss</span></div>
-      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Print-friendly PDF layout & clipboard copy</span></div>
-      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span id="cfPaywallAttemptsDescription">Gets you 30 full generation attempts</span></div>
+    <!-- Dynamic Pricing Tiers Selection Grid -->
+    <div style="text-align:left; margin-bottom:18px; width:100%;">
+      <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--ink-mute); letter-spacing:0.5px; display:block; margin-bottom:8px;">Select Pricing Plan</span>
+      <div id="cfPaywallTiersGrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; width:100%;">
+        <!-- Dynamically populated tier option cards -->
+      </div>
     </div>
 
-    <div style="border-top:1px solid var(--rule-strong); padding-top:20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+    <div style="border-top:1px solid var(--rule-strong); padding-top:16px; display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%;">
       <div style="text-align:left;">
-        <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--ink-mute); letter-spacing:0.5px;">Unlock Fee</span>
-        <div style="font-size:24px; font-weight:800; color:var(--ink); line-height:1;" id="cfPaywallPriceDisplay">&#8377;199</div>
+        <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--ink-mute); letter-spacing:0.5px;">Unlock Price</span>
+        <div style="font-size:22px; font-weight:800; color:var(--ink); line-height:1;" id="cfPaywallPriceDisplay">&#8377;199</div>
       </div>
-      <button onclick="triggerChoicePayment()" id="cfUnlockBtn" class="btn-rust" style="padding:14px 28px; font-size:14px; font-weight:700;"><i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant</button>
+      <button onclick="triggerChoicePayment()" id="cfUnlockBtn" class="btn-rust" style="padding:12px 24px; font-size:13px; font-weight:700; height:40px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant</button>
     </div>
   </div>
 </div>
@@ -504,6 +524,8 @@
   let attemptsLeft = 0;
   let isUnlimited = false;
   let lastChoiceResults = [];
+  let choiceTiers = [];
+  let selectedTierId = '';
 
   function toggleSidebar() { 
     document.getElementById('sidebar').classList.toggle('open'); 
@@ -643,12 +665,6 @@
       if (priceDisplay) priceDisplay.textContent = `\u20B9${choicePrice}`;
       if (lockedPrice) lockedPrice.textContent = `\u20B9${choicePrice}`;
 
-      // Update attempts description in paywall
-      const paywallDesc = document.getElementById('cfPaywallAttemptsDescription');
-      if (paywallDesc) {
-        paywallDesc.textContent = `Gets you ${attemptsPerPayment} full generation attempts`;
-      }
-
       if (res.enabled === false) {
         document.getElementById('cfResultsContainer').innerHTML = `
           <div style="text-align:center; padding:58px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
@@ -673,13 +689,14 @@
         const bannerText = document.getElementById('cfBannerText');
         if (attemptsLeft === 0 && res.requiresPayment) {
           if (bannerTitle) bannerTitle.textContent = "Choice-Filling Attempts Exhausted";
-          if (bannerText) bannerText.textContent = `You have used up your generation attempts. Unlock ${attemptsPerPayment} more attempts for \u20B9${choicePrice}!`;
+          if (bannerText) bannerText.textContent = `You have used up your generation attempts. Select a pricing plan to unlock more attempts.`;
         } else {
           if (bannerTitle) bannerTitle.textContent = "Choice Filling Assistant is locked";
-          if (bannerText) bannerText.textContent = `Unlock premium access to generate your mathematically optimized choice sheet (${attemptsPerPayment} attempts).`;
+          if (bannerText) bannerText.textContent = `Unlock premium access to generate your mathematically optimized choice sheet.`;
         }
         
         document.getElementById('cfLockedAccessBanner').style.display = 'flex';
+        renderPaywallTiers(res.tiers);
         showCfPaywall();
       } else {
         document.getElementById('cfPaywallOverlay').style.display = 'none';
@@ -745,17 +762,69 @@
     }
   }
 
+  // ===== RENDER PAYWALL TIERS SELECTION =====
+  function renderPaywallTiers(tiers) {
+    choiceTiers = tiers || [];
+    const grid = document.getElementById('cfPaywallTiersGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    if (choiceTiers.length === 0) {
+      choiceTiers = [
+        { id: 'tier_1', price: 9, attempts: 3, label: '3 Attempts' },
+        { id: 'tier_2', price: 19, attempts: 10, label: '10 Attempts' },
+        { id: 'tier_3', price: 29, attempts: 40, label: '40 Attempts' },
+        { id: 'tier_4', price: 99, attempts: -1, label: 'Unlimited' }
+      ];
+    }
+
+    choiceTiers.forEach((t, idx) => {
+      const card = document.createElement('div');
+      card.className = 'cf-tier-card';
+      if (idx === 0) {
+        card.classList.add('selected');
+        selectedTierId = t.id;
+        updatePaywallPriceDisplay(t.price);
+      }
+      
+      card.innerHTML = `
+        <div style="font-size:13px; font-weight:700; color:var(--ink);">${t.label}</div>
+        <div style="font-size:18px; font-weight:800; color:var(--rust); margin-top:4px;">&#8377;${t.price}</div>
+      `;
+      
+      card.onclick = () => {
+        document.querySelectorAll('.cf-tier-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedTierId = t.id;
+        updatePaywallPriceDisplay(t.price);
+      };
+      
+      grid.appendChild(card);
+    });
+  }
+
+  function updatePaywallPriceDisplay(price) {
+    const display = document.getElementById('cfPaywallPriceDisplay');
+    if (display) display.innerHTML = `&#8377;${price}`;
+  }
+
   async function triggerChoicePayment() {
     const btn = document.getElementById('cfUnlockBtn');
     if (!btn) return;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
 
+    const selectedTier = choiceTiers.find(t => t.id === selectedTierId) || { label: 'Premium Unlock' };
+
     try {
-      // Create a Razorpay order specifically for choice filling
+      // Create a Razorpay order specifically for choice filling with the selected tier ID
       const order = await apiJson('/api/create-order', {
         method: 'POST',
-        body: JSON.stringify({ product: 'choice_filling' })
+        body: JSON.stringify({
+          product: 'choice_filling',
+          productId: selectedTierId
+        })
       });
 
       const options = {
@@ -763,7 +832,7 @@
         amount: order.amount,
         currency: order.currency,
         name: 'Sankalp Aspirant',
-        description: `WBJEE Choice-Filling Assistant (${attemptsPerPayment} attempts)`,
+        description: `Choice-Filling Assistant - ${selectedTier.label}`,
         order_id: order.order_id,
         handler: async function (response) {
           btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';

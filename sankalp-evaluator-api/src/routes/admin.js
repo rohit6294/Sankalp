@@ -1328,6 +1328,72 @@ router.get('/predictor/quotas', requireAnyPermission([['collegePredictor', 'view
   });
 });
 
+// ── Get Unique Colleges for Explorer ───────────────────────────────────────────
+router.get('/predictor/colleges', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
+  const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+  const sqliteDb = new sqlite3.Database(dbPath);
+  sqliteDb.configure("busyTimeout", 10000);
+
+  sqliteDb.all('SELECT DISTINCT institute FROM cutoffs ORDER BY institute ASC', [], (err, rows) => {
+    sqliteDb.close();
+    if (err) {
+      return res.status(500).json({ error: 'colleges_load_failed', message: err.message });
+    }
+    const colleges = rows.map(r => r.institute).filter(Boolean);
+    res.json({ colleges });
+  });
+});
+
+// ── Get Unique Branches for Explorer ───────────────────────────────────────────
+router.get('/predictor/branches', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
+  const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+  const sqliteDb = new sqlite3.Database(dbPath);
+  sqliteDb.configure("busyTimeout", 10000);
+
+  sqliteDb.all('SELECT DISTINCT program FROM cutoffs ORDER BY program ASC', [], (err, rows) => {
+    sqliteDb.close();
+    if (err) {
+      return res.status(500).json({ error: 'branches_load_failed', message: err.message });
+    }
+    const branches = rows.map(r => r.program).filter(Boolean);
+    res.json({ branches });
+  });
+});
+
+// ── Get Complete Historical Cutoffs for Explorer ───────────────────────────────
+router.get('/predictor/explorer-cutoffs', requirePermission('collegePredictor', 'view'), async (req, res) => {
+  const { college, branch } = req.query;
+  if (!college) {
+    return res.status(400).json({ error: 'missing_college', message: 'Please specify a college name.' });
+  }
+
+  const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
+  const sqliteDb = new sqlite3.Database(dbPath);
+  sqliteDb.configure("busyTimeout", 10000);
+
+  let sql = `
+    SELECT program, stream, category, seat_type, quota, year, round, closing_rank
+    FROM cutoffs
+    WHERE institute = ?
+  `;
+  const params = [college];
+
+  if (branch && branch !== 'All' && branch.trim() !== '') {
+    sql += ' AND program = ?';
+    params.push(branch);
+  }
+
+  sql += ' ORDER BY program ASC, category ASC, year DESC, round ASC';
+
+  sqliteDb.all(sql, params, (err, rows) => {
+    sqliteDb.close();
+    if (err) {
+      return res.status(500).json({ error: 'explorer_cutoffs_failed', message: err.message });
+    }
+    res.json({ cutoffs: rows });
+  });
+});
+
 // ── Admin Prediction Query Route ──────────────────────────────────────────────
 router.get('/predictor/predict', requirePermission('collegePredictor', 'view'), async (req, res) => {
   try {

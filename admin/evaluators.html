@@ -756,6 +756,39 @@
         border-bottom: none;
       }
 
+      /* Searchable Combobox styles */
+      .searchable-combobox { position: relative; width: 100%; }
+      .combobox-options-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 220px;
+        overflow-y: auto;
+        background: var(--paper);
+        border: 1px solid var(--rule-strong);
+        border-radius: 8px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        z-index: 99;
+        display: none;
+      }
+      .combobox-option-item {
+        padding: 8px 12px;
+        font-size: 13px;
+        cursor: pointer;
+        color: var(--ink);
+        transition: background 0.15s ease, color 0.15s ease;
+        text-align: left;
+      }
+      .combobox-option-item:hover {
+        background: var(--paper-deep);
+        color: var(--rust);
+      }
+      .combobox-option-item.selected {
+        background: var(--rust);
+        color: white;
+      }
+
       /* Mobile responsiveness overrides */
       @media(max-width: 480px) {
         .predictor-grid {
@@ -804,6 +837,7 @@
       </div>
       <div class="predictor-subtabs">
         <button type="button" class="predictor-subtab-btn active" id="btnPredictorTool" onclick="changePredictorSubView('tool')"><i class="fas fa-search" style="margin-right:6px;"></i>Predictor Tool</button>
+        <button type="button" class="predictor-subtab-btn" id="btnPredictorExplorer" onclick="changePredictorSubView('explorer')"><i class="fas fa-database" style="margin-right:6px;"></i>Cutoffs Explorer</button>
         <button type="button" class="predictor-subtab-btn" id="btnPredictorImport" onclick="changePredictorSubView('import')"><i class="fas fa-file-upload" style="margin-right:6px;"></i>Data Settings</button>
         <button type="button" class="predictor-subtab-btn" id="btnPredictorPaywall" onclick="changePredictorSubView('paywall')"><i class="fas fa-key" style="margin-right:6px;"></i>Paywall & Price</button>
         <button type="button" class="predictor-subtab-btn" id="btnPredictorPurchases" onclick="changePredictorSubView('purchases')"><i class="fas fa-history" style="margin-right:6px;"></i>Purchases Log</button>
@@ -932,6 +966,60 @@
       </div>
     </div>
 
+    <!-- CUTOFFS EXPLORER VIEW -->
+    <div id="predictorExplorerView" style="display:none;">
+      <div class="predictor-grid">
+        <!-- Sidebar Controls -->
+        <div class="predictor-panel-card" style="height: fit-content; position: relative;">
+          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:18px; color:var(--ink);"><i class="fas fa-search-plus" style="margin-right:8px; color:var(--rust);"></i>Explorer Filters</h3>
+
+          <form onsubmit="event.preventDefault(); runCutoffExplorer();">
+            <div class="predictor-form-group">
+              <label for="expCollegeInput">College Name *</label>
+              <div class="searchable-combobox">
+                <input type="text" id="expCollegeInput" class="predictor-input-field" placeholder="Type to search college..." required autocomplete="off">
+                <div id="expCollegeOptions" class="combobox-options-list">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="expBranchInput">Branch / Program</label>
+              <div class="searchable-combobox">
+                <input type="text" id="expBranchInput" class="predictor-input-field" placeholder="Type to search branch..." autocomplete="off">
+                <div id="expBranchOptions" class="combobox-options-list">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+
+            <div class="predictor-form-group">
+              <label for="expCategorySelect">Reservation Category (Optional)</label>
+              <select id="expCategorySelect" class="predictor-input-field">
+                <option value="All">-- All Categories --</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-rust" style="width:100%; height:42px; font-weight:600; margin-top:8px;"><i class="fas fa-compass" style="margin-right:6px;"></i>Explore Cutoffs</button>
+          </form>
+        </div>
+
+        <!-- Results Canvas -->
+        <div class="predictor-panel-card" style="min-height: 400px; display: flex; flex-direction: column;">
+          <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:16px; color:var(--ink);"><i class="fas fa-chart-line" style="margin-right:8px; color:var(--rust);"></i>Cutoffs History</h3>
+
+          <!-- Explorer Output Container -->
+          <div id="explorerResultsContainer" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <div style="text-align:center; padding:64px; color:var(--ink-mute); border:1px dashed var(--rule-strong); border-radius:10px; background:var(--paper);">
+              <i class="fas fa-search" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.35;"></i>
+              <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">Select College to Explore</h4>
+              <p style="font-size:12px;">Type a college name in the left panel, select a branch, and click "Explore Cutoffs" to view all historical statistics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- DATA SETTINGS VIEW -->
     <div id="predictorImportView" style="display:none;">
@@ -1120,17 +1208,15 @@
               </div>
             </div>
 
-            <div class="predictor-form-group">
-              <label for="cfPaywallPrice">Choice Filling Unlock Price (INR)</label>
-              <div style="position:relative;">
-                <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:14px; font-weight:700;">₹</span>
-                <input type="number" id="cfPaywallPrice" class="predictor-input-field" placeholder="199" min="1" style="padding-left:32px;">
+            <div class="predictor-form-group" style="margin-top:12px; border-top:1px solid var(--rule-strong); padding-top:18px;">
+              <label style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:8px; text-transform:none;"><i class="fas fa-tags" style="margin-right:8px; color:var(--rust);"></i>Choice Filling Pricing Tiers</label>
+              <p style="font-size:11px; color:var(--ink-mute); margin-bottom:14px;">Set pricing options. Set attempts to -1 to represent Unlimited access.</p>
+              
+              <div id="cfTiersContainer" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                <!-- Dynamically populated rows -->
               </div>
-            </div>
-
-            <div class="predictor-form-group">
-              <label for="cfPaywallAttempts">Choice Filling Attempts Limit per Payment</label>
-              <input type="number" id="cfPaywallAttempts" class="predictor-input-field" placeholder="30" min="1" value="30">
+              
+              <button type="button" id="addCfTierBtn" class="btn-rust" onclick="addPricingTierRow()" style="background:transparent; color:var(--rust); font-size:12px; padding:6px 14px; font-weight:600; width:fit-content; border:1px dashed var(--rust); cursor:pointer;"><i class="fas fa-plus" style="margin-right:6px;"></i>Add Pricing Tier</button>
             </div>
           </div>
         </div>
@@ -1845,7 +1931,7 @@ function applyEvaluatorPermissions() {
   setHidden('#btnPredictorPaywall', !adminCan('collegePredictor', 'edit'));
   setHidden('#btnPredictorPurchases', !adminCan('payments', 'transactions'));
   setDisabled('#uploadFileInput, #uploadYear, #predFeatureToggle, #predPaywallToggle, #predPaywallPrice, #savePredictorSettingsBtn', !adminCan('collegePredictor', 'edit'));
-  setDisabled('#cfFeatureToggle, #cfPaywallToggle, #cfPaywallPrice, #cfPaywallAttempts, #saveCfSettingsBtn', !adminCan('evaluators', 'edit'));
+  setDisabled('#cfFeatureToggle, #cfPaywallToggle, #cfTiersContainer input, #cfTiersContainer button, #addCfTierBtn, #saveCfSettingsBtn', !adminCan('evaluators', 'edit'));
   setDisabled('[onclick="clearCutoffs()"]', !adminCan('collegePredictor', 'edit'));
 
   const predictorEdit = adminCan('collegePredictor', 'edit');
@@ -3824,9 +3910,11 @@ function changeCfSubView(view) {
 // ===== COLLEGE PREDICTOR SECTION =====
 let predictorSubView = 'tool';
 let predictorStats = {};
+let explorerColleges = [];
+let explorerBranches = [];
 
 function changePredictorSubView(view) {
-  if (view === 'tool' && !adminCan('collegePredictor', 'view')) {
+  if ((view === 'tool' || view === 'explorer') && !adminCan('collegePredictor', 'view')) {
     toast('College Predictor view permission is not enabled for this account.');
     return;
   }
@@ -3841,11 +3929,13 @@ function changePredictorSubView(view) {
 
   predictorSubView = view;
   document.getElementById('btnPredictorTool').classList.toggle('active', view === 'tool');
+  document.getElementById('btnPredictorExplorer').classList.toggle('active', view === 'explorer');
   document.getElementById('btnPredictorImport').classList.toggle('active', view === 'import');
   document.getElementById('btnPredictorPaywall').classList.toggle('active', view === 'paywall');
   document.getElementById('btnPredictorPurchases').classList.toggle('active', view === 'purchases');
 
   document.getElementById('predictorToolView').style.display = view === 'tool' ? 'block' : 'none';
+  document.getElementById('predictorExplorerView').style.display = view === 'explorer' ? 'block' : 'none';
   document.getElementById('predictorImportView').style.display = view === 'import' ? 'block' : 'none';
   document.getElementById('predictorPaywallView').style.display = view === 'paywall' ? 'block' : 'none';
   document.getElementById('predictorPurchasesView').style.display = view === 'purchases' ? 'block' : 'none';
@@ -3876,8 +3966,21 @@ function applyPredictorPaywallSettings(settings = {}) {
 
   document.getElementById('cfFeatureToggle').checked = settings.choiceFillingEnabled !== false;
   document.getElementById('cfPaywallToggle').checked = settings.choiceFillingRequiresPayment !== false;
-  document.getElementById('cfPaywallPrice').value = settings.choiceFillingPrice !== undefined ? settings.choiceFillingPrice : 199;
-  document.getElementById('cfPaywallAttempts').value = settings.choiceFillingMaxAttempts !== undefined ? settings.choiceFillingMaxAttempts : 30;
+  const container = document.getElementById('cfTiersContainer');
+  if (container) {
+    container.innerHTML = '';
+    const tiers = settings.choiceFillingTiers && settings.choiceFillingTiers.length > 0
+      ? settings.choiceFillingTiers
+      : [
+          { id: 'tier_1', price: 9, attempts: 3, label: '3 Attempts' },
+          { id: 'tier_2', price: 19, attempts: 10, label: '10 Attempts' },
+          { id: 'tier_3', price: 29, attempts: 40, label: '40 Attempts' },
+          { id: 'tier_4', price: 99, attempts: -1, label: 'Unlimited' }
+        ];
+    tiers.forEach(t => {
+      addPricingTierRow(t.price, t.attempts, t.label, t.id);
+    });
+  }
 }
 
 async function savePredictorPaywallSettings() {
@@ -3902,22 +4005,61 @@ async function savePredictorPaywallSettings() {
   }
 
   if (canEditCf) {
-    const choiceFillingPrice = document.getElementById('cfPaywallPrice').value;
-    const choiceFillingMaxAttempts = document.getElementById('cfPaywallAttempts').value;
-
-    if (choiceFillingPrice === '' || isNaN(choiceFillingPrice) || Number(choiceFillingPrice) < 1) {
-      alert('Please enter a valid choice filling price of at least INR 1.');
-      return;
-    }
-    if (choiceFillingMaxAttempts === '' || isNaN(choiceFillingMaxAttempts) || Number(choiceFillingMaxAttempts) < 1) {
-      alert('Please enter a valid attempts limit of at least 1.');
-      return;
-    }
-
     payload.choiceFillingEnabled = document.getElementById('cfFeatureToggle').checked;
     payload.choiceFillingRequiresPayment = document.getElementById('cfPaywallToggle').checked;
-    payload.choiceFillingPrice = Number(choiceFillingPrice);
-    payload.choiceFillingMaxAttempts = Number(choiceFillingMaxAttempts);
+
+    const tierRows = document.querySelectorAll('.tier-row');
+    const tiers = [];
+    let hasError = false;
+
+    tierRows.forEach(row => {
+      const priceInput = row.querySelector('.tier-price');
+      const attemptsInput = row.querySelector('.tier-attempts');
+      const labelInput = row.querySelector('.tier-label');
+
+      const price = Number(priceInput.value);
+      const attempts = Number(attemptsInput.value);
+      const label = labelInput.value.trim();
+
+      if (isNaN(price) || price < 1) {
+        alert('All tier prices must be at least INR 1.');
+        hasError = true;
+        priceInput.focus();
+        return;
+      }
+      if (isNaN(attempts) || (attempts < 1 && attempts !== -1)) {
+        alert('All attempts must be at least 1, or -1 for Unlimited.');
+        hasError = true;
+        attemptsInput.focus();
+        return;
+      }
+      if (!label) {
+        alert('Please specify a label for all pricing tiers.');
+        hasError = true;
+        labelInput.focus();
+        return;
+      }
+
+      tiers.push({
+        id: row.dataset.id,
+        price,
+        attempts,
+        label
+      });
+    });
+
+    if (hasError) return;
+
+    if (tiers.length === 0 && payload.choiceFillingRequiresPayment) {
+      alert('Please add at least one pricing tier if paywall is enabled.');
+      return;
+    }
+
+    payload.choiceFillingTiers = tiers;
+    if (tiers.length > 0) {
+      payload.choiceFillingPrice = tiers[0].price;
+      payload.choiceFillingMaxAttempts = tiers[0].attempts === -1 ? 9999 : tiers[0].attempts;
+    }
   }
 
   const btnPred = document.getElementById('savePredictorSettingsBtn');
@@ -4347,6 +4489,39 @@ async function loadPredictorDashboard() {
     if (adminCfQuota && dropdownQuota) {
       adminCfQuota.innerHTML = dropdownQuota.innerHTML;
     }
+
+    // Populate Cutoffs Explorer fields in parallel
+    try {
+      const [collegesRes, branchesRes, categoriesRes] = await Promise.all([
+        apiJson('/api/admin/predictor/colleges'),
+        apiJson('/api/admin/predictor/branches'),
+        apiJson('/api/admin/predictor/categories')
+      ]);
+
+      explorerColleges = collegesRes.colleges || [];
+      explorerBranches = branchesRes.branches || [];
+
+      // Populate Category filter select
+      const expCatSelect = document.getElementById('expCategorySelect');
+      if (expCatSelect) {
+        expCatSelect.innerHTML = '<option value="All">-- All Categories --</option>';
+        const categories = categoriesRes.categories || [];
+        categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          expCatSelect.appendChild(opt);
+        });
+      }
+
+      // Initialize searchable comboboxes
+      initSearchableCombobox('expCollegeInput', 'expCollegeOptions', explorerColleges, false);
+      initSearchableCombobox('expBranchInput', 'expBranchOptions', explorerBranches, true);
+
+    } catch (expLoadErr) {
+      console.warn('Failed to load colleges/branches for explorer:', expLoadErr);
+    }
+
   } catch (err) {
     console.error('Failed to load predictor dropdown details:', err);
     toast('Error loading filters. Make sure Excel cutoffs are imported.');
@@ -4357,6 +4532,286 @@ async function loadPredictorDashboard() {
 
   // Refresh stats in background
   loadPredictorStatus().catch(console.error);
+}
+
+// ===== DYNAMIC PRICING TIERS CONTROLLER =====
+function addPricingTierRow(price = '', attempts = '', label = '', id = '') {
+  const container = document.getElementById('cfTiersContainer');
+  if (!container) return;
+
+  const row = document.createElement('div');
+  row.className = 'tier-row';
+  row.style.display = 'flex';
+  row.style.gap = '10px';
+  row.style.alignItems = 'center';
+  row.style.flexWrap = 'wrap';
+  row.style.marginBottom = '8px';
+  row.dataset.id = id || `tier_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+  row.innerHTML = `
+    <div style="position:relative; width: 90px;">
+      <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--ink-mute); font-size:12px; font-weight:600;">₹</span>
+      <input type="number" class="predictor-input-field tier-price" placeholder="Price" min="1" value="${price}" style="padding-left:22px; font-size:13px; height:36px;" required>
+    </div>
+    <div style="position:relative; width: 100px;">
+      <input type="number" class="predictor-input-field tier-attempts" placeholder="Attempts" min="-1" value="${attempts}" style="font-size:13px; height:36px;" required>
+    </div>
+    <div style="flex: 1; min-width: 120px;">
+      <input type="text" class="predictor-input-field tier-label" placeholder="Label (e.g. 10 Attempts)" value="${label}" style="font-size:13px; height:36px;" required>
+    </div>
+    <button type="button" onclick="this.closest('.tier-row').remove()" style="background:#EF4444; border:none; color:white; padding:8px; font-size:12px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer;" title="Delete Tier"><i class="fas fa-trash-alt"></i></button>
+  `;
+  container.appendChild(row);
+
+  const canEdit = adminCan('evaluators', 'edit');
+  if (!canEdit) {
+    row.querySelectorAll('input, button').forEach(el => {
+      el.disabled = true;
+      el.classList.add('sankalp-readonly-disabled');
+      el.setAttribute('aria-disabled', 'true');
+    });
+  }
+}
+
+// ===== SEARCHABLE COMBOBOX CONTROLLER =====
+function initSearchableCombobox(inputId, optionsId, dataArray, isOptional = false) {
+  const input = document.getElementById(inputId);
+  const optionsContainer = document.getElementById(optionsId);
+
+  function renderOptions(filterText = '') {
+    const query = filterText.toLowerCase().trim();
+    optionsContainer.innerHTML = '';
+
+    // If optional, add an "All" option at the top
+    if (isOptional && query === '') {
+      const allItem = document.createElement('div');
+      allItem.className = 'combobox-option-item';
+      allItem.textContent = '-- All Branches --';
+      allItem.dataset.value = 'All';
+      allItem.onclick = (e) => {
+        e.stopPropagation();
+        selectValue('All', '-- All Branches --');
+      };
+      optionsContainer.appendChild(allItem);
+    }
+
+    const filtered = dataArray.filter(item => 
+      String(item).toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+      const noMatch = document.createElement('div');
+      noMatch.className = 'combobox-option-item';
+      noMatch.style.color = 'var(--ink-mute)';
+      noMatch.style.cursor = 'default';
+      noMatch.textContent = 'No matches found';
+      optionsContainer.appendChild(noMatch);
+      return;
+    }
+
+    const limit = 50;
+    const itemsToShow = filtered.slice(0, limit);
+
+    itemsToShow.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'combobox-option-item';
+      div.textContent = item;
+      div.dataset.value = item;
+      if (input.value === item) {
+        div.classList.add('selected');
+      }
+      div.onclick = (e) => {
+        e.stopPropagation();
+        selectValue(item, item);
+      };
+      optionsContainer.appendChild(div);
+    });
+
+    if (filtered.length > limit) {
+      const moreItem = document.createElement('div');
+      moreItem.className = 'combobox-option-item';
+      moreItem.style.color = 'var(--ink-mute)';
+      moreItem.style.cursor = 'default';
+      moreItem.style.fontSize = '11px';
+      moreItem.style.textAlign = 'center';
+      moreItem.textContent = `... and ${filtered.length - limit} more matches (type to refine)`;
+      optionsContainer.appendChild(moreItem);
+    }
+  }
+
+  function selectValue(val, displayVal) {
+    input.value = val === 'All' ? '' : displayVal;
+    input.dataset.selectedValue = val;
+    optionsContainer.style.display = 'none';
+  }
+
+  input.addEventListener('focus', () => {
+    document.querySelectorAll('.combobox-options-list').forEach(list => {
+      if (list !== optionsContainer) list.style.display = 'none';
+    });
+    renderOptions(input.value);
+    optionsContainer.style.display = 'block';
+  });
+
+  input.addEventListener('input', () => {
+    renderOptions(input.value);
+    optionsContainer.style.display = 'block';
+  });
+}
+
+// Close comboboxes when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.searchable-combobox')) {
+    document.querySelectorAll('.combobox-options-list').forEach(list => {
+      list.style.display = 'none';
+    });
+  }
+});
+
+// ===== ADMIN CUTOFFS EXPLORER SEARCH CONTROLLER =====
+async function runCutoffExplorer() {
+  const collegeInput = document.getElementById('expCollegeInput');
+  const branchInput = document.getElementById('expBranchInput');
+  const categorySelect = document.getElementById('expCategorySelect');
+  const container = document.getElementById('explorerResultsContainer');
+
+  const selectedCollege = collegeInput.value.trim();
+  const selectedBranch = branchInput.value.trim() || 'All';
+  const selectedCategory = categorySelect.value;
+
+  if (!selectedCollege) {
+    toast('Please select a college name.');
+    return;
+  }
+
+  // Validate that the college exists in our loaded list
+  if (!explorerColleges.some(c => c.toLowerCase() === selectedCollege.toLowerCase())) {
+    toast('Please select a valid college from the dropdown matches.');
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="text-align:center; padding:64px; color:var(--ink-mute);">
+      <i class="fas fa-spinner fa-spin" style="font-size:42px; margin-bottom:16px; color:var(--rust);"></i>
+      <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">Querying Historical Cutoffs...</h4>
+      <p style="font-size:12px;">Searching the 7,333 database cutoff records for matches.</p>
+    </div>
+  `;
+
+  try {
+    const url = `/api/admin/predictor/explorer-cutoffs?college=${encodeURIComponent(selectedCollege)}&branch=${encodeURIComponent(selectedBranch)}`;
+    const res = await apiJson(url);
+    const cutoffs = res.cutoffs || [];
+
+    if (cutoffs.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:64px; color:var(--ink-mute); border:1px dashed var(--rule-strong); border-radius:10px; background:var(--paper);">
+          <i class="fas fa-exclamation-circle" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.35;"></i>
+          <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">No Cutoffs Found</h4>
+          <p style="font-size:12px;">No historical records were found matching the selected college and branch combination.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let filteredCutoffs = cutoffs;
+    if (selectedCategory && selectedCategory !== 'All') {
+      filteredCutoffs = cutoffs.filter(c => c.category === selectedCategory);
+    }
+
+    if (filteredCutoffs.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:64px; color:var(--ink-mute); border:1px dashed var(--rule-strong); border-radius:10px; background:var(--paper);">
+          <i class="fas fa-exclamation-circle" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.35;"></i>
+          <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">No Matches for Selected Category</h4>
+          <p style="font-size:12px;">Found ${cutoffs.length} records for this college, but none match the category "${selectedCategory}".</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Group cutoffs by Branch / Program
+    const grouped = {};
+    filteredCutoffs.forEach(row => {
+      const branchKey = row.program;
+      if (!grouped[branchKey]) {
+        grouped[branchKey] = [];
+      }
+      grouped[branchKey].push(row);
+    });
+
+    let html = `
+      <div style="display:flex; flex-direction:column; gap:24px; text-align:left;">
+        <div style="background:var(--paper-soft); padding:14px 18px; border-radius:8px; border-left:4px solid var(--rust); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h4 style="font-size:15px; font-weight:700; color:var(--ink);">${selectedCollege}</h4>
+            <p style="font-size:12px; color:var(--ink-mute); margin-top:2px;">Showing ${filteredCutoffs.length} cutoff records across counseling rounds and years</p>
+          </div>
+          <span style="background:var(--rust); color:white; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.5px;">${Object.keys(grouped).length} Branches</span>
+        </div>
+    `;
+
+    Object.keys(grouped).forEach(branchName => {
+      const rows = grouped[branchName];
+      
+      html += `
+        <div style="border:1px solid var(--rule-strong); border-radius:10px; overflow:hidden; background:var(--paper);">
+          <div style="background:var(--paper-deep); padding:12px 16px; border-bottom:1px solid var(--rule-strong); display:flex; justify-content:space-between; align-items:center;">
+            <h5 style="font-size:13px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:0.3px;"><i class="fas fa-graduation-cap" style="margin-right:8px; color:var(--rust);"></i>${branchName}</h5>
+            <span style="font-size:11px; color:var(--ink-mute); font-weight:600;">${rows.length} Cutoffs</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
+              <thead>
+                <tr style="background:var(--paper-soft); border-bottom:1px solid var(--rule-strong);">
+                  <th style="padding:10px 14px; font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase;">Category</th>
+                  <th style="padding:10px 14px; font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase;">Seat Type</th>
+                  <th style="padding:10px 14px; font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase;">Quota</th>
+                  <th style="padding:10px 14px; font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; text-align:center;">Year</th>
+                  <th style="padding:10px 14px; font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; text-align:center;">Round</th>
+                  <th style="padding:10px 14px; font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; text-align:right;">Closing Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+
+      rows.forEach(r => {
+        const displayYear = r.year;
+        
+        html += `
+          <tr style="border-bottom:1px solid var(--rule); transition: background 0.15s ease;">
+            <td style="padding:10px 14px; font-size:13px; font-weight:600; color:var(--ink);">${r.category}</td>
+            <td style="padding:10px 14px; font-size:12px; color:var(--ink-soft);">${r.seat_type}</td>
+            <td style="padding:10px 14px; font-size:12px; color:var(--ink-soft);">${r.quota}</td>
+            <td style="padding:10px 14px; font-size:12px; font-weight:700; color:var(--ink); text-align:center;">${displayYear}</td>
+            <td style="padding:10px 14px; font-size:12px; text-align:center;"><span style="background:rgba(201,78,31,0.08); color:var(--rust); font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px;">Round ${r.round}</span></td>
+            <td style="padding:10px 14px; font-size:13px; font-weight:700; color:var(--rust); text-align:right; font-family:monospace;">${r.closing_rank.toLocaleString()}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error('Failed to run cutoff explorer query:', err);
+    container.innerHTML = `
+      <div style="text-align:center; padding:64px; color:var(--ink-mute); border:1px dashed var(--rule-strong); border-radius:10px; background:var(--paper);">
+        <i class="fas fa-exclamation-triangle" style="font-size:42px; margin-bottom:16px; color:#EF4444; opacity:0.8;"></i>
+        <h4 style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:4px;">Query Error</h4>
+        <p style="font-size:12px; color:#EF4444;">${err.message || 'An unexpected error occurred while fetching cutoff records.'}</p>
+      </div>
+    `;
+    toast('Error executing explorer search.');
+  }
 }
 
 async function loadPredictorStatus() {

@@ -60,7 +60,13 @@ async function createOrder(req, res) {
       const settings = normalizePredictorSettings(settingsDoc.exists ? settingsDoc.data() : {});
       if (!settings.choiceFillingEnabled) return res.status(403).json({ error: 'feature_disabled', message: 'Choice Filling is disabled.' });
       if (!settings.choiceFillingRequiresPayment) return res.status(409).json({ error: 'paywall_disabled', message: 'Currently available without payment.' });
-      price = settings.choiceFillingPrice;
+      
+      const tiers = settings.choiceFillingTiers || [];
+      const selectedTier = tiers.find(t => t.id === productId) || tiers[0];
+      if (!selectedTier) {
+        return res.status(400).json({ error: 'invalid_tier', message: 'Selected pricing tier is invalid.' });
+      }
+      price = selectedTier.price;
     } else if (product === 'mock_test_subscription') {
       const settingsDoc = await db.collection('settings').doc('mock_test_subscription').get();
       const settings = settingsDoc.exists ? settingsDoc.data() : { price: 999 };
@@ -221,13 +227,26 @@ async function verifyPayment(req, res) {
     if (pendingOrder.product === 'choice_filling') {
       const settingsDoc = await db.collection('settings').doc('college_predictor').get();
       const settings = normalizePredictorSettings(settingsDoc.exists ? settingsDoc.data() : {});
-      const maxAttempts = settings.choiceFillingMaxAttempts || 30;
+      
+      const tiers = settings.choiceFillingTiers || [];
+      const purchasedTier = tiers.find(t => t.id === pendingOrder.productId) || tiers.find(t => t.price === pendingOrder.price) || tiers[0];
+      
+      const isUnlimited = purchasedTier ? (purchasedTier.attempts === -1) : false;
+      const attemptsToCredit = purchasedTier ? purchasedTier.attempts : 30;
 
-      await db.collection('users').doc(req.user.uid).set({
-        choiceFillingUnlocked: true,
-        choiceFillingAttemptsLeft: admin.firestore.FieldValue.increment(maxAttempts)
-      }, { merge: true });
-      console.log(`[Payment Verify] Credited ${maxAttempts} choice filling attempts for user ${req.user.uid}`);
+      const updateData = {
+        choiceFillingUnlocked: true
+      };
+
+      if (isUnlimited) {
+        updateData.choiceFillingUnlimited = true;
+        updateData.choiceFillingAttemptsLeft = -1;
+      } else {
+        updateData.choiceFillingAttemptsLeft = admin.firestore.FieldValue.increment(attemptsToCredit);
+      }
+
+      await db.collection('users').doc(req.user.uid).set(updateData, { merge: true });
+      console.log(`[Payment Verify] Credited ${isUnlimited ? 'Unlimited' : attemptsToCredit} choice filling attempts for user ${req.user.uid}`);
     }
 
     if (pendingOrder.product === 'mock_test_subscription') {

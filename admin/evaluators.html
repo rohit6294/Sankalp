@@ -4337,22 +4337,22 @@ async function loadPredictorDashboard() {
         dropdownQuota.appendChild(opt);
       });
     }
+
+    // Sync to Admin Choice Filling dropdowns
+    const adminCfCategory = document.getElementById('adminCfCategory');
+    const adminCfQuota = document.getElementById('adminCfQuota');
+    if (adminCfCategory && dropdown) {
+      adminCfCategory.innerHTML = dropdown.innerHTML;
+    }
+    if (adminCfQuota && dropdownQuota) {
+      adminCfQuota.innerHTML = dropdownQuota.innerHTML;
+    }
   } catch (err) {
     console.error('Failed to load predictor dropdown details:', err);
     toast('Error loading filters. Make sure Excel cutoffs are imported.');
   }
 
   setupAdminQuotaRestriction();
-
-  // Sync to Admin Choice Filling dropdowns
-  const adminCfCategory = document.getElementById('adminCfCategory');
-  const adminCfQuota = document.getElementById('adminCfQuota');
-  if (adminCfCategory && dropdown) {
-    adminCfCategory.innerHTML = dropdown.innerHTML;
-  }
-  if (adminCfQuota && dropdownQuota) {
-    adminCfQuota.innerHTML = dropdownQuota.innerHTML;
-  }
   setupAdminCfQuotaRestriction();
 
   // Refresh stats in background

@@ -43,13 +43,11 @@
       th, td { border: 1px solid #CBD5E1 !important; padding: 10px !important; text-align: left; }
     }
 
-    /* Mobile Responsiveness for Choice Filling Table */
+    /* Mobile Responsiveness for Choice Filling Table & Paywall */
     @media (max-width: 640px) {
       #cfResultsContainer table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        min-width: 750px !important;
+        display: table !important; /* Retain table display structure for clean native scrolling */
       }
       #cfResultsContainer th, #cfResultsContainer td {
         padding: 10px 8px !important;
@@ -57,6 +55,17 @@
       }
       #cfBranchContainer {
         grid-template-columns: 1fr !important;
+      }
+      .paywall-overlay {
+        padding: 12px !important;
+      }
+      .paywall-card {
+        padding: 22px 16px !important;
+        border-radius: 12px !important;
+      }
+      #cfPaywallTiersGrid {
+        grid-template-columns: 1fr !important; /* Stack pricing tiers vertically on mobile screens */
+        gap: 8px !important;
       }
     }
     

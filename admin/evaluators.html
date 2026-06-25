@@ -65,7 +65,47 @@
 
     @media (max-width: 700px) {
       main.main-content { padding: 72px 14px 24px !important; }
-      .tab-btn, .set-tab { flex: 1 1 100%; padding: 10px 12px; letter-spacing: 0.06em; text-align: center; }
+      
+      /* Horizontal scrollable tab bars for premium mobile feel */
+      #evaluatorsTabBar {
+        display: flex !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 6px !important;
+        gap: 8px !important;
+        border-bottom: 1px solid var(--ink);
+      }
+      #evaluatorsTabBar::-webkit-scrollbar {
+        display: none !important;
+      }
+      #evaluatorsTabBar .tab-btn {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        width: auto !important;
+        padding: 10px 14px !important;
+      }
+
+      /* Horizontal scrollable sub-tabs for predictor */
+      .predictor-subtabs {
+        display: flex !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 6px !important;
+        gap: 6px !important;
+      }
+      .predictor-subtabs::-webkit-scrollbar {
+        display: none !important;
+      }
+      .predictor-subtab-btn {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        width: auto !important;
+        padding: 8px 12px !important;
+      }
+
+      .set-tab { flex: 1 1 auto; padding: 10px 12px; letter-spacing: 0.06em; text-align: center; }
       #keyEditor [style*="display:flex"], #tabExams [style*="display:flex"], #tabRank [style*="display:flex"], #tabSubmissions [style*="display:flex"] { flex-wrap: wrap !important; }
       .key-grid { grid-template-columns: 42px repeat(4, minmax(42px, 1fr)); gap: 4px; padding: 6px; }
       .cat-header, .exam-row { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -73,9 +113,29 @@
       .exam-row button { flex: 1 1 auto; justify-content: center; }
       .rank-row-input { grid-template-columns: 1fr 1fr; }
       .rank-row-input button { grid-column: 1 / -1; justify-content: center; }
+      
+      /* Fully responsive modals */
       .modal-overlay { padding: 12px; align-items: flex-start; overflow-y: auto; }
-      .modal-overlay > div { max-width: 100% !important; padding: 20px !important; max-height: calc(100dvh - 24px); overflow-y: auto; }
+      .modal-overlay > div { max-width: 100% !important; padding: 16px !important; max-height: calc(100dvh - 24px); overflow-y: auto; border-radius: 12px !important; }
+      
+      /* Stack filters on mobile */
+      #studentListFilters {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+      #studentListFilters select, #studentListFilters input, #studentListFilters button {
+        width: 100% !important;
+      }
+
       .toast { left: 12px; right: 12px; top: 12px; text-align: center; }
+
+      /* Force tables to scroll smoothly without squishing */
+      .tbl {
+        min-width: 1000px !important;
+      }
+      #explorerResultsContainer table {
+        min-width: 750px !important;
+      }
     }
     .student-profile-trigger { cursor: pointer; transition: all 0.15s ease; }
     .student-profile-trigger:hover .student-name { color: var(--rust); text-decoration: underline; }

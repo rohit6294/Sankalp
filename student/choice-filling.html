@@ -328,7 +328,7 @@
           <!-- TFW Domicile Eligibility -->
           <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
             <div>
-              <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate? <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Tuition Fee Waiver candidates are eligible for TFW seats (₹0 tuition fee)."></i></div>
               <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
             </div>
             <label class="toggle-switch">
@@ -340,7 +340,7 @@
           <!-- TFW Prioritization Toggle -->
           <div id="cfTfwPrioritizeContainer" style="display: none; padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; align-items: center; justify-content: space-between; margin-top: -8px;">
             <div>
-              <div style="font-size:12px; font-weight:700; color:var(--ink);">Prioritize TFW Seats</div>
+              <div style="font-size:12px; font-weight:700; color:var(--ink);">Prioritize TFW Seats <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Tuition Fee Waiver (TFW) seats offer 100% tuition waiver (₹0 fee). This pulls all eligible TFW seats to the very top, sorted by closing rank, to minimize your financial burden."></i></div>
               <div style="font-size:10px; color:var(--ink-mute);">Pull TFW seats to the very top</div>
             </div>
             <label class="toggle-switch">
@@ -967,7 +967,7 @@
       rowsHtml += `
         <tr draggable="true" ondragstart="rowDragStart(event)" ondragover="rowDragOver(event)" ondragleave="rowDragLeave(event)" ondragend="rowDragEnd(event)" ondrop="rowDrop(event)" class="draggable-row" data-index="${index}" style="border-bottom:1px solid var(--rule); transition: background 0.15s; cursor: grab;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:70px;">
-            <i class="fa-solid fa-grip-vertical text-slate-400 no-print" style="margin-right:8px; cursor:grab;" title="Drag to reorder"></i>${index + 1}
+            <i class="fa-solid fa-grip-vertical text-slate-400 no-print" style="margin-right:8px; cursor:grab;" title="Drag to reorder. Preference numbers will update automatically."></i>${index + 1}
           </td>
           <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);">${choice.choiceCode}</span></td>
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); line-height:1.4;">
@@ -991,8 +991,8 @@
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference</th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Annual Fee</th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Avg Placement</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Annual Fee <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Approximate annual tuition fee. TFW seats are displayed as ₹0 (TFW Waived)."></i></th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Avg Placement <i class="fas fa-info-circle text-slate-400 ml-1 cursor-help" title="Average placement package in Lakhs Per Annum (LPA) compiled from official NIRF reports and placement cells."></i></th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank</th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier</th>
           </tr>

@@ -423,6 +423,10 @@
             <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Choice List
           </button>
         </form>
+        <div style="font-size:10px; color:var(--ink-mute); margin-top:10px; text-align:left; display:flex; align-items:flex-start; gap:6px; line-height:1.4; padding:0 4px;">
+          <i class="fa-solid fa-circle-info" style="font-size:11px; color:var(--rust); margin-top:2px;"></i>
+          <span>Generating a new list consumes 1 attempt. Loading, editing saved drafts, and exporting PDFs are 100% free and do not use attempts.</span>
+        </div>
       </div>
 
       <!-- Saved Drafts Card -->
@@ -474,7 +478,18 @@
     <button class="paywall-close" onclick="dismissCfPaywall()"><i class="fas fa-times"></i></button>
     <div style="width:54px; height:54px; border-radius:50%; background:rgba(10, 116, 245, 0.08); color:var(--rust); display:inline-flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;"><i class="fa-solid fa-list-check"></i></div>
     <h2 style="font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--ink); margin-bottom:6px;">Premium Choice-Filling Assistant</h2>
-    <p style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:18px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.</p>
+    <p style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:14px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.</p>
+    
+    <!-- How Attempts Work Explanation -->
+    <div style="background:var(--paper-soft); border-radius:8px; padding:10px 12px; margin-bottom:18px; text-align:left; border:1px solid var(--rule-strong);">
+      <div style="display:flex; align-items:flex-start; gap:8px;">
+        <i class="fa-solid fa-circle-info" style="color:var(--rust); margin-top:2px; font-size:14px;"></i>
+        <div>
+          <strong style="font-size:11px; color:var(--ink); display:block; margin-bottom:2px;">How Attempts Work:</strong>
+          <p style="font-size:11px; color:var(--ink-soft); margin:0; line-height:1.4;">An <strong>attempt</strong> is consumed only when you click "Generate Choice List" to compute a new optimized list. Once generated, you can <strong>load drafts, customize choices, and export PDFs completely free</strong> without using any additional attempts.</p>
+        </div>
+      </div>
+    </div>
     
     <!-- Dynamic Pricing Tiers Selection Grid -->
     <div style="text-align:left; margin-bottom:18px; width:100%;">

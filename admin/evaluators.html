@@ -1231,9 +1231,10 @@
       <h1 class="display-lg">Choice-Filling Preference Assistant</h1>
       <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Test and generate optimized college counseling preference lists</p>
     </div>
-    <div id="cfTabBar" style="display:flex; gap:8px; margin-bottom:24px; margin-top:24px;">
-      <button class="tab-btn active" id="btnCfTool" onclick="changeCfSubView('tool')"><i class="fas fa-search" style="margin-right:6px;"></i> Testing Tool</button>
-      <button class="tab-btn" id="btnCfSettings" onclick="changeCfSubView('settings')"><i class="fas fa-key" style="margin-right:6px;"></i> Paywall & Settings</button>
+    <div id="cfTabBar" class="predictor-subtabs" style="display:flex; gap:8px; margin-bottom:24px; margin-top:24px;">
+      <button class="tab-btn predictor-subtab-btn active" id="btnCfTool" onclick="changeCfSubView('tool')"><i class="fas fa-search" style="margin-right:6px;"></i> Testing Tool</button>
+      <button class="tab-btn predictor-subtab-btn" id="btnCfSettings" onclick="changeCfSubView('settings')"><i class="fas fa-key" style="margin-right:6px;"></i> Paywall & Settings</button>
+      <button class="tab-btn predictor-subtab-btn" id="btnCfPurchases" onclick="changeCfSubView('purchases')"><i class="fas fa-history" style="margin-right:6px;"></i> Purchases Log</button>
     </div>
 
     <!-- SETTINGS VIEW -->
@@ -1287,6 +1288,52 @@
       <div style="margin-top:24px; padding:20px; background:var(--paper); border:1px solid var(--rule-strong); border-radius:12px; display:flex; align-items:center; gap:16px;">
         <button onclick="savePredictorPaywallSettings()" id="saveCfSettingsBtn" class="btn-rust" style="width:fit-content; padding:10px 24px; font-size:13px; font-weight:600;"><i class="fas fa-save" style="margin-right:6px;"></i>Save Settings</button>
         <span id="cfSettingsStatus" style="font-size:12px; color:var(--ink-mute);"></span>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS VIEW -->
+    <div id="cfPurchasesView" style="display:none; margin-top:24px;">
+      <div style="display:grid; grid-template-columns:1fr; gap:24px;">
+        <!-- Stats Summary Card -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+          <div class="predictor-panel-card" style="background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+            <div style="font-size:12px; color:var(--forest-deep); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Choice-Filling Revenue</div>
+            <div style="font-size:28px; font-weight:800; color:var(--ink); margin-top:6px;" id="lblCfRevenue">₹0</div>
+          </div>
+          <div class="predictor-panel-card" style="background:rgba(79,70,229,0.05); border-color:rgba(79,70,229,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+            <div style="font-size:12px; color:var(--rust); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Choice-Filling Customers</div>
+            <div style="font-size:28px; font-weight:800; color:var(--ink); margin-top:6px;" id="lblCfStudents">0</div>
+          </div>
+        </div>
+
+        <!-- Purchases Table Card -->
+        <div class="predictor-panel-card" style="overflow:hidden; padding:0;">
+          <div style="padding:18px 24px; border-bottom:1px solid var(--ink); background:var(--paper-deep);">
+            <h2 style="font-size:15px; font-weight:700; color:var(--ink);">Choice-Filling Purchases Log</h2>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl" style="width:100%;">
+              <thead>
+                <tr style="background:var(--paper-soft);">
+                  <th style="padding:14px 20px;">Student Name</th>
+                  <th style="padding:14px 20px;">Email</th>
+                  <th style="padding:14px 20px;">Plan / Product</th>
+                  <th style="padding:14px 20px;">Razorpay Payment ID</th>
+                  <th style="padding:14px 20px; text-align:right;">Amount</th>
+                  <th style="padding:14px 20px; text-align:right;">Date</th>
+                </tr>
+              </thead>
+              <tbody id="tblCfPurchasesRows">
+                <tr>
+                  <td colspan="6" style="padding:48px; text-align:center; color:var(--ink-mute);">
+                    <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:8px; display:block; color:var(--rust);"></i>
+                    Loading choice-filling transactions...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1993,7 +2040,7 @@ function applyEvaluatorPermissions() {
 
   setHidden('#btnPredictorImport', !adminCan('collegePredictor', 'edit'));
   setHidden('#btnPredictorPaywall', !adminCan('collegePredictor', 'edit'));
-  setHidden('#btnPredictorPurchases', !adminCan('payments', 'transactions'));
+  setHidden('#btnPredictorPurchases, #btnCfPurchases', !adminCan('payments', 'transactions'));
   setDisabled('#uploadFileInput, #uploadYear, #predFeatureToggle, #predPaywallToggle, #predPaywallPrice, #savePredictorSettingsBtn', !adminCan('collegePredictor', 'edit'));
   setDisabled('#cfFeatureToggle, #cfPaywallToggle, #cfTiersContainer input, #cfTiersContainer button, #addCfTierBtn, #saveCfSettingsBtn', !adminCan('evaluators', 'edit'));
   setDisabled('[onclick="clearCutoffs()"]', !adminCan('collegePredictor', 'edit'));
@@ -4077,17 +4124,27 @@ function exportStudentListCSV() {
 
 
 function changeCfSubView(view) {
-  if (view === 'settings' && !adminCan('collegePredictor', 'edit')) {
+  if (view === 'settings' && !adminCan('evaluators', 'edit')) {
     toast('Settings edit permission is required.');
     view = 'tool';
   }
+  if (view === 'purchases' && window.SankalpAdminGuard && !window.SankalpAdminGuard.can('payments', 'transactions')) {
+    toast('Transaction log permission is not enabled for this account.');
+    view = 'tool';
+  }
+
   document.getElementById('btnCfTool').classList.toggle('active', view === 'tool');
   document.getElementById('btnCfSettings').classList.toggle('active', view === 'settings');
+  document.getElementById('btnCfPurchases').classList.toggle('active', view === 'purchases');
+
   document.getElementById('cfToolView').style.display = view === 'tool' ? 'block' : 'none';
   document.getElementById('cfSettingsView').style.display = view === 'settings' ? 'block' : 'none';
+  document.getElementById('cfPurchasesView').style.display = view === 'purchases' ? 'block' : 'none';
   
   if (view === 'settings') {
     loadPredictorPaywallSettings();
+  } else if (view === 'purchases') {
+    loadCfPurchases();
   }
 }
 
@@ -4370,6 +4427,99 @@ async function loadPredictorPurchases() {
     tbody.innerHTML = `
       <tr>
         <td colspan="5" style="padding:48px; text-align:center; color:#EF4444;">
+          <i class="fas fa-exclamation-triangle" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+          Failed to load purchases: ${escapeHTML(err.message)}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+async function loadCfPurchases() {
+  const tbody = document.getElementById('tblCfPurchasesRows');
+  if (window.SankalpAdminGuard && !window.SankalpAdminGuard.can('payments', 'transactions')) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:48px; text-align:center; color:#F59E0B;">
+          <i class="fas fa-lock" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+          Transaction log permission is not enabled for this account.
+        </td>
+      </tr>
+    `;
+    document.getElementById('lblCfRevenue').textContent = 'Hidden';
+    document.getElementById('lblCfStudents').textContent = 'Hidden';
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" style="padding:48px; text-align:center; color:var(--ink-mute);">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:8px; display:block; color:var(--rust);"></i>
+        Loading student transactions...
+      </td>
+    </tr>
+  `;
+
+  try {
+    const res = await apiJson('/api/admin/payments/purchases');
+    const purchases = res.purchases || [];
+
+    // Filter purchases by product == 'choice_filling'
+    const cfPurchases = purchases.filter(p => p.product === 'choice_filling');
+
+    // Calculate metrics
+    let totalRevenue = 0;
+    const uniqueStudents = new Set();
+
+    tbody.innerHTML = '';
+    if (cfPurchases.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding:48px; text-align:center; color:var(--ink-mute);">
+            No purchases recorded yet.
+          </td>
+        </tr>
+      `;
+    } else {
+      cfPurchases.forEach(p => {
+        totalRevenue += (p.amount || 0);
+        if (p.userId) uniqueStudents.add(p.userId);
+
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid var(--rule)';
+
+        const dateStr = p.purchasedAt ? new Date(p.purchasedAt).toLocaleString() : 'N/A';
+        const formattedAmount = (p.amount || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+        let planText = 'Premium Plan';
+        if (p.productId === 'tier_1') planText = '3 Attempts (₹9)';
+        else if (p.productId === 'tier_2') planText = '10 Attempts (₹19)';
+        else if (p.productId === 'tier_3') planText = '40 Attempts (₹29)';
+        else if (p.productId === 'tier_4') planText = 'Unlimited (₹99)';
+        else if (p.productId) planText = p.productId;
+
+        row.innerHTML = `
+          <td style="padding:14px 20px; font-weight:600; color:var(--ink);">${escapeHTML(p.name)}</td>
+          <td style="padding:14px 20px; color:var(--ink-soft);">${escapeHTML(p.email)}</td>
+          <td style="padding:14px 20px; font-weight:600; color:var(--ink);">${escapeHTML(planText)}</td>
+          <td style="padding:14px 20px; font-family:var(--font-mono); font-size:12px; color:var(--ink-mute);">${escapeHTML(p.paymentId || 'N/A')}</td>
+          <td style="padding:14px 20px; text-align:right; font-weight:700; color:var(--rust);">${formattedAmount}</td>
+          <td style="padding:14px 20px; text-align:right; color:var(--ink-mute);">${dateStr}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    const premiumStudents = uniqueStudents.size;
+
+    document.getElementById('lblCfRevenue').textContent = totalRevenue.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+    document.getElementById('lblCfStudents').textContent = premiumStudents.toLocaleString();
+
+  } catch (err) {
+    console.error('Failed to load choice-filling purchases:', err);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:48px; text-align:center; color:#EF4444;">
           <i class="fas fa-exclamation-triangle" style="font-size:24px; margin-bottom:8px; display:block;"></i>
           Failed to load purchases: ${escapeHTML(err.message)}
         </td>

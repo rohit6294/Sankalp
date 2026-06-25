@@ -5012,8 +5012,8 @@ function setupAdminCfQuotaRestriction() {
 }
 
 async function runAdminChoiceFilling() {
-  if (!adminCan('collegePredictor', 'view')) {
-    toast('College Predictor view permission is required.');
+  if (!adminCan('evaluators', 'view')) {
+    toast('Choice Filling view permission is required.');
     return;
   }
 

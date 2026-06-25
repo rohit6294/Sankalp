@@ -1201,7 +1201,7 @@ router.post('/predictor/upload', requirePermission('collegePredictor', 'edit'), 
 });
 
 // ── Get College Predictor Database Status (Requires Admin) ────────────────────
-router.get('/predictor/status', requirePermission('collegePredictor', 'view'), async (req, res) => {
+router.get('/predictor/status', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
   try {
     const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
     const sqliteDb = new sqlite3.Database(dbPath);
@@ -1281,7 +1281,7 @@ router.post('/predictor/clear', requirePermission('collegePredictor', 'edit'), a
 });
 
 // ── Get Unique Caste Categories (Admin Alias) ─────────────────────────────────
-router.get('/predictor/categories', requirePermission('collegePredictor', 'view'), async (req, res) => {
+router.get('/predictor/categories', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1297,7 +1297,7 @@ router.get('/predictor/categories', requirePermission('collegePredictor', 'view'
 });
 
 // ── Get Unique Seat Types (Admin Alias) ───────────────────────────────────────
-router.get('/predictor/seat-types', requirePermission('collegePredictor', 'view'), async (req, res) => {
+router.get('/predictor/seat-types', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);
@@ -1313,7 +1313,7 @@ router.get('/predictor/seat-types', requirePermission('collegePredictor', 'view'
 });
 
 // ── Get Unique Quotas (Admin Alias) ───────────────────────────────────────────
-router.get('/predictor/quotas', requirePermission('collegePredictor', 'view'), async (req, res) => {
+router.get('/predictor/quotas', requireAnyPermission([['collegePredictor', 'view'], ['evaluators', 'view']]), async (req, res) => {
   const dbPath = path.join(__dirname, '..', '..', 'cutoffs.db');
   const sqliteDb = new sqlite3.Database(dbPath);
   sqliteDb.configure("busyTimeout", 10000);

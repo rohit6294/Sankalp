@@ -165,6 +165,182 @@ router.get('/years', verifyToken, async (req, res) => {
   });
 });
 
+// Helper to normalize program names to a standard clean display name and TFW status
+function getNormalizedProgram(rawProgram) {
+  if (!rawProgram) return { name: 'General', isTfw: false };
+
+  let p = rawProgram.toUpperCase().trim().replace(/\s+/g, ' ');
+  
+  // Detect TFW from program name
+  const isTfw = p.includes('TFW') || p.includes('TUITION FEE WAIVER');
+  
+  // Strip TFW indicators
+  p = p.replace(/\(?\s*TFW\s*\)?/g, '');
+  p = p.replace(/WITH\s*TFW/g, '');
+  p = p.replace(/-\s*$/g, ''); // strip trailing dash if any
+  p = p.trim();
+
+  // Normalize specific names to standard forms
+  if (p === 'COMPUTER SCIENCE & ENGINEERING' || p === 'COMPUTER SCIENCE AND ENGINEERING') {
+    return { name: 'Computer Science & Engineering', isTfw };
+  }
+  if (p === 'COMPUTER SCIENCE & TECHNOLOGY' || p === 'COMPUTER SCIENCE AND TECHNOLOGY') {
+    return { name: 'Computer Science & Technology', isTfw };
+  }
+  if (p === 'INFORMATION TECHNOLOGY') {
+    return { name: 'Information Technology', isTfw };
+  }
+  if (p === 'CIVIL ENGINEERING') {
+    return { name: 'Civil Engineering', isTfw };
+  }
+  if (p === 'CIVIL AND ENVIRONMENTAL ENGINEERING') {
+    return { name: 'Civil & Environmental Engineering', isTfw };
+  }
+  if (p === 'CHEMICAL ENGINEERING') {
+    return { name: 'Chemical Engineering', isTfw };
+  }
+  if (p === 'MECHANICAL ENGINEERING') {
+    return { name: 'Mechanical Engineering', isTfw };
+  }
+  if (p === 'ELECTRICAL ENGINEERING' || p === 'ELECTRICAL') {
+    return { name: 'Electrical Engineering', isTfw };
+  }
+  if (p === 'ELECTRICAL & ELECTRONICS ENGINEERING' || p === 'ELECTRICAL AND ELECTRONICS ENGINEERING') {
+    return { name: 'Electrical & Electronics Engineering', isTfw };
+  }
+  if (p === 'PRODUCTION ENGINEERING') {
+    return { name: 'Production Engineering', isTfw };
+  }
+  
+  // ECE and ETCE
+  if (p.includes('ELECTRONICS & COMMUNICATION') || p.includes('ELECTRONICS AND COMMUNICATION')) {
+    if (p.includes('VLSI')) {
+      return { name: 'Electronics & Communication Engineering (VLSI Design)', isTfw };
+    }
+    if (p.includes('INDUSTRY')) {
+      return { name: 'Electronics & Communication Engineering (Industry Integrated)', isTfw };
+    }
+    return { name: 'Electronics & Communication Engineering', isTfw };
+  }
+  if (p.includes('ELECTRONICS & TELECOMMUNICATION') || p.includes('ELECTRONICS AND TELECOMMUNICATION') || 
+      p.includes('ELECTRONICS & TELE-COMMUNICATION') || p.includes('ELECTRONICS AND TELE-COMMUNICATION')) {
+    return { name: 'Electronics & Telecommunication Engineering', isTfw };
+  }
+  
+  // AEIE & EIE
+  if (p.includes('APPLIED ELECTRONICS') && p.includes('INSTRUMENTATION')) {
+    return { name: 'Applied Electronics & Instrumentation Engineering', isTfw };
+  }
+  if (p.includes('ELECTRONICS') && p.includes('INSTRUMENTATION')) {
+    return { name: 'Electronics & Instrumentation Engineering', isTfw };
+  }
+  
+  // Instrumentation & Electronics (JU specific and others)
+  if (p.includes('INSTRUMENTATION ENGINEERING') || p.includes('INSTRUMENTATION & ELECTRONICS') || p.includes('INSTRUMENTATION AND ELECTRONICS')) {
+    if (p.includes('ELECTRONICS')) {
+      return { name: 'Instrumentation & Electronics Engineering', isTfw };
+    }
+    return { name: 'Instrumentation Engineering', isTfw };
+  }
+
+  // Printing
+  if (p.includes('PRINTING')) {
+    return { name: 'Printing Engineering', isTfw };
+  }
+
+  // Food
+  if (p.includes('FOOD')) {
+    if (p.includes('BIO CHEMICAL') || p.includes('BIOCHEMICAL')) {
+      return { name: 'Food Technology & Biochemical Engineering', isTfw };
+    }
+    return { name: 'Food Technology', isTfw };
+  }
+
+  // Power
+  if (p.includes('POWER')) {
+    return { name: 'Power Engineering', isTfw };
+  }
+
+  // Construction
+  if (p.includes('CONSTRUCTION')) {
+    return { name: 'Construction Engineering', isTfw };
+  }
+
+  // Metallurgical
+  if (p.includes('METALLURGICAL')) {
+    return { name: 'Metallurgical & Materials Engineering', isTfw };
+  }
+
+  // Ceramic
+  if (p.includes('CERAMIC')) {
+    return { name: 'Ceramic Engineering & Technology', isTfw };
+  }
+
+  // Biotechnology & Biomedical
+  if (p.includes('BIOTECHNOLOGY')) {
+    return { name: 'Biotechnology', isTfw };
+  }
+  if (p.includes('BIOMEDICAL')) {
+    return { name: 'Biomedical Engineering', isTfw };
+  }
+
+  // Pharmacy
+  if (p.includes('PHARMACY') || p.includes('PHARMACEUTICAL') || p.includes('B.PHARM')) {
+    return { name: 'Pharmaceutical Technology', isTfw };
+  }
+
+  // AI & DS / ML
+  if (p.includes('ARTIFICIAL INTELLIGENCE') || p.includes('DATA SCIENCE') || p.includes('MACHINE LEARNING')) {
+    const hasAi = p.includes('ARTIFICIAL') || p.includes('AI');
+    const hasDs = p.includes('DATA SCIENCE') || p.includes('DS');
+    const hasMl = p.includes('MACHINE LEARNING') || p.includes('ML');
+    
+    if (hasAi && hasDs) return { name: 'Artificial Intelligence & Data Science', isTfw };
+    if (hasAi && hasMl) return { name: 'Artificial Intelligence & Machine Learning', isTfw };
+    if (hasAi) return { name: 'Artificial Intelligence', isTfw };
+    if (hasDs) return { name: 'Data Science', isTfw };
+  }
+
+  // CS specializations
+  if (p.includes('COMPUTER SCIENCE')) {
+    if (p.includes('BUSINESS') || p.includes('CSBS')) {
+      return { name: 'Computer Science & Business System', isTfw };
+    }
+    if (p.includes('DESIGN')) {
+      return { name: 'Computer Science & Design', isTfw };
+    }
+    if (p.includes('APPLIED MATHEMATICS')) {
+      return { name: 'Computer Science & Applied Mathematics', isTfw };
+    }
+    if (p.includes('INFORMATION TECHNOLOGY')) {
+      return { name: 'Computer Science & Information Technology', isTfw };
+    }
+    if (p.includes('CYBER')) {
+      return { name: 'Computer Science & Engineering (Cyber Security)', isTfw };
+    }
+    if (p.includes('IOT') || p.includes('INTERNET OF THINGS')) {
+      if (p.includes('BLOCK') || p.includes('CHAIN')) {
+        return { name: 'Computer Science & Engineering (IoT & Cyber Security)', isTfw };
+      }
+      return { name: 'Computer Science & Engineering (IoT)', isTfw };
+    }
+    if (p.includes('ROBOTICS')) {
+      return { name: 'Computer Science & Engineering (Robotics & AI)', isTfw };
+    }
+    if (p.includes('NETWORKS')) {
+      return { name: 'Computer Science & Engineering (Networks)', isTfw };
+    }
+  }
+
+  // Standard Title Case helper for any others
+  return { 
+    name: p.split(' ')
+           .map(w => w.charAt(0) + w.slice(1).toLowerCase())
+           .join(' '), 
+    isTfw 
+  };
+}
+
 // ── 5. Main Prediction Route with Access Safeguard ───────────────────────────
 router.get('/predict', verifyToken, async (req, res) => {
   try {
@@ -213,15 +389,22 @@ router.get('/predict', verifyToken, async (req, res) => {
 
       const grouped = {};
       rows.forEach(row => {
-        const key = `${row.institute}|${row.program}|${row.seat_type}|${row.quota}`;
+        const norm = getNormalizedProgram(row.program);
+        const normalizedProgramName = norm.name;
+        const isRowTfw = norm.isTfw || String(row.category).toUpperCase().includes('TFW') || String(row.seat_type).toUpperCase().includes('TFW');
+        
+        // Consistent key ensuring case normalization and separate TFW vs Open choices
+        const key = `${row.institute}|${normalizedProgramName}|${isRowTfw ? 'TFW' : 'OPEN'}|${row.quota}`;
+        
         if (!grouped[key]) {
           grouped[key] = {
             institute: row.institute,
-            program: row.program,
+            program: normalizedProgramName,
             stream: row.stream,
             college_type: row.college_type,
-            seat_type: row.seat_type,
+            seat_type: isRowTfw ? 'TFW' : row.seat_type,
             quota: row.quota,
+            isTfw: isRowTfw,
             cutoffs: {},
             rounds: {}
           };

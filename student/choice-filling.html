@@ -1040,19 +1040,28 @@
         badgeClass = 'bg-emerald-50 text-emerald-600 border border-emerald-100';
       }
 
+      // Format the historical cutoffs as a nice trend tooltip string
+      const yearsSorted = Object.keys(choice.cutoffs || {}).map(Number).sort((a, b) => b - a);
+      const trendTooltip = yearsSorted.map(yr => `${yr}: ${choice.cutoffs[yr].toLocaleString()}`).join('\n');
+      const stabilityExplanation = `Weighted Stability Cutoff: ${choice.weightedCutoff.toLocaleString()}\nCalculated as: (Latest Year Cutoff × 0.7) + (Previous Year Cutoff × 0.3)`;
+      const combinedTooltip = `5-Year Cutoff Trend:\n${trendTooltip}\n\n${stabilityExplanation}`;
+
       rowsHtml += `
         <tr draggable="true" ondragstart="rowDragStart(event)" ondragover="rowDragOver(event)" ondragleave="rowDragLeave(event)" ondragend="rowDragEnd(event)" ondrop="rowDrop(event)" class="draggable-row" data-index="${index}" style="border-bottom:1px solid var(--rule); transition: background 0.15s; cursor: grab;" onmouseover="this.style.background='var(--paper-deep)'" onmouseout="this.style.background='transparent'">
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink-mute); text-align:center; width:70px;">
             <i class="fa-solid fa-grip-vertical text-slate-400 no-print" style="margin-right:8px; cursor:grab;" title="Drag to reorder. Preference numbers will update automatically."></i>${index + 1}
           </td>
-          <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);">${choice.choiceCode}</span></td>
+          <td style="padding:14px 16px; font-size:11px; font-weight:800; color:var(--rust);"><span style="background:rgba(10,116,245,0.08); padding:4px 8px; border-radius:4px; font-family:var(--font-mono);" title="Standardized Choice Code: ${choice.choiceCode}">${choice.choiceCode}</span></td>
           <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); line-height:1.4;">
             ${choice.institute}
             <div style="font-size:11px; color:var(--ink-mute); font-weight:500; margin-top:3px;">${choice.program} <span style="margin-left:6px; font-weight:400; opacity:0.8;">(${choice.seatType} | ${choice.quota})</span></div>
           </td>
-          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center;">${choice.baseCutoff.toLocaleString()}</td>
+          <td style="padding:14px 16px; font-size:13px; font-weight:800; color:var(--ink); text-align:center; cursor:help;" title="${combinedTooltip}">
+            ${choice.baseCutoff.toLocaleString()}
+            <div style="font-size:10px; color:var(--ink-mute); font-weight:500; margin-top:2px;">Weighted: ${choice.weightedCutoff.toLocaleString()}</div>
+          </td>
           <td style="padding:14px 16px; text-align:center; width:120px;">
-            <span class="text-[10px] px-2.5 py-1 font-bold rounded ${badgeClass}" style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px;">${choice.tier}</span>
+            <span class="text-[10px] px-2.5 py-1 font-bold rounded ${badgeClass}" style="display:inline-block; text-transform:uppercase; letter-spacing:0.5px;" title="${choice.tier} Option: Allocation probability based on historical data.">${choice.tier}</span>
           </td>
         </tr>
       `;
@@ -1062,11 +1071,11 @@
       <table style="width:100%; border-collapse:collapse; text-align:left;">
         <thead>
           <tr style="background:var(--paper-deep); border-bottom:1px solid var(--rule-strong);">
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref</th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code</th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference</th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank</th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier</th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Your preference order. Drag and drop rows to reorder."></i></th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Counseling choice code: [College Initials]-[Branch Abbreviation]"></i></th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Institute and branch details. TFW seats indicate Tuition Fee Waiver (₹0 tuition fee)."></i></th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Latest year (2025) closing rank and Multi-year Weighted Stability cutoff. Hover to view historical trends."></i></th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Dream: Cutoff below your rank. Target: Cutoff close to your rank. Safety: Cutoff much higher (fallback)."></i></th>
           </tr>
         </thead>
         <tbody>

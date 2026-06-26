@@ -116,7 +116,7 @@ async function userHasChoiceAccess(req) {
 }
 
 // Helper to normalize program names to a standard clean display name and TFW status
-function getNormalizedProgram(rawProgram) {
+function getNormalizedProgram(rawProgram, institute = '') {
   if (!rawProgram) return { name: 'General', isTfw: false };
 
   let p = rawProgram.toUpperCase().trim().replace(/\s+/g, ' ');
@@ -129,6 +129,18 @@ function getNormalizedProgram(rawProgram) {
   p = p.replace(/WITH\s*TFW/g, '');
   p = p.replace(/-\s*$/g, ''); // strip trailing dash if any
   p = p.trim();
+
+  // If the college is Jadavpur University, force Electronics & Communication (ECE) / Electronics & Telecommunication (ETCE)
+  // to normalize to "Electronics & Telecommunication Engineering" (ETCE).
+  const instUpper = String(institute || '').toUpperCase().trim();
+  const isJu = instUpper.includes('JADAVPUR UNIVERSITY');
+  if (isJu) {
+    if (p.includes('ELECTRONICS & COMMUNICATION') || p.includes('ELECTRONICS AND COMMUNICATION') ||
+        p.includes('ELECTRONICS & TELECOMMUNICATION') || p.includes('ELECTRONICS AND TELECOMMUNICATION') ||
+        p.includes('ELECTRONICS & TELE-COMMUNICATION') || p.includes('ELECTRONICS AND TELE-COMMUNICATION')) {
+      return { name: 'Electronics & Telecommunication Engineering', isTfw };
+    }
+  }
 
   // Normalize specific names to standard forms
   if (p === 'COMPUTER SCIENCE & ENGINEERING' || p === 'COMPUTER SCIENCE AND ENGINEERING') {
@@ -549,7 +561,7 @@ router.post('/predict', verifyToken, async (req, res) => {
           return; // Exclude IEM from choice filling!
         }
 
-        const norm = getNormalizedProgram(row.program);
+        const norm = getNormalizedProgram(row.program, row.institute);
         const normalizedProgramName = norm.name;
         const isRowTfw = norm.isTfw || String(row.category).toUpperCase().includes('TFW') || String(row.seat_type).toUpperCase().includes('TFW');
         

@@ -224,6 +224,13 @@ async function verifyPayment(req, res) {
       status: 'success'
     });
 
+    if (pendingOrder.product === 'college_predictor') {
+      await db.collection('users').doc(req.user.uid).set({
+        predictorPurchased: true
+      }, { merge: true });
+      console.log(`[Payment Verify] Marked predictorPurchased: true for user ${req.user.uid}`);
+    }
+
     if (pendingOrder.product === 'choice_filling') {
       const settingsDoc = await db.collection('settings').doc('college_predictor').get();
       const settings = normalizePredictorSettings(settingsDoc.exists ? settingsDoc.data() : {});

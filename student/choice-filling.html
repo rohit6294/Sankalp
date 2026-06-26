@@ -486,11 +486,11 @@
   <div class="paywall-card" style="max-width: 460px; padding: 28px;">
     <button class="paywall-close" onclick="dismissCfPaywall()"><i class="fas fa-times"></i></button>
     <div style="width:54px; height:54px; border-radius:50%; background:rgba(10, 116, 245, 0.08); color:var(--rust); display:inline-flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;"><i class="fa-solid fa-list-check"></i></div>
-    <h2 style="font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--ink); margin-bottom:6px;">Premium Choice-Filling Assistant</h2>
-    <p style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:14px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.</p>
+    <h2 id="cfPaywallTitle" style="font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--ink); margin-bottom:6px;">Premium Choice-Filling Assistant</h2>
+    <p id="cfPaywallDesc" style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:14px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.</p>
     
     <!-- How Attempts Work Explanation -->
-    <div style="background:var(--paper-soft); border-radius:8px; padding:10px 12px; margin-bottom:18px; text-align:left; border:1px solid var(--rule-strong);">
+    <div id="cfAttemptsInfoBox" style="background:var(--paper-soft); border-radius:8px; padding:10px 12px; margin-bottom:18px; text-align:left; border:1px solid var(--rule-strong);">
       <div style="display:flex; align-items:flex-start; gap:8px;">
         <i class="fa-solid fa-circle-info" style="color:var(--rust); margin-top:2px; font-size:14px;"></i>
         <div>
@@ -499,9 +499,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Premium Bundle Benefits Box (shown in bundle mode) -->
+    <div id="cfBundleBenefitsBox" style="display:none; background:var(--paper-deep); border:1px solid var(--rule); border-radius:10px; padding:14px; text-align:left; margin-bottom:18px; font-size:12px; flex-direction:column; gap:10px; color:var(--ink-soft); width:100%;">
+      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span><strong>Double Value:</strong> Both College Predictor & Choice-Filling unlocked</span></div>
+      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span><strong>Unlimited Runs:</strong> Generate, edit and compare lists without limits</span></div>
+      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span><strong>Official Codes:</strong> Correct institute codes for easy copy-paste</span></div>
+      <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span><strong>Safe Audits:</strong> AI checks your list for sufficient safety choices</span></div>
+    </div>
     
     <!-- Dynamic Pricing Tiers Selection Grid -->
-    <div style="text-align:left; margin-bottom:18px; width:100%;">
+    <div id="cfTiersContainer" style="text-align:left; margin-bottom:18px; width:100%;">
       <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--ink-mute); letter-spacing:0.5px; display:block; margin-bottom:8px;">Select Pricing Plan</span>
       <div id="cfPaywallTiersGrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; width:100%;">
         <!-- Dynamically populated tier option cards -->
@@ -711,16 +719,58 @@
         // Update banner text based on whether they have 0 attempts or never paid
         const bannerTitle = document.getElementById('cfBannerTitle');
         const bannerText = document.getElementById('cfBannerText');
-        if (attemptsLeft === 0 && res.requiresPayment) {
-          if (bannerTitle) bannerTitle.textContent = "Choice-Filling Attempts Exhausted";
-          if (bannerText) bannerText.textContent = `You have used up your generation attempts. Select a pricing plan to unlock more attempts.`;
+        
+        const isBundleMode = !res.tiers || res.tiers.length === 0;
+        
+        if (isBundleMode) {
+          if (bannerTitle) bannerTitle.textContent = "College Predictor & Choice-Filling Locked";
+          if (bannerText) bannerText.textContent = `Unlock the premium bundle to get both the College Predictor and Choice-Filling Assistant.`;
+          
+          const title = document.getElementById('cfPaywallTitle');
+          const desc = document.getElementById('cfPaywallDesc');
+          const attemptsBox = document.getElementById('cfAttemptsInfoBox');
+          const tiersContainer = document.getElementById('cfTiersContainer');
+          const benefitsBox = document.getElementById('cfBundleBenefitsBox');
+          const unlockBtn = document.getElementById('cfUnlockBtn');
+          
+          if (title) title.textContent = "Premium Predictor & Choice-Filling Bundle";
+          if (desc) desc.textContent = "Get full lifetime access to BOTH the advanced WBJEE College Predictor and the mathematically optimized Choice-Filling Preference Assistant. One payment, twice the value!";
+          if (attemptsBox) attemptsBox.style.display = 'none';
+          if (tiersContainer) tiersContainer.style.display = 'none';
+          if (benefitsBox) {
+            benefitsBox.style.display = 'flex';
+            benefitsBox.style.flexDirection = 'column';
+          }
+          if (unlockBtn) unlockBtn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Premium Bundle';
+          
+          choiceTiers = [];
         } else {
-          if (bannerTitle) bannerTitle.textContent = "Choice Filling Assistant is locked";
-          if (bannerText) bannerText.textContent = `Unlock premium access to generate your mathematically optimized choice sheet.`;
+          if (attemptsLeft === 0 && res.requiresPayment) {
+            if (bannerTitle) bannerTitle.textContent = "Choice-Filling Attempts Exhausted";
+            if (bannerText) bannerText.textContent = `You have used up your generation attempts. Select a pricing plan to unlock more attempts.`;
+          } else {
+            if (bannerTitle) bannerTitle.textContent = "Choice Filling Assistant is locked";
+            if (bannerText) bannerText.textContent = `Unlock premium access to generate your mathematically optimized choice sheet.`;
+          }
+          
+          const title = document.getElementById('cfPaywallTitle');
+          const desc = document.getElementById('cfPaywallDesc');
+          const attemptsBox = document.getElementById('cfAttemptsInfoBox');
+          const tiersContainer = document.getElementById('cfTiersContainer');
+          const benefitsBox = document.getElementById('cfBundleBenefitsBox');
+          const unlockBtn = document.getElementById('cfUnlockBtn');
+          
+          if (title) title.textContent = "Premium Choice-Filling Assistant";
+          if (desc) desc.textContent = "Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.";
+          if (attemptsBox) attemptsBox.style.display = 'block';
+          if (tiersContainer) tiersContainer.style.display = 'block';
+          if (benefitsBox) benefitsBox.style.display = 'none';
+          if (unlockBtn) unlockBtn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant';
+          
+          renderPaywallTiers(res.tiers);
         }
         
         document.getElementById('cfLockedAccessBanner').style.display = 'flex';
-        renderPaywallTiers(res.tiers);
         showCfPaywall();
       } else {
         document.getElementById('cfPaywallOverlay').style.display = 'none';
@@ -782,7 +832,10 @@
     const btn = document.getElementById('cfUnlockBtn');
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant';
+      const isBundleMode = !choiceTiers || choiceTiers.length === 0;
+      btn.innerHTML = isBundleMode 
+        ? '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Premium Bundle'
+        : '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant';
     }
   }
 
@@ -798,6 +851,7 @@
     if (!grid) return;
     
     grid.innerHTML = '';
+    if (choiceTiers.length === 0) return;
 
     choiceTiers.forEach((t, idx) => {
       const card = document.createElement('div');
@@ -835,24 +889,27 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
 
-    const selectedTier = choiceTiers.find(t => t.id === selectedTierId) || { label: 'Premium Unlock' };
+    const isBundleMode = !choiceTiers || choiceTiers.length === 0;
 
     try {
-      // Create a Razorpay order specifically for choice filling with the selected tier ID
+      const orderBody = isBundleMode ? {
+        product: 'college_predictor'
+      } : {
+        product: 'choice_filling',
+        productId: selectedTierId
+      };
+
       const order = await apiJson('/api/create-order', {
         method: 'POST',
-        body: JSON.stringify({
-          product: 'choice_filling',
-          productId: selectedTierId
-        })
+        body: JSON.stringify(orderBody)
       });
 
       const options = {
         key: order.key_id,
         amount: order.amount,
         currency: order.currency,
-        name: 'Sankalp Aspirant',
-        description: `Choice-Filling Assistant - ${selectedTier.label}`,
+        name: isBundleMode ? 'Sankalp Premium Bundle' : 'Sankalp Aspirant',
+        description: isBundleMode ? 'College Predictor & Choice-Filling' : `Choice-Filling Assistant - ${choiceTiers.find(t => t.id === selectedTierId)?.label || 'Premium Unlock'}`,
         order_id: order.order_id,
         handler: async function (response) {
           btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
@@ -863,12 +920,12 @@
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
-                product: 'choice_filling'
+                product: isBundleMode ? 'college_predictor' : 'choice_filling'
               })
             });
 
             if (verifyRes.success) {
-              toast('Choice Filling Assistant successfully unlocked!', 'success');
+              toast(isBundleMode ? 'Premium Bundle successfully unlocked!' : 'Choice Filling Assistant successfully unlocked!', 'success');
               document.getElementById('cfPaywallOverlay').style.display = 'none';
               await checkChoiceAccessAndInit();
             } else {

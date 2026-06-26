@@ -4464,8 +4464,8 @@ async function loadCfPurchases() {
     const res = await apiJson('/api/admin/payments/purchases');
     const purchases = res.purchases || [];
 
-    // Filter purchases by product == 'choice_filling'
-    const cfPurchases = purchases.filter(p => p.product === 'choice_filling');
+    // Filter purchases by product == 'choice_filling' or 'college_predictor' (bundle)
+    const cfPurchases = purchases.filter(p => p.product === 'choice_filling' || p.product === 'college_predictor');
 
     // Calculate metrics
     let totalRevenue = 0;
@@ -4492,7 +4492,9 @@ async function loadCfPurchases() {
         const formattedAmount = (p.amount || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
         let planText = 'Premium Plan';
-        if (p.productId === 'tier_1') planText = '3 Attempts (₹9)';
+        if (p.product === 'college_predictor') {
+          planText = 'Premium Bundle (Predictor + Choice-Filling)';
+        } else if (p.productId === 'tier_1') planText = '3 Attempts (₹9)';
         else if (p.productId === 'tier_2') planText = '10 Attempts (₹19)';
         else if (p.productId === 'tier_3') planText = '40 Attempts (₹29)';
         else if (p.productId === 'tier_4') planText = 'Unlimited (₹99)';

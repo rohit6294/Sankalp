@@ -85,6 +85,13 @@ async function autoReconcileUserPayments(userId) {
             status: 'success'
           });
 
+          if (product === 'college_predictor') {
+            await db.collection('users').doc(userId).set({
+              predictorPurchased: true
+            }, { merge: true });
+            console.log(`[Auto-Reconcile] Marked predictorPurchased: true for user ${userId}`);
+          }
+
           // 2. Grant subscription if mock_test_subscription
           if (product === 'mock_test_subscription') {
             const validUntil = new Date();

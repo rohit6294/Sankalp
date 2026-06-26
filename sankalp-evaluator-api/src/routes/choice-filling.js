@@ -47,7 +47,23 @@ async function userHasChoiceAccess(req) {
     if (!settings.choiceFillingEnabled) {
       return { hasAccess: false, unlimited: false, attemptsLeft: 0 };
     }
-    if (!settings.choiceFillingRequiresPayment) {
+    
+    // Choice filling is free if predictor paywall is disabled or choice filling paywall is disabled
+    if (!settings.requiresPayment || !settings.choiceFillingRequiresPayment) {
+      return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
+    }
+
+    // Auto-reconcile any pending payments for the user
+    try {
+      const { autoReconcileUserPayments } = require('../payment-verifier');
+      await autoReconcileUserPayments(req.user.uid);
+    } catch (reconcileErr) {
+      console.error('Auto-reconcile failed during choice access check:', reconcileErr);
+    }
+
+    // Check if they have purchased or unlocked the College Predictor in the purchases collection
+    const predPurchaseDoc = await db.collection('purchases').doc(`${req.user.uid}_college_predictor`).get();
+    if (predPurchaseDoc.exists && predPurchaseDoc.data().status === 'success') {
       return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
     }
 
@@ -55,23 +71,30 @@ async function userHasChoiceAccess(req) {
     const userDoc = await db.collection('users').doc(req.user.uid).get();
     const userData = userDoc.exists ? userDoc.data() : {};
     
+    // Check if they have purchased or unlocked the College Predictor via user doc flags
+    if (userData.predictorPurchased === true || userData.predictorUnlocked === true) {
+      return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
+    }
+
     if (userData.role === 'admin' || userData.role === 'evaluator') {
       return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
     }
 
-    // Check if they have unlimited access
+    // Check if they have unlimited access (legacy choice filling purchase)
     if (userData.choiceFillingUnlimited === true || userData.choiceFillingAttemptsLeft === -1) {
       return { hasAccess: true, unlimited: true, attemptsLeft: 9999 };
     }
 
-    // Check if they have attempts left
-    let attemptsLeft = userData.choiceFillingAttemptsLeft !== undefined ? Number(userData.choiceFillingAttemptsLeft) : null;
+    // Check if they have attempts left (legacy choice filling purchase)
+    let attemptsLeft = (userData.choiceFillingAttemptsLeft !== undefined && userData.choiceFillingAttemptsLeft !== null)
+      ? Number(userData.choiceFillingAttemptsLeft)
+      : null;
 
     if (attemptsLeft !== null && attemptsLeft > 0) {
       return { hasAccess: true, unlimited: false, attemptsLeft };
     }
 
-    // If attemptsLeft is null or 0, check if they have a successful purchase that we can reconcile or initialize
+    // If attemptsLeft is null or 0, check if they have a successful legacy choice filling purchase
     const purchaseDoc = await db.collection('purchases').doc(`${req.user.uid}_choice_filling`).get();
     if (purchaseDoc.exists && purchaseDoc.data().status === 'success') {
       // If they have a purchase, but attemptsLeft is null, initialize it to the configured attempts!
@@ -457,13 +480,13 @@ router.get('/status', verifyToken, async (req, res) => {
 
     res.json({
       enabled: settings.choiceFillingEnabled,
-      requiresPayment: settings.choiceFillingRequiresPayment,
-      price: settings.choiceFillingPrice,
-      maxAttempts: settings.choiceFillingMaxAttempts || 30,
+      requiresPayment: settings.requiresPayment,
+      price: settings.price,
+      maxAttempts: 9999,
       hasAccess: access.hasAccess,
       unlimited: access.unlimited,
       attemptsLeft: access.attemptsLeft,
-      tiers: settings.choiceFillingTiers
+      tiers: null
     });
   } catch (err) {
     res.status(500).json({ error: 'cf_status_failed', message: err.message });
@@ -902,4 +925,5 @@ router.delete('/drafts/:draftId', verifyToken, async (req, res) => {
   }
 });
 
+router.userHasChoiceAccess = userHasChoiceAccess;
 module.exports = router;

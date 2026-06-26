@@ -543,6 +543,12 @@ router.post('/predict', verifyToken, async (req, res) => {
 
       const grouped = {};
       rows.forEach(row => {
+        const instUpper = String(row.institute || '').toUpperCase().trim();
+        if (instUpper.startsWith('INSTITUTE OF ENGINEERING & MANAGEMENT') || 
+            instUpper.startsWith('INSTITUTE OF ENGINEERING AND MANAGEMENT')) {
+          return; // Exclude IEM from choice filling!
+        }
+
         const norm = getNormalizedProgram(row.program);
         const normalizedProgramName = norm.name;
         const isRowTfw = norm.isTfw || String(row.category).toUpperCase().includes('TFW') || String(row.seat_type).toUpperCase().includes('TFW');

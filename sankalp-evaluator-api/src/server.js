@@ -19,6 +19,7 @@ const notesRouter = require('./routes/notes');
 const testsRouter = require('./routes/tests');
 const prepRouter = require('./routes/prep');
 const choiceFillingRouter = require('./routes/choice-filling');
+const bookingRouter = require('./routes/booking');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
 const { sendEmail } = require('./mailer');
@@ -74,6 +75,7 @@ app.use('/api/choice-filling', choiceFillingRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/tests', testsRouter);
 app.use('/api/prep', prepRouter);
+app.use('/api/booking', bookingRouter);
 
 // Student-accessible settings: any authenticated user can read mandatory fields
 app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {

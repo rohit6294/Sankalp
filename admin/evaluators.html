@@ -167,6 +167,7 @@
     <a href="#" class="sidebar-link" id="sidebarCollegePredictorBtn" onclick="switchMainTab('collegePredictor', this); return false;"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
     <a href="#" class="sidebar-link" id="sidebarChoiceFillingBtn" onclick="switchMainTab('choiceFilling', this); return false;"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling Tool</a>
     <a href="#" class="sidebar-link" id="sidebarPrepPortalBtn" onclick="switchMainTab('prepPortal', this); return false;"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal Admin</a>
+    <a href="#" class="sidebar-link" id="sidebarCounselingBtn" onclick="switchMainTab('counselingBookings', this); return false;"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counseling</a>
     <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
     <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
@@ -1864,6 +1865,126 @@
     </div>
   </div>
 
+  <!-- ===== 1-ON-1 COUNSELING BOOKINGS TAB ===== -->
+  <div id="tabCounselingBookings" style="display:none;">
+    <div style="margin-bottom:24px;">
+      <h1 class="display-lg">1-on-1 Counseling Manager 🎯</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage counselor availability slots and scheduled student sessions.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 340px 1fr; gap:24px; align-items:start;">
+      <!-- Left: Configure Availability -->
+      <div class="glass" style="padding:20px;">
+        <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-calendar-plus" style="color:var(--rust)"></i> Set Availability</h2>
+        <form id="availabilityForm" onsubmit="saveAvailability(event)" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label class="input-label">Date</label>
+            <input type="date" id="availDate" class="input-field" required>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label class="input-label">Start Time</label>
+              <input type="time" id="availStart" class="input-field" required>
+            </div>
+            <div>
+              <label class="input-label">End Time</label>
+              <input type="time" id="availEnd" class="input-field" required>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label class="input-label">Duration (mins)</label>
+              <input type="number" id="availDuration" class="input-field" value="15" required>
+            </div>
+            <div>
+              <label class="input-label">Break (mins)</label>
+              <input type="number" id="availBreak" class="input-field" value="10" required>
+            </div>
+          </div>
+          <div>
+            <label class="input-label">Price (INR)</label>
+            <input type="number" id="availPrice" class="input-field" value="299" required>
+          </div>
+          <button type="submit" class="btn-rust btn-sm" style="width:100%; justify-content:center; margin-top:8px;" id="saveAvailBtn">
+            <i class="fas fa-check"></i> Generate Slots
+          </button>
+        </form>
+
+        <hr style="border:0; border-top:1px solid var(--rule); margin:20px 0;">
+
+        <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-cog"></i> Booking Settings</h2>
+        <form id="bookingSettingsForm" onsubmit="saveBookingSettings(event)" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label class="input-label">Default Price (INR)</label>
+            <input type="number" id="defaultPrice" class="input-field" required>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label class="input-label">Default Duration (mins)</label>
+              <input type="number" id="defaultDuration" class="input-field" required>
+            </div>
+            <div>
+              <label class="input-label">Default Break (mins)</label>
+              <input type="number" id="defaultBreak" class="input-field" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-ghost btn-sm" style="width:100%; justify-content:center; margin-top:8px;" id="saveSettingsBtn">
+            <i class="fas fa-save"></i> Save Settings
+          </button>
+        </form>
+      </div>
+
+      <!-- Right: Bookings Log -->
+      <div class="glass" style="padding:24px; min-height:400px;">
+        <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-list-ul"></i> Scheduled Appointments & Logs</h2>
+        
+        <div style="overflow-x:auto;">
+          <table class="evaluator-table" style="width:100%; text-align:left;">
+            <thead>
+              <tr>
+                <th style="padding:14px 20px;">Date & Time</th>
+                <th style="padding:14px 20px;">Student</th>
+                <th style="padding:14px 20px;">WhatsApp</th>
+                <th style="padding:14px 20px;">Topic</th>
+                <th style="padding:14px 20px;">Status</th>
+                <th style="padding:14px 20px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody">
+              <tr>
+                <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+                  <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:10px; display:block;"></i>
+                  Loading booking logs...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for GMeet Link Scheduler -->
+  <div id="scheduleMeetModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center;">
+    <div class="glass" style="max-width:460px; width:100%; padding:24px; background:var(--paper-deep);">
+      <h2 style="font-size:18px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-video" style="color:#22C55E"></i> Schedule Google Meet</h2>
+      <form id="scheduleMeetForm" onsubmit="saveMeetLink(event)" style="display:flex; flex-direction:column; gap:14px;">
+        <input type="hidden" id="scheduleSlotId">
+        <div>
+          <label class="input-label">Google Meet Link</label>
+          <input type="url" id="meetLinkInput" class="input-field" placeholder="https://meet.google.com/abc-defg-hij" required>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; font-size:12px; line-height:1.5; color:var(--ink-soft);">
+          <i class="fas fa-info-circle" style="color:var(--primary)"></i> After saving the link, you will be prompted to share it directly with the student via WhatsApp.
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px;">
+          <button type="button" class="btn-ghost" onclick="closeScheduleMeetModal()">Cancel</button>
+          <button type="submit" class="btn-rust btn-sm"><i class="fas fa-save"></i> Save Link</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
 <script>
@@ -1987,6 +2108,7 @@ function permissionForMainTab(tab) {
   if (tab === 'collegePredictor') return { section: 'collegePredictor', action: 'view' };
   if (tab === 'settings') return { section: 'settings', action: 'view' };
   if (tab === 'prepPortal') return { section: 'evaluators', action: 'view' };
+  if (tab === 'counselingBookings') return { section: 'evaluators', action: 'view' };
   return { section: 'evaluators', action: 'view' };
 }
 
@@ -2109,6 +2231,7 @@ function switchMainTab(tab, btn) {
   const isCollegePredictor = tab === 'collegePredictor';
   const isChoiceFilling = tab === 'choiceFilling';
   const isPrepPortal = tab === 'prepPortal';
+  const isCounselingBookings = tab === 'counselingBookings';
 
   // Manage sidebar active states
   document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
@@ -2120,6 +2243,8 @@ function switchMainTab(tab, btn) {
     document.getElementById('sidebarChoiceFillingBtn').classList.add('active');
   } else if (isPrepPortal) {
     document.getElementById('sidebarPrepPortalBtn').classList.add('active');
+  } else if (isCounselingBookings) {
+    document.getElementById('sidebarCounselingBtn').classList.add('active');
   } else {
     document.querySelector('.sidebar-link[href="evaluators.html"]')?.classList.add('active');
     document.querySelectorAll('[data-tab]').forEach((node) => node.classList.remove('active'));
@@ -2130,7 +2255,7 @@ function switchMainTab(tab, btn) {
   // Show/hide the evaluator header, tabs, and tab panels
   const evalHeader = document.getElementById('evaluatorsHeader');
   const evalTabBar = document.getElementById('evaluatorsTabBar');
-  const isSidebarTab = isStudentList || isCollegePredictor || isChoiceFilling || isPrepPortal;
+  const isSidebarTab = isStudentList || isCollegePredictor || isChoiceFilling || isPrepPortal || isCounselingBookings;
   if (evalHeader) evalHeader.style.display = isSidebarTab ? 'none' : 'flex';
   if (evalTabBar) evalTabBar.style.display = isSidebarTab ? 'none' : 'flex';
 
@@ -2142,11 +2267,13 @@ function switchMainTab(tab, btn) {
   document.getElementById('tabCollegePredictor').style.display = isCollegePredictor ? 'block' : 'none';
   document.getElementById('tabChoiceFilling').style.display = isChoiceFilling ? 'block' : 'none';
   document.getElementById('tabPrepPortal').style.display = isPrepPortal ? 'block' : 'none';
+  document.getElementById('tabCounselingBookings').style.display = isCounselingBookings ? 'block' : 'none';
 
   if (tab === 'submissions') loadSubmissions();
   if (isStudentList && !slStudentsLoaded) loadStudentList();
   if (isCollegePredictor || isChoiceFilling) loadPredictorDashboard();
   if (isPrepPortal) loadPrepPortalAdmin();
+  if (isCounselingBookings) loadCounselingBookings();
   applyEvaluatorPermissions();
 }
 
@@ -6151,6 +6278,255 @@ auth.onAuthStateChanged(async (user) => {
   }
   applyEvaluatorPermissions();
 });
+
+// ── 1-on-1 Counseling Admin Actions ──────────────────────────
+
+async function loadCounselingBookings() {
+  const tbody = document.getElementById('bookingsTableBody');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:10px; display:block;"></i>
+        Loading booking logs...
+      </td>
+    </tr>
+  `;
+
+  try {
+    const res = await apiFetch('/api/admin/booking/list');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to list bookings.');
+
+    loadBookingSettings();
+
+    if (!data.bookings || data.bookings.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+            <i class="fas fa-calendar" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>
+            No bookings found in the database.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = data.bookings.map(b => {
+      const isCompleted = b.status === 'completed';
+      const statusColor = isCompleted ? '#22C55E' : '#3B82F6';
+      const statusText = isCompleted ? 'Completed' : 'Booked';
+      
+      const gMeetBtn = isCompleted ? '' : `
+        <button class="btn-ghost btn-sm" onclick="openScheduleMeetModal('${b.id}', '${b.meetingLink || ''}')" style="padding:4px 8px;">
+          <i class="fas fa-video" style="color:#22C55E"></i> GMeet
+        </button>
+      `;
+
+      const whatsappBtn = (isCompleted || !b.meetingLink) ? '' : `
+        <button class="btn-ghost btn-sm" onclick="shareOnWhatsApp('${b.id}', '${b.studentName}', '${b.studentPhone}', '${b.topic}', '${b.meetingLink}')" style="padding:4px 8px;">
+          <i class="fab fa-whatsapp" style="color:#22C55E"></i> Share
+        </button>
+      `;
+
+      const doneBtn = isCompleted ? '' : `
+        <button class="btn-ghost btn-sm" onclick="markMeetingDone('${b.id}')" style="padding:4px 8px;">
+          <i class="fas fa-check" style="color:#22C55E"></i> Done
+        </button>
+      `;
+
+      const rescheduleBtn = `
+        <button class="btn-ghost btn-sm" onclick="rescheduleMeeting('${b.id}')" style="padding:4px 8px;">
+          <i class="fas fa-undo" style="color:#EF4444"></i> Reschedule
+        </button>
+      `;
+
+      return `
+        <tr data-id="${b.id}" style="border-bottom:1px solid var(--rule-strong);">
+          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
+            ${b.date}<br>
+            <span style="font-size:11px; color:var(--ink-soft);">${b.startTime} - ${b.endTime}</span>
+          </td>
+          <td style="padding:14px 20px; font-size:13px;">
+            <strong>${b.studentName}</strong><br>
+            <span style="font-size:11px; color:var(--ink-soft);">${b.studentEmail}</span>
+          </td>
+          <td style="padding:14px 20px; font-size:13px;">${b.studentPhone}</td>
+          <td style="padding:14px 20px; font-size:12px; color:var(--ink-soft);">${b.topic}</td>
+          <td style="padding:14px 20px; font-size:12px;">
+            <span style="background:rgba(${isCompleted ? '34,197,94' : '59,130,246'},0.15); color:${statusColor}; font-weight:600; padding:2px 8px; border-radius:100px;">
+              ${statusText}
+            </span>
+          </td>
+          <td style="padding:14px 20px;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              ${gMeetBtn}
+              ${whatsappBtn}
+              ${doneBtn}
+              ${rescheduleBtn}
+            </div>
+            ${b.meetingLink ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:4px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Link: <a href="${b.meetingLink}" target="_blank" style="color:#3B82F6; text-decoration:underline;">${b.meetingLink}</a></div>` : ''}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (e) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:40px; text-align:center; color:#EF4444;">
+          <i class="fas fa-times-circle" style="font-size:24px; margin-bottom:10px; display:block;"></i>
+          Error loading bookings: ${e.message}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+async function loadBookingSettings() {
+  try {
+    const res = await apiFetch('/api/admin/booking/settings');
+    const data = await res.json();
+    if (res.ok && data.settings) {
+      document.getElementById('defaultPrice').value = data.settings.price || 299;
+      document.getElementById('defaultDuration').value = data.settings.slotDuration || 15;
+      document.getElementById('defaultBreak').value = data.settings.breakDuration || 10;
+      
+      if (!document.getElementById('availPrice').value) {
+        document.getElementById('availPrice').value = data.settings.price || 299;
+      }
+    }
+  } catch(e) {
+    console.error('Failed to load settings:', e);
+  }
+}
+
+async function saveBookingSettings(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    const res = await apiFetch('/api/admin/booking/settings', {
+      method: 'POST',
+      body: JSON.stringify({
+        price: Number(document.getElementById('defaultPrice').value),
+        slotDuration: Number(document.getElementById('defaultDuration').value),
+        breakDuration: Number(document.getElementById('defaultBreak').value)
+      })
+    });
+    if (!res.ok) throw new Error('Failed to save settings.');
+    toast('Booking settings saved successfully!');
+  } catch(e) {
+    toast(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Save Settings';
+  }
+}
+
+async function saveAvailability(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveAvailBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+  try {
+    const res = await apiFetch('/api/admin/booking/set-availability', {
+      method: 'POST',
+      body: JSON.stringify({
+        date: document.getElementById('availDate').value,
+        startTime: document.getElementById('availStart').value,
+        endTime: document.getElementById('availEnd').value,
+        slotDuration: Number(document.getElementById('availDuration').value),
+        breakDuration: Number(document.getElementById('availBreak').value),
+        price: Number(document.getElementById('availPrice').value)
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to set availability.');
+    
+    toast(data.message || 'Availability generated!');
+    document.getElementById('availabilityForm').reset();
+    loadCounselingBookings();
+  } catch(e) {
+    toast(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Generate Slots';
+  }
+}
+
+function openScheduleMeetModal(slotId, link) {
+  document.getElementById('scheduleSlotId').value = slotId;
+  document.getElementById('meetLinkInput').value = link;
+  document.getElementById('scheduleMeetModal').style.display = 'flex';
+}
+
+function closeScheduleMeetModal() {
+  document.getElementById('scheduleMeetModal').style.display = 'none';
+}
+
+async function saveMeetLink(e) {
+  e.preventDefault();
+  const slotId = document.getElementById('scheduleSlotId').value;
+  const link = document.getElementById('meetLinkInput').value.trim();
+
+  try {
+    const res = await apiFetch('/api/admin/booking/schedule-link', {
+      method: 'POST',
+      body: JSON.stringify({ slotId, meetingLink: link })
+    });
+    if (!res.ok) throw new Error('Failed to save link.');
+
+    toast('Google Meet link saved successfully!');
+    closeScheduleMeetModal();
+    loadCounselingBookings();
+  } catch(e) {
+    toast(e.message);
+  }
+}
+
+function shareOnWhatsApp(slotId, name, phone, topic, link) {
+  const [date, time] = slotId.split('_');
+  const msg = `Hello ${name}, here is your Google Meet link for the '${topic}' counseling session today at ${time} (${date}): ${link}. Please note: If the link is not clickable, save this contact number first or copy the link and paste it into your browser. Join on time as the session is time-bound. See you there!`;
+  
+  let cleanPhone = phone.replace(/[^0-9]/g, '');
+  if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+  
+  const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+async function markMeetingDone(slotId) {
+  if (!confirm('Are you sure you want to mark this meeting as completed?')) return;
+  try {
+    const res = await apiFetch('/api/admin/booking/mark-done', {
+      method: 'POST',
+      body: JSON.stringify({ slotId })
+    });
+    if (!res.ok) throw new Error('Failed to complete meeting.');
+    toast('Meeting marked as completed!');
+    loadCounselingBookings();
+  } catch(e) {
+    toast(e.message);
+  }
+}
+
+async function rescheduleMeeting(slotId) {
+  if (!confirm('Rescheduling will release this booking slot so the student can pick a new date or cancel. Are you sure?')) return;
+  try {
+    const res = await apiFetch('/api/admin/booking/reschedule', {
+      method: 'POST',
+      body: JSON.stringify({ slotId })
+    });
+    if (!res.ok) throw new Error('Failed to release booking.');
+    toast('Booking released successfully.');
+    loadCounselingBookings();
+  } catch(e) {
+    toast(e.message);
+  }
+}
 </script>
 </body>
 </html>

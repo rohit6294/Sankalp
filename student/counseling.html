@@ -25,6 +25,10 @@
     .session-type:hover { border-color:var(--rust); }
     .session-type.selected { border-color:var(--rust); background:rgba(201,78,31,0.1); }
     .warning-box { background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.2); border-radius: 8px; padding: 12px; font-size: 12px; color: #EF4444; line-height: 1.5; margin-top: 10px; }
+    .counseling-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+    @media (max-width: 992px) {
+      .counseling-grid { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>
@@ -70,7 +74,7 @@
     <p style="color:#475569;font-size:14px;margin-top:4px">Book a personalized slot with your mentor</p>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start" id="mainGrid">
+  <div class="counseling-grid" id="mainGrid">
     <!-- Left: Booking Form -->
     <div>
       <!-- Mentor Card -->

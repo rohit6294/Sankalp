@@ -62,9 +62,9 @@
     .badge-sub-warning { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
     .sub-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .sub-detail-card { border: 1px solid var(--rule); background: var(--paper-deep); padding: 14px; border-radius: 4px; }
-    .counseling-admin-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
-    @media (max-width: 992px) {
-      .counseling-admin-grid { grid-template-columns: 1fr !important; }
+    .counseling-admin-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
+    @media (max-width: 1200px) {
+      .counseling-admin-grid { grid-template-columns: minmax(0, 1fr) !important; }
     }
     #evaluatorsTabBar.sankalp-admin-hidden, #evaluatorsHeader.sankalp-admin-hidden {
       display: none !important;

@@ -460,7 +460,7 @@ router.post('/set-availability', verifyToken, requireAdmin, async (req, res) => 
 // Get admin booking list
 router.get('/list', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const snapshot = await db.collection('slots').where('status', 'in', ['booked', 'completed']).get();
+    const snapshot = await db.collection('slots').get();
     const bookings = [];
     snapshot.forEach(doc => {
       bookings.push({
@@ -478,6 +478,53 @@ router.get('/list', verifyToken, requireAdmin, async (req, res) => {
     res.json({ ok: true, bookings });
   } catch (e) {
     res.status(500).json({ error: 'failed_to_list_bookings', message: e.message });
+  }
+});
+
+// Delete a generated slot (only if available)
+router.post('/delete-slot', verifyToken, requireAdmin, async (req, res) => {
+  const { slotId } = req.body || {};
+  if (!slotId) return res.status(400).json({ error: 'missing_slotId' });
+
+  try {
+    const docRef = db.collection('slots').doc(slotId);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'not_found' });
+    
+    if (doc.data().status === 'booked' || doc.data().status === 'completed') {
+      return res.status(400).json({ error: 'cannot_delete', message: 'Cannot delete a slot that is booked or completed.' });
+    }
+
+    await docRef.delete();
+    res.json({ ok: true, message: 'Slot deleted successfully.' });
+  } catch (e) {
+    res.status(500).json({ error: 'failed_to_delete', message: e.message });
+  }
+});
+
+// Update an available slot
+router.post('/update-slot', verifyToken, requireAdmin, async (req, res) => {
+  const { slotId, price, startTime, endTime } = req.body || {};
+  if (!slotId) return res.status(400).json({ error: 'missing_slotId' });
+
+  try {
+    const docRef = db.collection('slots').doc(slotId);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'not_found' });
+    
+    if (doc.data().status === 'booked' || doc.data().status === 'completed') {
+      return res.status(400).json({ error: 'cannot_edit', message: 'Cannot edit a slot that is booked or completed.' });
+    }
+
+    const updates = {};
+    if (price !== undefined) updates.price = Number(price);
+    if (startTime) updates.startTime = startTime;
+    if (endTime) updates.endTime = endTime;
+
+    await docRef.update(updates);
+    res.json({ ok: true, message: 'Slot updated successfully.' });
+  } catch (e) {
+    res.status(500).json({ error: 'failed_to_update', message: e.message });
   }
 });
 

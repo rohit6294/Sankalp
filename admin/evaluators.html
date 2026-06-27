@@ -1947,8 +1947,14 @@
       </div>
 
       <!-- Right: Bookings Log -->
-      <div class="glass" style="padding:24px; min-height:400px;">
-        <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-list-ul"></i> Scheduled Appointments & Logs</h2>
+      <div class="glass" style="padding:24px; min-height:400px; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+          <h2 style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;"><i class="fas fa-list-ul"></i> Slots & Appointments</h2>
+          <div style="display:flex; gap:6px; background:var(--paper-soft); padding:4px; border-radius:6px; border:1px solid var(--rule);">
+            <button class="btn-ghost btn-sm" id="btnFilterScheduled" onclick="setBookingFilter('scheduled')" style="background:var(--ink); color:var(--paper);">Scheduled</button>
+            <button class="btn-ghost btn-sm" id="btnFilterAvailable" onclick="setBookingFilter('available')">Available</button>
+          </div>
+        </div>
         
         <div style="overflow-x:auto;">
           <table class="tbl" style="width:100%; text-align:left;">
@@ -6298,6 +6304,40 @@ auth.onAuthStateChanged(async (user) => {
 
 // ── 1-on-1 Counseling Admin Actions ──────────────────────────
 
+let currentBookingFilter = 'scheduled';
+let allAdminBookings = [];
+
+function setBookingFilter(filter) {
+  currentBookingFilter = filter;
+  document.getElementById('btnFilterScheduled').style.background = filter === 'scheduled' ? 'var(--ink)' : 'transparent';
+  document.getElementById('btnFilterScheduled').style.color = filter === 'scheduled' ? 'var(--paper)' : 'inherit';
+  document.getElementById('btnFilterAvailable').style.background = filter === 'available' ? 'var(--ink)' : 'transparent';
+  document.getElementById('btnFilterAvailable').style.color = filter === 'available' ? 'var(--paper)' : 'inherit';
+  
+  // Update table headers based on filter
+  const thead = document.querySelector('#tabCounselingBookings table.tbl thead tr');
+  if (filter === 'scheduled') {
+    thead.innerHTML = `
+      <th style="padding:14px 20px;">Date & Time</th>
+      <th style="padding:14px 20px;">Student</th>
+      <th style="padding:14px 20px;">WhatsApp</th>
+      <th style="padding:14px 20px;">Topic</th>
+      <th style="padding:14px 20px;">Status</th>
+      <th style="padding:14px 20px;">Actions</th>
+    `;
+  } else {
+    thead.innerHTML = `
+      <th style="padding:14px 20px;">Date & Time</th>
+      <th style="padding:14px 20px;">Price</th>
+      <th style="padding:14px 20px;">Status</th>
+      <th style="padding:14px 20px;">Locked By / Lock Time</th>
+      <th style="padding:14px 20px;">Actions</th>
+    `;
+  }
+  
+  renderBookingsTable();
+}
+
 async function loadCounselingBookings() {
   const tbody = document.getElementById('bookingsTableBody');
   tbody.innerHTML = `
@@ -6315,20 +6355,44 @@ async function loadCounselingBookings() {
     if (!res.ok) throw new Error(data.message || 'Failed to list bookings.');
 
     loadBookingSettings();
+    allAdminBookings = data.bookings || [];
+    renderBookingsTable();
+  } catch (e) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:40px; text-align:center; color:#EF4444;">
+          <i class="fas fa-times-circle" style="font-size:24px; margin-bottom:10px; display:block;"></i>
+          Error loading bookings: ${e.message}
+        </td>
+      </tr>
+    `;
+  }
+}
 
-    if (!data.bookings || data.bookings.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
-            <i class="fas fa-calendar" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>
-            No bookings found in the database.
-          </td>
-        </tr>
-      `;
-      return;
-    }
+function renderBookingsTable() {
+  const tbody = document.getElementById('bookingsTableBody');
+  
+  let filtered = [];
+  if (currentBookingFilter === 'scheduled') {
+    filtered = allAdminBookings.filter(b => b.status === 'booked' || b.status === 'completed');
+  } else {
+    filtered = allAdminBookings.filter(b => b.status === 'available' || b.status === 'locked');
+  }
 
-    tbody.innerHTML = data.bookings.map(b => {
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+          <i class="fas fa-calendar" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>
+          No ${currentBookingFilter} slots found.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  if (currentBookingFilter === 'scheduled') {
+    tbody.innerHTML = filtered.map(b => {
       const isCompleted = b.status === 'completed';
       const statusColor = isCompleted ? '#22C55E' : '#3B82F6';
       const statusText = isCompleted ? 'Completed' : 'Booked';
@@ -6358,7 +6422,7 @@ async function loadCounselingBookings() {
       `;
 
       return `
-        <tr data-id="${b.id}" style="border-bottom:1px solid var(--rule-strong);">
+        <tr data-id="${b.id}">
           <td style="padding:14px 20px; font-size:13px; font-weight:600;">
             ${b.date}<br>
             <span style="font-size:11px; color:var(--ink-soft);">${b.startTime} - ${b.endTime}</span>
@@ -6386,16 +6450,89 @@ async function loadCounselingBookings() {
         </tr>
       `;
     }).join('');
+  } else {
+    // Available slots view
+    tbody.innerHTML = filtered.map(b => {
+      const isLocked = b.status === 'locked';
+      const statusColor = isLocked ? '#F59E0B' : '#10B981';
+      const statusText = isLocked ? 'Locked (Checkout)' : 'Available';
+      
+      let lockDetails = '-';
+      if (isLocked && b.lockedAt) {
+        let lDate = new Date(b.lockedAt._seconds * 1000).toLocaleTimeString();
+        lockDetails = `By: ${b.lockedBy || '?'}<br><span style="font-size:10px; color:var(--ink-mute);">At: ${lDate}</span>`;
+      }
+      
+      return `
+        <tr data-id="${b.id}">
+          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
+            ${b.date}<br>
+            <span style="font-size:11px; color:var(--ink-soft);">${b.startTime} - ${b.endTime}</span>
+          </td>
+          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
+            ₹${b.price || 0}
+          </td>
+          <td style="padding:14px 20px; font-size:12px;">
+            <span style="background:rgba(${isLocked ? '245,158,11' : '16,185,129'},0.15); color:${statusColor}; font-weight:600; padding:2px 8px; border-radius:100px;">
+              ${statusText}
+            </span>
+          </td>
+          <td style="padding:14px 20px; font-size:12px;">
+            ${lockDetails}
+          </td>
+          <td style="padding:14px 20px;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn-ghost btn-sm" onclick="editAvailableSlot('${b.id}', ${b.price}, '${b.startTime}', '${b.endTime}')" style="padding:4px 8px;">
+                <i class="fas fa-edit" style="color:#3B82F6"></i> Edit
+              </button>
+              <button class="btn-ghost btn-sm" onclick="deleteAvailableSlot('${b.id}')" style="padding:4px 8px;">
+                <i class="fas fa-trash" style="color:#EF4444"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+}
 
-  } catch (e) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" style="padding:40px; text-align:center; color:#EF4444;">
-          <i class="fas fa-times-circle" style="font-size:24px; margin-bottom:10px; display:block;"></i>
-          Error loading bookings: ${e.message}
-        </td>
-      </tr>
-    `;
+async function editAvailableSlot(slotId, oldPrice, oldStart, oldEnd) {
+  const newPrice = prompt(`Edit price for slot ${oldStart}-${oldEnd} (INR):`, oldPrice);
+  if (newPrice === null) return;
+  const priceNum = Number(newPrice);
+  if (isNaN(priceNum) || priceNum < 0) return alert('Invalid price');
+
+  try {
+    const res = await apiFetch('/api/admin/booking/update-slot', {
+      method: 'POST',
+      body: JSON.stringify({ slotId, price: priceNum })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || 'Failed to update slot.');
+    }
+    toast('Slot price updated!');
+    loadCounselingBookings();
+  } catch(e) {
+    toast(e.message);
+  }
+}
+
+async function deleteAvailableSlot(slotId) {
+  if (!confirm('Are you sure you want to permanently delete this slot?')) return;
+  try {
+    const res = await apiFetch('/api/admin/booking/delete-slot', {
+      method: 'POST',
+      body: JSON.stringify({ slotId })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || 'Failed to delete slot.');
+    }
+    toast('Slot deleted successfully!');
+    loadCounselingBookings();
+  } catch(e) {
+    toast(e.message);
   }
 }
 

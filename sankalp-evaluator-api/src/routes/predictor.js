@@ -134,7 +134,8 @@ router.get('/categories', verifyToken, async (req, res) => {
 
 // ── 3. Get Unique Seat Types (Dynamic) ────────────────────────────────────────
 router.get('/seat-types', verifyToken, async (req, res) => {
-  sqliteDb.all('SELECT DISTINCT seat_type FROM cutoffs ORDER BY seat_type ASC', [], (err, rows) => {
+  // Exclude JEE(Main) Seats — different ranking system, not comparable with WBJEE GMR
+  sqliteDb.all("SELECT DISTINCT seat_type FROM cutoffs WHERE seat_type != 'JEE(Main) Seats' ORDER BY seat_type ASC", [], (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'seat_types_load_failed', message: err.message });
     }
@@ -390,10 +391,13 @@ router.get('/predict', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'missing_category', message: 'Please specify a reservation category.' });
     }
 
+    // IMPORTANT: Exclude JEE(Main) Seats — they use JEE Main AIR ranks (a completely
+    // different ranking system) that cannot be compared against WBJEE GMR ranks.
     sqliteDb.all(`
       SELECT institute, program, stream, college_type, seat_type, quota, year, closing_rank, round
       FROM cutoffs
       WHERE category = ?
+        AND seat_type != 'JEE(Main) Seats'
     `, [category], (err, rows) => {
       if (err) {
         return res.status(500).json({ error: 'prediction_failed', message: err.message });
@@ -481,8 +485,16 @@ router.get('/predict', verifyToken, async (req, res) => {
         }
 
         // Quota Filter: Specific, or All
+        // Private colleges are accessible to both Home State and All India students
+        // (general seats in private colleges don't require WB domicile).
         if (quota && quota !== 'All') {
-          if (item.quota !== quota) return;
+          const isPrivateCollege = [
+            'Private University',
+            'Private Engineering College',
+            'Stand Alone Private Pharmacy College'
+          ].includes(item.college_type);
+
+          if (!isPrivateCollege && item.quota !== quota) return;
         }
 
         // Probability prediction logic:

@@ -544,10 +544,13 @@ router.post('/predict', verifyToken, async (req, res) => {
     const placeholders = categoriesToQuery.map(() => '?').join(',');
 
     // Query SQLite database for categories
+    // IMPORTANT: Exclude JEE(Main) Seats — they use JEE Main AIR ranks (a completely
+    // different ranking system) that cannot be compared against WBJEE GMR ranks.
     sqliteDb.all(`
       SELECT institute, program, stream, college_type, seat_type, quota, year, closing_rank, round
       FROM cutoffs
       WHERE category IN (${placeholders})
+        AND seat_type != 'JEE(Main) Seats'
     `, categoriesToQuery, (err, rows) => {
       if (err) {
         return res.status(500).json({ error: 'query_failed', message: err.message });
@@ -601,8 +604,16 @@ router.post('/predict', verifyToken, async (req, res) => {
         const item = grouped[key];
 
         // 1. Quota filter
+        // Private colleges are accessible to both Home State and All India students
+        // (general seats in private colleges don't require WB domicile).
         if (quota && quota !== 'All') {
-          if (item.quota !== quota) return;
+          const isPrivateCollege = [
+            'Private University',
+            'Private Engineering College',
+            'Stand Alone Private Pharmacy College'
+          ].includes(item.college_type);
+
+          if (!isPrivateCollege && item.quota !== quota) return;
         }
 
         // 2. TFW (Tuition Fee Waiver) filter:

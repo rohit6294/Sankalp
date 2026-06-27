@@ -685,6 +685,12 @@ router.post('/predict', verifyToken, async (req, res) => {
             if (bUpper === 'PHM') {
               return streamText.includes('PHARMACY') || streamText.includes('PHARMA') || streamText.includes('PHM') || streamText.includes('B.PHARM');
             }
+            if (bUpper === 'MET') {
+              return streamText.includes('METALLURG');
+            }
+            if (bUpper === 'ARCH') {
+              return streamText.includes('ARCHITECTURE') || streamText.includes('ARCH');
+            }
             if (bUpper === 'ALLIED') {
               // Matches other minor/allied branches that do not fall into the main categories
               const isMainCategory = 
@@ -699,7 +705,9 @@ router.post('/predict', verifyToken, async (req, res) => {
                 streamText.includes('CIVIL') || streamText.includes('CE') || streamText.includes('CONSTRUCTION') ||
                 streamText.includes('CHEMICAL') || streamText.includes('CHE') ||
                 streamText.includes('BIOTECHNOLOGY') || streamText.includes('BIOMEDICAL') || streamText.includes('BIO-TECHNOLOGY') ||
-                streamText.includes('PHARMACY') || streamText.includes('PHARMA') || streamText.includes('PHM') || streamText.includes('B.PHARM');
+                streamText.includes('PHARMACY') || streamText.includes('PHARMA') || streamText.includes('PHM') || streamText.includes('B.PHARM') ||
+                streamText.includes('METALLURG') ||
+                streamText.includes('ARCHITECTURE') || streamText.includes('ARCH');
               return !isMainCategory;
             }
             return streamText.includes(bUpper);

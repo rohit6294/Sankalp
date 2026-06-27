@@ -63,7 +63,7 @@
     .sub-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .sub-detail-card { border: 1px solid var(--rule); background: var(--paper-deep); padding: 14px; border-radius: 4px; }
     .counseling-admin-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
-    .counseling-admin-grid > * { min-width: 0; }
+    .counseling-admin-grid > * { min-width: 0; min-height: 0; }
     .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     @media (max-width: 1200px) {
       .counseling-admin-grid { grid-template-columns: minmax(0, 1fr) !important; }
@@ -2253,6 +2253,16 @@ function switchMainTab(tab, btn) {
   const isChoiceFilling = tab === 'choiceFilling';
   const isPrepPortal = tab === 'prepPortal';
   const isCounselingBookings = tab === 'counselingBookings';
+
+  // Auto-close sidebar on mobile after clicking a sidebar link
+  if (window.innerWidth <= 1000) {
+    const sidebar = document.getElementById('adminSidebar');
+    const overlay = document.getElementById('overlay');
+    if (sidebar && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('show');
+    }
+  }
 
   // Manage sidebar active states
   document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));

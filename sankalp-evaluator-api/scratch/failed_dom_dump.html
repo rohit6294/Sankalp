@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Predictor — Sankalp Aspirants</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+<script>
+  // Complete Mock of Firebase and related scripts for headless testing
+  const mockUser = {
+    uid: 'headless-test-student-uid',
+    displayName: 'Headless Test Student',
+    email: 'test@sankalp.com',
+    getIdToken: () => Promise.resolve('mock-id-token')
+  };
+  
+  const mockAuth = {
+    onAuthStateChanged: function(callback) {
+      console.log("Headless Mock: auth.onAuthStateChanged registering callback...");
+      setTimeout(() => {
+        console.log("Headless Mock: auth.onAuthStateChanged triggering user...");
+        callback(mockUser);
+      }, 100);
+    },
+    signOut: () => Promise.resolve()
+  };
+  
+  const mockDb = {
+    collection: function(name) {
+      return {
+        doc: function(id) {
+          return {
+            get: function() {
+              return Promise.resolve({
+                exists: true,
+                data: () => {
+                  if (name === 'settings' && id === 'college_predictor') {
+                    return { enabled: true };
+                  }
+                  if (name === 'settings' && id === 'mandatory_fields') {
+                    return { caste: true };
+                  }
+                  return { caste: 'Open', role: 'student', name: 'Headless Test Student' };
+                }
+              });
+            }
+          };
+        }
+      };
+    }
+  };
+
+  window.firebase = {
+    initializeApp: () => ({}),
+    auth: () => mockAuth,
+    firestore: () => mockDb
+  };
+
+  window.auth = mockAuth;
+  window.db = mockDb;
+  
+  var auth = mockAuth;
+  var db = mockDb;
+  
+  window.EVALUATOR_API = 'https://sankalp-1vt4.onrender.com';
+</script>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script><script src="https://cdn.razorpay.com/static/cx/razorpay-risk-detection/bundle.js" async=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-glow: rgba(79, 70, 229, 0.4);
+      --gold: #F59E0B;
+      --gold-glow: rgba(245, 158, 11, 0.4);
+      --dark-glass: rgba(10, 14, 26, 0.7);
+      --border-glass: rgba(255, 255, 255, 0.08);
+    }
+    
+    /* Toggle Switch Styles */
+    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(15,23,42,0.1); border-radius: 100px; transition: 0.3s; border: 1px solid var(--ink); }
+    .toggle-slider:before { position: absolute; content: ''; height: 12px; width: 12px; left: 3px; bottom: 3px; background: var(--ink); border-radius: 50%; transition: 0.3s; }
+    .toggle-switch input:checked + .toggle-slider { background: var(--rust); border-color: var(--rust); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: var(--paper); }
+    .toggle-switch input:disabled + .toggle-slider { opacity: 0.45 !important; cursor: not-allowed !important; pointer-events: none !important; }
+
+    /* Print styles */
+    @media print {
+      body * { visibility: hidden; }
+      #cfResultsContainer, #cfResultsContainer * { visibility: visible; }
+      #cfResultsContainer { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #CBD5E1 !important; padding: 10px !important; text-align: left; }
+    }
+
+    /* Mobile Responsiveness for Choice Filling Table */
+    @media (max-width: 640px) {
+      #cfResultsContainer table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      #cfResultsContainer th, #cfResultsContainer td {
+        padding: 10px 8px !important;
+        font-size: 11px !important;
+      }
+      #cfBranchContainer {
+        grid-template-columns: 1fr !important;
+      }
+    }
+    
+    /* Premium Paywall CSS Overlay */
+    .paywall-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.48);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    
+    .paywall-card {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+      padding: 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.4s ease-out;
+    }
+    
+    .paywall-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(10, 116, 245, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .paywall-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 1;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--rule-strong);
+      border-radius: 50%;
+      background: var(--paper);
+      color: var(--ink-mute);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+
+    .paywall-close:hover {
+      border-color: var(--rust);
+      color: var(--rust);
+      background: rgba(10, 116, 245, 0.06);
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Predictor styling components */
+    .predictor-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    
+    @media(min-width: 1024px) {
+      .predictor-grid {
+        grid-template-columns: 320px 1fr;
+      }
+    }
+    
+    .predictor-card {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      transition: all 0.3s ease;
+    }
+    
+    .predictor-card:hover {
+      border-color: var(--rust);
+      box-shadow: 0 8px 24px rgba(10, 116, 245, 0.08);
+    }
+    
+    .predictor-input {
+      width: 100%;
+      background: var(--paper-soft);
+      border: 1px solid #CBD5E1;
+      color: var(--ink);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    
+    .predictor-input:focus {
+      border-color: var(--rust);
+      box-shadow: 0 0 0 3px rgba(10, 116, 245, 0.15);
+    }
+
+    .locked-access-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      background: linear-gradient(135deg, rgba(10, 116, 245, 0.1), rgba(16, 185, 129, 0.08));
+      border: 1px solid rgba(10, 116, 245, 0.22);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-top: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .locked-access-copy {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .locked-access-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(10, 116, 245, 0.12);
+      color: var(--rust);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      font-size: 18px;
+    }
+
+    @media(max-width: 768px) {
+      .locked-access-banner {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .locked-access-banner .btn-rust {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    
+    /* Dynamic Stats Grid */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    @media(max-width: 768px) {
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media(max-width: 480px) {
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .stat-metric-card {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    
+    .stat-metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--rust);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+    
+    .stat-metric-card.active {
+      border-color: var(--rust);
+      background: rgba(10, 116, 245, 0.08);
+      box-shadow: 0 4px 12px rgba(10, 116, 245, 0.15);
+    }
+    
+    .stat-metric-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 60%;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .stat-metric-card.total::before { background: #64748B; }
+    .stat-metric-card.high::before { background: #10B981; }
+    .stat-metric-card.medium::before { background: #F59E0B; }
+    .stat-metric-card.low::before { background: #EF4444; }
+    
+    /* Result card styles */
+    .college-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    
+    @media(min-width: 640px) {
+      .college-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .college-card {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+    }
+    
+    .college-card:hover {
+      border-color: var(--rust);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      transform: translateY(-2px);
+    }
+    
+    .badge-govt { background: rgba(30, 144, 255, 0.15); color: #3090FF; border: 1px solid rgba(30, 144, 255, 0.25); }
+    .badge-univ { background: rgba(147, 51, 234, 0.15); color: #A855F7; border: 1px solid rgba(147, 51, 234, 0.25); }
+    .badge-govt-pharm { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.25); }
+    .badge-central { background: rgba(236, 72, 153, 0.15); color: #EC4899; border: 1px solid rgba(236, 72, 153, 0.25); }
+    .badge-private { background: rgba(100, 116, 139, 0.15); color: #94A3B8; border: 1px solid rgba(100, 116, 139, 0.25); }
+    .badge-private-univ { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.25); }
+    
+    .chance-high { color: #10B981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.25); }
+    .chance-medium { color: #F59E0B; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.25); }
+    .chance-low { color: #EF4444; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.25); }
+    
+    /* Confetti/Success celebration styling */
+    .success-celebration {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.98);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .glowing-circle {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.15);
+      border: 3px solid #10B981;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      color: #10B981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+      margin-bottom: 24px;
+      animation: scalePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes scalePop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.bg-\[var\(--paper-deep\)\]{background-color:var(--paper-deep)}.font-sans{font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"}.text-\[var\(--ink\)\]{color:var(--ink)}</style></head>
+<body class="bg-[var(--paper-deep)] text-[var(--ink)] font-sans">
+
+<!-- Mobile menu toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP ASPIRANTS</div>
+        <div class="brand-sub">JEE/WBJEE PREPARATION</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="prep.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal</a>
+    <a href="predictor.html" class="sidebar-link active"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="choice-filling.html" class="sidebar-link" id="sidebarChoiceFillingLink" style="display:none;"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+  <!-- User info at bottom -->
+  <div style="position:absolute; bottom:0; left:0; right:0; padding:16px 22px; border-top:1px solid var(--ink);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="avatarSidebar" class="brand-mark" style="width:34px; height:34px; font-size:14px;">H</div>
+      <div style="overflow:hidden;">
+        <div id="sidebarName" style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Headless Test Student</div>
+        <div id="sidebarEmail" style="font-size:11px; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">test@sankalp.com</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main content -->
+<main class="main-content" style="padding:32px; position:relative; min-height: 100vh;">
+  
+  <!-- Success overlay (starts hidden) -->
+  <div id="successOverlay" class="success-celebration" style="display:none;">
+    <div class="glowing-circle">
+      <i class="fas fa-check"></i>
+    </div>
+    <h1 style="font-family:var(--font-display); font-size:26px; font-weight:800; color:white; margin-bottom:8px;">Premium Access Unlocked!</h1>
+    <p style="color:#94A3B8; font-size:14px; text-align:center; max-width:320px; line-height:1.6; margin-bottom:24px;">Thank you for your purchase. You now have full lifetime access to the WBJEE College Predictor tool.</p>
+    <button onclick="dismissSuccess()" class="btn-rust" style="padding:12px 28px; font-size:14px; font-weight:700;"><i class="fas fa-magic" style="margin-right:8px;"></i> Launch Predictor Now</button>
+  </div>
+
+  <!-- Paywall overlay container (starts hidden) -->
+  <div id="paywallOverlay" class="paywall-overlay" style="display:none;">
+    <div class="paywall-card">
+      <button type="button" class="paywall-close" onclick="dismissPaywall()" aria-label="Close premium unlock dialog" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div style="width:58px; height:58px; border-radius:50%; background:rgba(10, 116, 245, 0.1); border:2px solid var(--rust); display:flex; align-items:center; justify-content:center; font-size:24px; color:var(--rust); margin:0 auto 20px;">
+        <i class="fas fa-lock"></i>
+      </div>
+      <span style="background:rgba(10,116,245,0.1); color:var(--rust); font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:12px; border:1px solid rgba(10,116,245,0.2);">PREMIUM UNLOCK</span>
+      <h2 style="font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--ink); margin-bottom:8px;">WBJEE Premium College Predictor</h2>
+      <p style="color:var(--ink-soft); font-size:13px; line-height:1.6; margin-bottom:20px; text-align:left; padding:0 8px;">Get access to the ultimate WBJEE college predictor. Check your admission probabilities across all state colleges, universities, and private institutes based on dynamic official cutoff statistics.</p>
+      
+      <!-- Key bullet benefits -->
+      <div style="background:var(--paper-deep); border:1px solid var(--rule); border-radius:10px; padding:14px; text-align:left; margin-bottom:24px; font-size:12px; display:flex; flex-direction:column; gap:10px; color:var(--ink-soft);">
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Dynamic probability chances (High / Med / Low)</span></div>
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>7,333+ dynamic WBJEE cutoff rows loaded</span></div>
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Smart fallback across Round 2 and Round 1 data</span></div>
+        <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-check-circle" style="color:#10B981;"></i><span>Advanced filtering (Category, Quota, Seat Type)</span></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <div style="text-align:left;">
+          <div style="font-size:11px; color:#64748B; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Premium Access Price</div>
+          <div style="font-size:26px; font-weight:900; color:var(--forest-deep); font-family:var(--font-display);" id="paywallPriceDisplay">₹299</div>
+        </div>
+        <button onclick="triggerPayment()" id="unlockBtn" class="btn-rust" style="padding:14px 28px; font-size:14px; font-weight:700;"><i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Predictor</button>
+      </div>
+      
+      <div style="font-size:11px; color:var(--ink-mute);"><i class="fas fa-shield-alt" style="margin-right:6px;"></i> Secured by Razorpay checkout gateway</div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div style="margin-bottom:32px" id="predictorHeader">
+    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">WBJEE College Predictor</h1>
+    <p style="color:#64748B;font-size:14px;margin-top:4px">Predict your college admission chances dynamically from official statistical cutoffs</p>
+    <div id="lockedAccessBanner" class="locked-access-banner" style="display:none;">
+      <div class="locked-access-copy">
+        <span class="locked-access-icon"><i class="fas fa-lock"></i></span>
+        <span>
+          <strong style="display:block; color:var(--ink); font-size:14px; margin-bottom:2px;">Premium predictor is locked</strong>
+          Unlock lifetime access for <strong id="lockedPriceDisplay">₹299</strong>. You can close the popup and still buy from here anytime.
+        </span>
+      </div>
+      <button type="button" onclick="showPaywall()" class="btn-rust" style="padding:12px 18px; font-size:13px; font-weight:700;">
+        <i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Predictor
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Predictor Grid -->
+  <div class="predictor-grid" id="predictorMainView">
+    
+    <!-- Left Panel: Controls -->
+    <div class="predictor-card" style="height: fit-content;">
+      <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; margin-bottom:18px; color:var(--ink);"><i class="fas fa-sliders-h" style="margin-right:8px; color:var(--rust);"></i>Search Criteria</h3>
+      
+      <form onsubmit="event.preventDefault(); runPrediction();" style="display:flex; flex-direction:column; gap:16px;">
+        
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">GMR Rank *</label>
+          <input type="number" id="inpRank" class="predictor-input" placeholder="Enter your rank" required="" min="1">
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Cutoff Year</label>
+          <select id="inpYear" class="predictor-input">
+            <option value="2025" selected="">2025 Cutoffs (Default)</option>
+            <option value="2024">2024 Cutoffs</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Reservation Category *</label>
+          <div style="position: relative;" id="inpCategoryContainer">
+            <select id="inpCategory" class="predictor-input" required="">
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Course Type</label>
+          <select id="inpCourse" class="predictor-input">
+            <option value="All">All Courses</option>
+            <option value="B.Tech">B.Tech / B.E.</option>
+            <option value="B.Pharm">B.Pharm</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Seat Type</label>
+          <select id="inpSeat" class="predictor-input">
+            <option value="All">All Seat types</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Quota (Home State / All India)</label>
+          <select id="inpQuota" class="predictor-input">
+            <option value="All">All Quotas</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">College Type</label>
+          <select id="inpCollegeType" class="predictor-input">
+            <option value="All">All Types</option>
+            <option value="GovtGroup">Government (All 4 Types)</option>
+            <option value="PrivateGroup">Private (All 3 Types)</option>
+            <option value="University/University Department">University/University Dept</option>
+            <option value="State Government Engineering College">State Govt Engineering College</option>
+            <option value="State Government Pharmacy College">State Govt Pharmacy College</option>
+            <option value="Central Government Engineering College">Central Govt Engineering College</option>
+            <option value="Private University">Private University</option>
+            <option value="Private Engineering College">Private Engineering College</option>
+            <option value="Stand Alone Private Pharmacy College">Stand Alone Private Pharmacy College</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Admission Chance Filter</label>
+          <select id="inpChance" class="predictor-input" onchange="clientFilterChance(this.value)">
+            <option value="All">All Chances</option>
+            <option value="High">High Chance Only</option>
+            <option value="Medium">Medium Chance Only</option>
+            <option value="Low">Low Chance Only</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px;" id="predictBtn" disabled="">
+          <i class="fas fa-magic"></i> Predict Colleges
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Panel: Results & Stats -->
+    <div>
+      
+      <!-- Stats Dashboard -->
+      <div class="stats-container" id="statsDashboard" style="display:none;">
+        <div class="stat-metric-card total active" id="cardTotal" onclick="filterStatChance('All')">
+          <div style="font-size:10px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Total Matches</div>
+          <div style="font-size:24px; font-weight:800; margin-top:4px; color:var(--ink);" id="statTotal">0</div>
+        </div>
+        <div class="stat-metric-card high" id="cardHigh" onclick="filterStatChance('High')">
+          <div style="font-size:10px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">High Chance</div>
+          <div style="font-size:24px; font-weight:800; margin-top:4px; color:#10B981;" id="statHigh">0</div>
+        </div>
+        <div class="stat-metric-card medium" id="cardMedium" onclick="filterStatChance('Medium')">
+          <div style="font-size:10px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Medium Chance</div>
+          <div style="font-size:24px; font-weight:800; margin-top:4px; color:#F59E0B;" id="statMedium">0</div>
+        </div>
+        <div class="stat-metric-card low" id="cardLow" onclick="filterStatChance('Low')">
+          <div style="font-size:10px; color:#64748B; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Low Chance</div>
+          <div style="font-size:24px; font-weight:800; margin-top:4px; color:#EF4444;" id="statLow">0</div>
+        </div>
+      </div>
+
+      <!-- Results area -->
+      <div id="resultsContainer" style="min-height: 350px;">
+        <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+          <i class="fas fa-graduation-cap" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+          <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Search Initiated</h4>
+          <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Fill in your GMR rank, caste reservation status, and quotas on the left to predict college cutoffs instantly.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Choice Filling Main Grid -->
+  <div class="predictor-grid" id="choiceFillingMainView" style="display:none;">
+    <!-- Left Panel: Choice Filling Form -->
+    <div class="predictor-card" style="height: fit-content;">
+      <h3 style="font-family:var(--font-display); font-size:15px; font-weight:700; margin-bottom:18px; color:var(--ink);"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px; color:var(--rust);"></i>Preference Filters</h3>
+      
+      <form onsubmit="event.preventDefault(); runChoiceFilling();" style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">GMR Rank *</label>
+          <input type="number" id="cfRank" class="predictor-input" placeholder="Enter your rank" required="" min="1">
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Reservation Category *</label>
+          <div style="position: relative;" id="cfCategoryContainer">
+            <select id="cfCategory" class="predictor-input" required="">
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Quota (Home State / All India)</label>
+          <select id="cfQuota" class="predictor-input">
+            <option value="All">All Quotas</option>
+          </select>
+        </div>
+
+        <!-- TFW Domicile Eligibility -->
+        <div style="padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule-strong); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size:12px; font-weight:700; color:var(--ink);">TFW Candidate?</div>
+            <div style="font-size:10px; color:var(--ink-mute);">Include Tuition Fee Waiver seats</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfTfwToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Preferred Branches Multi-Select -->
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:8px; letter-spacing:0.5px;">Preferred Branches</label>
+          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; background: var(--paper-deep); padding: 12px; border: 1px solid var(--rule-strong); border-radius: 8px;" id="cfBranchContainer">
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CSE" checked=""> CSE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="IT" checked=""> IT</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ECE" checked=""> ECE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="EE"> EE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="ME"> ME</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CE"> CE</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="CHE"> Chemical</label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color:var(--ink-soft);"><input type="checkbox" value="PHM"> Pharmacy</label>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">College Type</label>
+          <select id="cfCollegeType" class="predictor-input">
+            <option value="All">All Types</option>
+            <option value="GovtGroup">Government Only</option>
+            <option value="PrivateGroup">Private Only</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:6px; letter-spacing:0.5px;">Max Recommendations</label>
+          <select id="cfMaxChoices" class="predictor-input">
+            <option value="20">Top 20 Choices</option>
+            <option value="30" selected="">Top 30 Choices</option>
+            <option value="50">Top 50 Choices</option>
+            <option value="100">Top 100 Choices</option>
+            <option value="200">Top 200 Choices</option>
+            <option value="300">Top 300 Choices</option>
+            <option value="500">Top 500 Choices</option>
+            <option value="5000">All Available Choices</option>
+          </select>
+        </div>
+
+        <!-- Terms and Conditions Agreement Checkbox -->
+        <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
+            <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;">
+            <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counseling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-rust" style="width:100%; justify-content:center; padding:12px; margin-top:8px;" id="cfPredictBtn" disabled="">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Choice List
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Panel: Choice Filling Results -->
+    <div>
+      <!-- Choice Paywall Alert Banner (if locked) -->
+      <div id="cfLockedAccessBanner" class="locked-access-banner" style="display:none; margin-bottom: 24px;">
+        <div class="locked-access-copy">
+          <span class="locked-access-icon"><i class="fas fa-lock"></i></span>
+          <span>
+            <strong style="display:block; color:var(--ink); font-size:14px; margin-bottom:2px;">Choice Filling Assistant is locked</strong>
+            Unlock lifetime access for <strong id="cfLockedPriceDisplay">₹199</strong> to generate your optimized choice filling sheet.
+          </span>
+        </div>
+        <button type="button" onclick="showCfPaywall()" class="btn-rust" style="padding:12px 18px; font-size:13px; font-weight:700;">
+          <i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Now
+        </button>
+      </div>
+
+      <!-- Choice Filling Results Area -->
+      <div id="cfResultsContainer" style="min-height: 350px;">
+        <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+          <i class="fa-solid fa-list-check" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+          <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Choice List Generated</h4>
+          <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select your branches, rank, and TFW status, and click Generate to build your optimized counseling choice list.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+  <!-- Cutoff Trend Chart Modal -->
+  <div id="trendChartModal" class="paywall-overlay" style="display:none; z-index: 100;">
+    <div class="paywall-card" style="max-width: 600px; padding: 24px;">
+      <button type="button" class="paywall-close" onclick="closeTrendChartModal()" aria-label="Close trend chart dialog" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div style="text-align:left; margin-bottom:16px;">
+        <span style="background:rgba(10, 116, 245, 0.1); color:var(--rust); font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:8px; border:1px solid rgba(10, 116, 245, 0.2);">
+          <i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i> Cutoff Analytics
+        </span>
+        <h2 id="chartModalCollegeName" style="font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--ink); line-height: 1.4; margin-bottom:4px;">Heritage Institute of Technology</h2>
+        <p id="chartModalProgramName" style="color:var(--rust); font-size:12px; font-weight:600; margin-bottom:16px;">Computer Science &amp; Engineering</p>
+      </div>
+
+      <!-- Canvas for Chart.js -->
+      <div style="position: relative; height: 250px; width: 100%; margin-bottom: 20px;">
+        <canvas id="trendChartCanvas"></canvas>
+      </div>
+
+      <!-- Dynamic Insights Banner -->
+      <div id="chartInsightBanner" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 12px; text-align: left; background: var(--paper-deep); border: 1px solid var(--rule-strong);">
+        <i class="fas fa-info-circle" style="color: var(--primary);"></i>
+        <span id="chartInsightText" style="color: var(--ink-soft); line-height: 1.4;">Analyzing cutoff trends...</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const EVALUATOR_API = window.EVALUATOR_API || 'https://sankalp-1vt4.onrender.com';
+  let currentUser = null;
+  let currentToken = null;
+  let lastPredictionResults = [];
+  let isPredictorPaid = false;
+  let predictorPrice = 299;
+  let hasLoadedDropdowns = false;
+  let allYears = [];
+
+  function toggleSidebar() { 
+    document.getElementById('sidebar').classList.toggle('open'); 
+    document.getElementById('overlay').classList.toggle('open'); 
+  }
+  
+  function logout() { 
+    auth.signOut().then(() => window.location.href = '../login.html'); 
+  }
+
+  function toast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${msg}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  async function apiFetch(path, options = {}) {
+    if (!currentUser) throw new Error('Not authenticated');
+    const token = currentToken || await currentUser.getIdToken();
+    currentToken = token;
+    const headers = { Authorization: `Bearer ${token}`, ...options.headers };
+    if (options.body !== undefined && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    let response = await fetch(`${EVALUATOR_API}${path}`, { ...options, headers });
+    if (response.status === 401) {
+      currentToken = await currentUser.getIdToken(true);
+      response = await fetch(`${EVALUATOR_API}${path}`, {
+        ...options,
+        headers: { ...headers, Authorization: `Bearer ${currentToken}` },
+      });
+    }
+    return response;
+  }
+
+  async function apiJson(path, options = {}) {
+    const response = await apiFetch(path, options);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload.message || payload.error || `HTTP ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+    return payload;
+  }
+
+  function updatePriceDisplays() {
+    const formattedPrice = `\u20B9${predictorPrice}`;
+    const paywallPrice = document.getElementById('paywallPriceDisplay');
+    const lockedPrice = document.getElementById('lockedPriceDisplay');
+    if (paywallPrice) paywallPrice.textContent = formattedPrice;
+    if (lockedPrice) lockedPrice.textContent = formattedPrice;
+  }
+
+  function setUnlockButtonIdle() {
+    const btn = document.getElementById('unlockBtn');
+    if (!btn) return;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Predictor';
+  }
+
+  function setPredictorLocked(locked) {
+    const controlIds = ['inpRank', 'inpCategory', 'inpCourse', 'inpSeat', 'inpQuota', 'inpCollegeType', 'inpChance', 'inpYear'];
+    controlIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = locked;
+    });
+
+    if (locked && !hasLoadedDropdowns) {
+      const category = document.getElementById('inpCategory');
+      const seat = document.getElementById('inpSeat');
+      const quota = document.getElementById('inpQuota');
+      if (category) category.innerHTML = '<option value="">Unlock to load categories</option>';
+      if (seat) seat.innerHTML = '<option value="All">Unlock to load seat types</option>';
+      if (quota) quota.innerHTML = '<option value="All">Unlock to load quotas</option>';
+    }
+
+    const btn = document.getElementById('predictBtn');
+    if (!btn) return;
+    btn.disabled = false;
+    if (locked) {
+      btn.innerHTML = '<i class="fas fa-lock"></i> Unlock Predictor';
+      btn.title = 'Unlock the premium predictor to run college predictions';
+    } else {
+      btn.innerHTML = '<i class="fas fa-magic"></i> Predict Colleges';
+      btn.title = '';
+    }
+  }
+
+  function showLockedAccessUI() {
+    document.getElementById('lockedAccessBanner').style.display = 'flex';
+    document.getElementById('statsDashboard').style.display = 'none';
+    const container = document.getElementById('resultsContainer');
+    container.dataset.lockedView = 'true';
+    container.innerHTML = `
+      <div style="text-align:center; padding:58px 24px; color:var(--ink-soft); border:1px solid rgba(10, 116, 245, 0.24); border-radius:12px; background:linear-gradient(135deg, var(--paper), rgba(10, 116, 245, 0.06));">
+        <div style="width:62px; height:62px; border-radius:50%; background:rgba(10, 116, 245, 0.1); color:var(--rust); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 18px;">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h4 style="font-size:18px; font-weight:800; color:var(--ink); margin-bottom:8px;">Unlock College Predictor</h4>
+        <p style="font-size:13px; max-width:420px; margin:0 auto 22px; line-height:1.6; color:var(--ink-soft);">
+          Purchase premium access for <strong style="color:var(--ink);">\u20B9${predictorPrice}</strong> to run predictions and view dynamic admission chances.
+        </p>
+        <button type="button" onclick="showPaywall()" class="btn-rust" style="padding:12px 24px; font-size:14px; font-weight:700;">
+          <i class="fas fa-unlock" style="margin-right:8px;"></i> Buy / Unlock Now
+        </button>
+      </div>
+    `;
+  }
+
+  function hideLockedAccessUI() {
+    document.getElementById('lockedAccessBanner').style.display = 'none';
+  }
+
+  function showEmptyPredictionState() {
+    const container = document.getElementById('resultsContainer');
+    delete container.dataset.lockedView;
+    document.getElementById('statsDashboard').style.display = 'none';
+    container.innerHTML = `
+      <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+        <i class="fas fa-graduation-cap" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+        <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Search Initiated</h4>
+        <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Fill in your GMR rank, caste reservation status, and quotas on the left to predict college cutoffs instantly.</p>
+      </div>
+    `;
+  }
+
+  function showPaywall() {
+    if (isPredictorPaid) return;
+    updatePriceDisplays();
+    setUnlockButtonIdle();
+    document.getElementById('paywallOverlay').style.display = 'flex';
+  }
+
+  // ── 1. Check Access State & Paywall Setup ────────────────────────────
+  async function checkAccessAndInit() {
+    try {
+      // Start loading dynamic dropdowns immediately in parallel
+      const dropdownPromise = !hasLoadedDropdowns ? loadDynamicDropdowns().then(() => {
+        hasLoadedDropdowns = true;
+        setupQuotaRestriction();
+      }).catch(err => {
+        console.error('Parallel loadDynamicDropdowns failed:', err);
+      }) : Promise.resolve();
+
+      const res = await apiJson('/api/predictor/status');
+      predictorPrice = res.price || predictorPrice;
+      updatePriceDisplays();
+      
+      if (res.enabled === false) {
+        document.body.innerHTML = `
+          <div style="background:#020617; color:#E2E8F0; font-family:'Inter',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center;">
+            <div style="width:72px; height:72px; border-radius:50%; background:rgba(239, 68, 68, 0.1); border:2px solid #EF4444; display:flex; align-items:center; justify-content:center; font-size:32px; color:#EF4444; margin-bottom:20px; box-shadow:0 0 20px rgba(239,68,68,0.2);">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 style="font-size:24px; font-weight:800; color:white; margin-bottom:8px; font-family:'Poppins',sans-serif;">Feature Disabled</h1>
+            <p style="color:#94A3B8; font-size:14px; max-width:400px; line-height:1.6; margin-bottom:24px;">The College Predictor tool has been temporarily disabled by the administrator. Please check back later.</p>
+            <a href="dashboard.html" style="background:#EADBC0; color:#C94E1F; padding:10px 24px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none; display:inline-block; font-family:inherit; transition: all 0.2s;">Go to Dashboard</a>
+          </div>
+        `;
+        return;
+      }
+
+      isPredictorPaid = res.hasAccess;
+      
+      // Wait for dropdowns to finish loading before proceeding
+      await dropdownPromise;
+
+      if (!isPredictorPaid) {
+        setPredictorLocked(true);
+        showLockedAccessUI();
+        showPaywall();
+      } else {
+        document.getElementById('paywallOverlay').style.display = 'none';
+        setPredictorLocked(false);
+        hideLockedAccessUI();
+        if (document.getElementById('resultsContainer').dataset.lockedView === 'true') {
+          showEmptyPredictionState();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to initialize status checks:', err);
+      document.getElementById('predictBtn').disabled = true;
+      toast('Authorization check failed', 'error');
+    }
+  }
+
+  // ── 2. Load dynamic dropdown filters ─────────────────────────────────
+  async function loadDynamicDropdowns() {
+    try {
+      // 1. Categories
+      const catRes = await apiJson('/api/predictor/categories');
+      const catSelect = document.getElementById('inpCategory');
+      catSelect.innerHTML = '<option value="">-- Select Category --</option>';
+      (catRes.categories || []).forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        catSelect.appendChild(opt);
+      });
+
+      // Try prefilling profile category
+      try {
+        const profileDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (profileDoc.exists) {
+          const profile = profileDoc.data();
+          if (profile.caste && (catRes.categories || []).includes(profile.caste)) {
+            catSelect.value = profile.caste;
+          }
+        }
+      } catch (profileErr) {
+        console.warn('Could not prefill category from profile:', profileErr);
+      }
+
+      // 2. Seat Types
+      const seatRes = await apiJson('/api/predictor/seat-types');
+      const seatSelect = document.getElementById('inpSeat');
+      seatSelect.innerHTML = '<option value="All">All Seat types</option>';
+      (seatRes.seatTypes || []).forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st;
+        opt.textContent = st;
+        seatSelect.appendChild(opt);
+      });
+
+      // 3. Quotas
+      const quotaRes = await apiJson('/api/predictor/quotas');
+      const quotaSelect = document.getElementById('inpQuota');
+      quotaSelect.innerHTML = '<option value="All">All Quotas</option>';
+      (quotaRes.quotas || []).forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q;
+        opt.textContent = q;
+        quotaSelect.appendChild(opt);
+      });
+
+      // 4. Years
+      try {
+        const yearRes = await apiJson('/api/predictor/years');
+        const yearSelect = document.getElementById('inpYear');
+        if (yearSelect) {
+          yearSelect.innerHTML = '';
+          const years = yearRes.years || [2025, 2024];
+          allYears = years; // Store globally
+          years.forEach(yr => {
+            const opt = document.createElement('option');
+            opt.value = yr;
+            opt.textContent = `${yr} Cutoffs` + (String(yr) === '2025' ? ' (Default)' : '');
+            yearSelect.appendChild(opt);
+          });
+          if (years.includes(2025)) {
+            yearSelect.value = "2025";
+          } else if (years.length > 0) {
+            yearSelect.value = years[0];
+          }
+        }
+      } catch (yearErr) {
+        console.warn('Failed to load dynamic years, fallback to static:', yearErr);
+      }
+
+    } catch (err) {
+      console.error('Failed to load dynamic categories:', err);
+      toast('Failed to load filters metadata', 'error');
+    }
+  }
+
+  let savedCategoryValue = '';
+
+  function setupQuotaRestriction() {
+    const quotaSelect = document.getElementById('inpQuota');
+    const catSelect = document.getElementById('inpCategory');
+    const catContainer = document.getElementById('inpCategoryContainer');
+
+    if (!quotaSelect || !catSelect || !catContainer) return;
+
+    // Create overlay element
+    let overlay = document.getElementById('inpCategoryOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'inpCategoryOverlay';
+      overlay.style.cssText = 'position: absolute; inset: 0; cursor: not-allowed; z-index: 50;';
+      overlay.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toast('For All India quota, only General (Open) category is allowed.', 'error');
+      });
+    }
+
+    function handleQuotaChange() {
+      if (quotaSelect.value === 'All India') {
+        // Save current category selection if it is not already 'Open'
+        if (catSelect.value && catSelect.value !== 'Open') {
+          savedCategoryValue = catSelect.value;
+        }
+        // Force Category to Open
+        catSelect.value = 'Open';
+        
+        // Disable the select element
+        catSelect.disabled = true;
+        
+        // Append overlay
+        if (!catContainer.contains(overlay)) {
+          catContainer.appendChild(overlay);
+        }
+      } else {
+        // Re-enable the select element
+        catSelect.disabled = false;
+        
+        // Remove overlay
+        if (catContainer.contains(overlay)) {
+          overlay.remove();
+        }
+        
+        // Restore saved category selection if available
+        if (savedCategoryValue && quotaSelect.value !== 'All India') {
+          const opt = Array.from(catSelect.options).find(o => o.value === savedCategoryValue);
+          if (opt) {
+            catSelect.value = savedCategoryValue;
+          }
+          savedCategoryValue = '';
+        }
+      }
+    }
+
+    // Event listener for quota changes
+    quotaSelect.addEventListener('change', handleQuotaChange);
+
+    // Run once initially to apply restrictions if prefilled
+    handleQuotaChange();
+  }
+
+  // ── 3. Paywall Unlock Flow ──────────────────────────────────────────
+  async function triggerPayment() {
+    const btn = document.getElementById('unlockBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+
+    try {
+      const order = await apiJson('/api/create-order', { method: 'POST' });
+      
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Sankalp Aspirant',
+        description: 'WBJEE College Predictor Premium Unlock',
+        order_id: order.order_id,
+        handler: async function (response) {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+          try {
+            const verifyRes = await apiJson('/api/verify-payment', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            if (verifyRes.success) {
+              document.getElementById('successOverlay').style.display = 'flex';
+            } else {
+              toast('Verification failed.', 'error');
+              setUnlockButtonIdle();
+            }
+          } catch (e) {
+            toast('Payment verification failed: ' + e.message, 'error');
+            setUnlockButtonIdle();
+          }
+        },
+        prefill: { name: currentUser.displayName, email: currentUser.email },
+        theme: { color: "#4F46E5" },
+        config: {
+          display: {
+            blocks: {
+              upi: { name: "Pay via UPI (PhonePe, GPay, etc.)", instruments: [{ method: "upi" }] },
+              other: { name: "Other Payment Modes", instruments: [{ method: "card" }, { method: "netbanking" }, { method: "wallet" }] }
+            },
+            sequence: ["block.upi", "block.other"],
+            preferences: { show_default_blocks: true }
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            toast('Payment window closed.', 'info');
+            setUnlockButtonIdle();
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (res) {
+        const description = res?.error?.description || 'Payment failed';
+        const upiHint = description.toLowerCase().includes('card')
+          ? ' Use UPI test mode instead.'
+          : '';
+        toast('Payment failed: ' + description + upiHint, 'error');
+        setUnlockButtonIdle();
+      });
+
+      rzp.open();
+    } catch (err) {
+      toast('Failed to start checkout: ' + err.message, 'error');
+      setUnlockButtonIdle();
+    }
+  }
+
+  function dismissSuccess() {
+    document.getElementById('successOverlay').style.display = 'none';
+    checkAccessAndInit();
+  }
+
+  function dismissPaywall() {
+    document.getElementById('paywallOverlay').style.display = 'none';
+    setPredictorLocked(true);
+    showLockedAccessUI();
+    toast('Predictor remains locked. Use the Unlock button on this page whenever you are ready.');
+  }
+
+  // ── 4. Main College Predictor Query Flow ─────────────────────────────
+  async function runPrediction() {
+    if (!isPredictorPaid) {
+      setPredictorLocked(true);
+      showLockedAccessUI();
+      showPaywall();
+      return;
+    }
+
+    const rank = document.getElementById('inpRank').value;
+    const category = document.getElementById('inpCategory').value;
+    const courseType = document.getElementById('inpCourse').value;
+    const seatType = document.getElementById('inpSeat').value;
+    const quota = document.getElementById('inpQuota').value;
+    const collegeType = document.getElementById('inpCollegeType').value;
+    const year = document.getElementById('inpYear').value;
+
+    if (!rank || !category) {
+      toast('Please enter a rank and category', 'error');
+      return;
+    }
+
+    const container = document.getElementById('resultsContainer');
+    delete container.dataset.lockedView;
+    document.getElementById('statsDashboard').style.display = 'none';
+    container.innerHTML = `
+      <div style="text-align:center; padding:80px; color:var(--ink-soft);">
+        <i class="fas fa-spinner fa-spin" style="font-size:36px; margin-bottom:16px; color:var(--rust);"></i>
+        <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">Finding Best College Matches...</h4>
+        <p style="font-size:12px; color:var(--ink-soft);">Querying cutoff database and applying probability models...</p>
+      </div>
+    `;
+
+    try {
+      const query = new URLSearchParams({ rank, category, courseType, seatType, quota, collegeType, year }).toString();
+      const res = await apiJson(`/api/predictor/predict?${query}`);
+      
+      // Save results globally
+      lastPredictionResults = res.results || [];
+      
+      // Update statistics metric cards
+      const stats = res.stats || { totalMatches: 0, highCount: 0, mediumCount: 0, lowCount: 0 };
+      document.getElementById('statTotal').textContent = stats.totalMatches.toLocaleString();
+      document.getElementById('statHigh').textContent = stats.highCount.toLocaleString();
+      document.getElementById('statMedium').textContent = stats.mediumCount.toLocaleString();
+      document.getElementById('statLow').textContent = stats.lowCount.toLocaleString();
+
+      // Show stats dashboard now
+      document.getElementById('statsDashboard').style.display = 'grid';
+
+      // Reset UI state filters
+      document.getElementById('inpChance').value = 'All';
+      document.querySelectorAll('.stat-metric-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('cardTotal').classList.add('active');
+
+      renderResults(lastPredictionResults);
+    } catch (err) {
+      console.error(err);
+      if (err.status === 402) {
+        isPredictorPaid = false;
+        setPredictorLocked(true);
+        showLockedAccessUI();
+        showPaywall();
+        toast(err.message || 'Please unlock the predictor to continue.', 'error');
+        return;
+      }
+      container.innerHTML = `
+        <div style="text-align:center; padding:48px; border:1px solid var(--danger); background:var(--paper); color:var(--danger); border-radius:12px;">
+          <i class="fas fa-exclamation-triangle" style="font-size:36px; margin-bottom:12px; color:var(--danger);"></i>
+          <h4 style="font-weight:700; margin-bottom:4px;">Failed to Predict Colleges</h4>
+          <p style="font-size:12px; color:var(--ink-soft);">${err.message || 'Make sure your network is stable and database is populated.'}</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderResults(list) {
+    const container = document.getElementById('resultsContainer');
+    container.innerHTML = '';
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
+          <i class="fas fa-info-circle" style="font-size:42px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
+          <h4 style="font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px;">No Colleges Match This Rank</h4>
+          <p style="font-size:12px; color:var(--ink-soft);">Try broadening filters or selection criteria to see low probability matches.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'college-grid';
+
+    list.forEach(row => {
+      let badge = '';
+      const ct = row.collegeType;
+      if (ct === 'University/University Department') {
+        badge = '<span class="badge-univ text-[10px] px-2 py-1 font-bold rounded">Univ / Dept</span>';
+      } else if (ct === 'State Government Engineering College') {
+        badge = '<span class="badge-govt text-[10px] px-2 py-1 font-bold rounded">State Govt Engg</span>';
+      } else if (ct === 'State Government Pharmacy College') {
+        badge = '<span class="badge-govt-pharm text-[10px] px-2 py-1 font-bold rounded">Govt Pharmacy</span>';
+      } else if (ct === 'Central Government Engineering College') {
+        badge = '<span class="badge-central text-[10px] px-2 py-1 font-bold rounded">Central Govt</span>';
+      } else if (ct === 'Private University') {
+        badge = '<span class="badge-private-univ text-[10px] px-2 py-1 font-bold rounded">Private Univ</span>';
+      } else {
+        badge = '<span class="badge-private text-[10px] px-2 py-1 font-bold rounded">Private Engg</span>';
+      }
+
+      const cc = row.chance.toLowerCase();
+
+      // Get years list to show: from selected year down to the oldest year
+      const sortedYears = [...allYears].sort((a, b) => {
+        const numA = parseInt(String(a).match(/^\d+/) || 0, 10);
+        const numB = parseInt(String(b).match(/^\d+/) || 0, 10);
+        if (numA !== numB) return numB - numA;
+        return String(b).localeCompare(String(a));
+      });
+
+      const selectedYear = row.selectedYear || document.getElementById('inpYear').value;
+      const selectedYearNum = parseInt(String(selectedYear).match(/^\d+/) || 0, 10);
+      const yearsToShow = [];
+      if (!sortedYears.includes(selectedYear)) {
+        yearsToShow.push(selectedYear);
+      }
+      sortedYears.forEach(yr => {
+        const yrNum = parseInt(String(yr).match(/^\d+/) || 0, 10);
+        if (yr === selectedYear) {
+          if (!yearsToShow.includes(yr)) yearsToShow.push(yr);
+          return;
+        }
+        if (yrNum < selectedYearNum) {
+          yearsToShow.push(yr);
+        } else if (yrNum === selectedYearNum) {
+          const selIdx = sortedYears.indexOf(selectedYear);
+          const yrIdx = sortedYears.indexOf(yr);
+          if (selIdx !== -1 && yrIdx > selIdx) {
+            yearsToShow.push(yr);
+          }
+        }
+      });
+
+      let cutoffsHtml = '';
+      yearsToShow.forEach(yr => {
+        const isMissing = row.cutoffs === undefined || row.cutoffs[yr] === undefined;
+        const val = isMissing ? '—' : row.cutoffs[yr];
+        const valHtml = isMissing 
+          ? `<span title="No cutoff data is available (this usually means no seats were left in the final round, or the course/category was not offered this year)" style="cursor:help; border-bottom:1px dotted #94A3B8;">—</span>`
+          : val;
+        cutoffsHtml += `
+          <div>
+            <div style="font-size:9px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">${yr} Cutoff</div>
+            <div style="font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${valHtml}</div>
+          </div>
+        `;
+      });
+
+      const card = document.createElement('div');
+      card.className = 'college-card';
+      card.innerHTML = `
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            ${badge}
+            <span class="text-[10px] px-2.5 py-1 font-bold rounded chance-${cc}">${row.chance} Chance</span>
+          </div>
+          <h4 style="font-family:var(--font-display); font-size:14px; font-weight:800; color:var(--ink); line-height:1.4; margin-bottom:6px;">${escapeHTML(row.institute)}</h4>
+          <p style="font-size:12px; color:var(--rust); font-weight:600; margin-bottom:16px;">
+            <i class="fas fa-code-branch" style="margin-right:6px;"></i>${escapeHTML(row.program)} 
+            <span style="color:#64748B; font-weight:400; margin-left:4px;">(${escapeHTML(row.seatType)} | ${escapeHTML(row.quota)})</span>
+          </p>
+        </div>
+        <div style="border-top:1px solid var(--rule); padding-top:12px; display:grid; grid-template-columns:repeat(auto-fit, minmax(65px, 1fr)); gap:10px;">
+          ${cutoffsHtml}
+        </div>
+        <div style="margin-top:14px; border-top:1px dashed var(--rule); padding-top:10px;">
+          <button onclick="openTrendChart(this)" 
+                  data-institute="${escapeHTML(row.institute)}" 
+                  data-program="${escapeHTML(row.program)}" 
+                  data-cutoffs='${JSON.stringify(row.cutoffs)}'
+                  class="btn-ghost btn-sm" 
+                  style="width:100%; justify-content:center; font-size:11px; padding:6px 0;">
+            <i class="fa-solid fa-chart-line" style="margin-right:6px;"></i> View Cutoff Trend
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    container.appendChild(grid);
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  let currentTrendChartInstance = null;
+
+  function openTrendChart(btn) {
+    const institute = btn.getAttribute('data-institute');
+    const program = btn.getAttribute('data-program');
+    const cutoffs = JSON.parse(btn.getAttribute('data-cutoffs') || '{}');
+
+    // Populate Modal Text
+    document.getElementById('chartModalCollegeName').textContent = institute;
+    document.getElementById('chartModalProgramName').textContent = program;
+
+    // Get sorted chronological list of years that have data
+    const years = Object.keys(cutoffs).sort((a, b) => {
+      const numA = parseInt(String(a).match(/^\d+/) || 0, 10);
+      const numB = parseInt(String(b).match(/^\d+/) || 0, 10);
+      if (numA !== numB) return numA - numB; // Sort ascending
+      return String(a).localeCompare(String(b));
+    });
+
+    const ranks = years.map(yr => cutoffs[yr]);
+
+    // Calculate Trend Insight
+    const insightText = document.getElementById('chartInsightText');
+    if (years.length >= 2) {
+      const firstYear = years[0];
+      const lastYear = years[years.length - 1];
+      const firstRank = cutoffs[firstYear];
+      const lastRank = cutoffs[lastYear];
+      
+      if (lastRank < firstRank) {
+        // Cutoff decreased -> harder to get in
+        const percent = Math.round(((firstRank - lastRank) / firstRank) * 100);
+        insightText.innerHTML = `<strong>Popularity Rising</strong>: cutoff rank fell by <strong>${percent}%</strong> from ${firstYear} to ${lastYear}. This course is becoming <strong>more competitive</strong>.`;
+      } else if (lastRank > firstRank) {
+        // Cutoff increased -> easier to get in
+        const percent = Math.round(((lastRank - firstRank) / firstRank) * 100);
+        insightText.innerHTML = `<strong>Competition Decreasing</strong>: cutoff rank rose by <strong>${percent}%</strong> from ${firstYear} to ${lastYear}. This course is becoming <strong>more accessible</strong>.`;
+      } else {
+        insightText.innerHTML = `<strong>Stable Cutoff</strong>: the competition levels for this course have remained consistent across recent years.`;
+      }
+    } else {
+      insightText.innerHTML = `<strong>Single Year Data</strong>: showing cutoffs for ${years[0] || 'N/A'}. Historical trend analysis requires multiple years of data.`;
+    }
+
+    // Show Modal
+    document.getElementById('trendChartModal').style.display = 'flex';
+
+    // Render/Update Chart.js Canvas
+    const ctx = document.getElementById('trendChartCanvas').getContext('2d');
+    if (currentTrendChartInstance) {
+      currentTrendChartInstance.destroy();
+    }
+
+    // Create glowing area background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(10, 116, 245, 0.3)'); // Electric blue alpha
+    gradient.addColorStop(1, 'rgba(10, 116, 245, 0.0)');
+
+    currentTrendChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: years,
+        datasets: [{
+          label: 'Closing Rank',
+          data: ranks,
+          borderColor: '#0A74F5', // Website brand electric blue
+          borderWidth: 3,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.35, // Smooth curves
+          pointBackgroundColor: '#0A74F5',
+          pointBorderColor: '#FFF',
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false // Hide legend
+          },
+          tooltip: {
+            backgroundColor: '#0F172A', // Match website dark components
+            titleColor: '#FFFFFF',
+            bodyColor: '#FFFFFF',
+            titleFont: { family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+            bodyFont: { family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+            borderColor: 'rgba(10, 116, 245, 0.2)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 10,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return `Closing Rank: ${context.parsed.y.toLocaleString()}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: 'rgba(15, 23, 42, 0.06)' // Faint slate grid lines (visible on white)
+            },
+            ticks: {
+              color: '#64748B', // slate-500 (--ink-mute)
+              font: { weight: 'bold', family: "'Plus Jakarta Sans', sans-serif" }
+            }
+          },
+          y: {
+            reverse: true, // Invert Y-axis so better ranks (lower numbers) are represented higher up
+            grid: {
+              color: 'rgba(15, 23, 42, 0.06)'
+            },
+            ticks: {
+              color: '#64748B',
+              font: { family: "'Plus Jakarta Sans', sans-serif" },
+              callback: function(value) {
+                return value.toLocaleString();
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function closeTrendChartModal() {
+    document.getElementById('trendChartModal').style.display = 'none';
+    if (currentTrendChartInstance) {
+      currentTrendChartInstance.destroy();
+      currentTrendChartInstance = null;
+    }
+  }
+
+  // ── 5. Stats Metric Click Filters ────────────────────────────────────
+  function filterStatChance(chance) {
+    // Sync active style
+    document.querySelectorAll('.stat-metric-card').forEach(c => c.classList.remove('active'));
+    
+    if (chance === 'All') {
+      document.getElementById('cardTotal').classList.add('active');
+      document.getElementById('inpChance').value = 'All';
+      renderResults(lastPredictionResults);
+    } else {
+      document.getElementById(`card${chance}`).classList.add('active');
+      document.getElementById('inpChance').value = chance;
+      const filtered = lastPredictionResults.filter(row => row.chance === chance);
+      renderResults(filtered);
+    }
+  }
+
+  function clientFilterChance(chance) {
+    document.querySelectorAll('.stat-metric-card').forEach(c => c.classList.remove('active'));
+    if (chance === 'All') {
+      document.getElementById('cardTotal').classList.add('active');
+      renderResults(lastPredictionResults);
+    } else {
+      document.getElementById(`card${chance}`).classList.add('active');
+      const filtered = lastPredictionResults.filter(row => row.chance === chance);
+      renderResults(filtered);
+    }
+  }
+
+  // ── CHOICE FILLING ASSISTANT JAVASCRIPT CONTROLLERS ──────────────────
+  let isChoicePaid = false;
+  let choicePrice = 199;
+  
+  let currentActiveTab = 'predictor';
+
+  function switchTab(tab) {
+    if (tab === currentActiveTab) return;
+    currentActiveTab = tab;
+
+    const tabPred = document.getElementById('tabPredictor');
+    const tabCf = document.getElementById('tabChoiceFilling');
+    const viewPred = document.getElementById('predictorMainView');
+    const viewCf = document.getElementById('choiceFillingMainView');
+
+    if (tab === 'choiceFilling') {
+      // Sync values from Predictor to Choice Filling
+      document.getElementById('cfRank').value = document.getElementById('inpRank').value;
+      document.getElementById('cfQuota').value = document.getElementById('inpQuota').value;
+      
+      // Populate categories dropdown from predictor if loaded
+      const predCat = document.getElementById('inpCategory');
+      const cfCat = document.getElementById('cfCategory');
+      if (predCat && cfCat) {
+        cfCat.innerHTML = predCat.innerHTML;
+        cfCat.value = predCat.value;
+      }
+
+      // Populate quota dropdown from predictor if loaded
+      const predQuota = document.getElementById('inpQuota');
+      const cfQuota = document.getElementById('cfQuota');
+      if (predQuota && cfQuota) {
+        cfQuota.innerHTML = predQuota.innerHTML;
+        cfQuota.value = predQuota.value;
+      }
+
+      // Manage active classes (electric blue theme style)
+      tabPred.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-transparent text-[var(--ink-mute)] hover:text-[var(--ink)]";
+      tabCf.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-[var(--rust)] text-[var(--rust)]";
+      
+      viewPred.style.display = 'none';
+      viewCf.style.display = 'grid';
+
+      // Check access status for choice filling
+      checkChoiceAccessAndInit();
+    } else {
+      // Sync values from Choice Filling to Predictor
+      document.getElementById('inpRank').value = document.getElementById('cfRank').value;
+      document.getElementById('inpQuota').value = document.getElementById('cfQuota').value;
+      
+      const predCat = document.getElementById('inpCategory');
+      const cfCat = document.getElementById('cfCategory');
+      if (predCat && cfCat) {
+        predCat.value = cfCat.value;
+      }
+
+      // Manage active classes
+      tabCf.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-transparent text-[var(--ink-mute)] hover:text-[var(--ink)]";
+      tabPred.className = "px-6 py-3 font-bold text-sm transition-all border-b-2 border-[var(--rust)] text-[var(--rust)]";
+
+      viewCf.style.display = 'none';
+      viewPred.style.display = 'grid';
+      
+      // Re-apply quota restrictions if any
+      setupQuotaRestriction();
+    }
+  }
+
+  async function triggerChoicePayment() {
+    const btn = document.getElementById('cfUnlockBtn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+
+    try {
+      const order = await apiJson('/api/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ product: 'choice_filling' })
+      });
+
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Sankalp Aspirant',
+        description: 'Choice-Filling Assistant Premium Unlock',
+        order_id: order.order_id,
+        handler: async function (response) {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+          try {
+            const verifyRes = await apiJson('/api/verify-payment', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                product: 'choice_filling'
+              })
+            });
+
+            if (verifyRes.success) {
+              toast('Choice Filling Assistant successfully unlocked!', 'success');
+              const overlay = document.getElementById('cfPaywallOverlay');
+              if (overlay) overlay.style.display = 'none';
+              checkChoiceAccessAndInit();
+            } else {
+              toast('Verification failed.', 'error');
+              setChoiceUnlockButtonIdle();
+            }
+          } catch (e) {
+            toast('Payment verification failed: ' + e.message, 'error');
+            setChoiceUnlockButtonIdle();
+          }
+        },
+        prefill: { name: currentUser.displayName, email: currentUser.email },
+        theme: { color: "#0A74F5" },
+        modal: {
+          ondismiss: function () {
+            toast('Payment window closed.', 'info');
+            setChoiceUnlockButtonIdle();
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast('Failed to start checkout: ' + err.message, 'error');
+      setChoiceUnlockButtonIdle();
+    }
+  }
+
+  function setChoiceUnlockButtonIdle() {
+    const btn = document.getElementById('cfUnlockBtn');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-unlock" style="margin-right:8px;"></i> Unlock Assistant';
+    }
+  }
+
+  async function checkChoiceAccessAndInit() {
+    try {
+      const res = await apiJson('/api/choice-filling/status');
+      isChoicePaid = res.hasAccess;
+      if (isChoicePaid) {
+        const overlay = document.getElementById('cfPaywallOverlay');
+        if (overlay) overlay.style.display = 'none';
+        const banner = document.getElementById('cfLockedAccessBanner');
+        if (banner) banner.style.display = 'none';
+      }
+    } catch (err) {
+      console.warn('Failed to check choice access:', err);
+    }
+  }
+
+  function showCfPaywall() {
+    const overlay = document.getElementById('cfPaywallOverlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+
+  function dismissCfPaywall() {
+    const overlay = document.getElementById('cfPaywallOverlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = '../login.html';
+      return;
+    }
+    currentUser = user;
+    currentToken = null;
+
+    const firstName = (user.displayName || 'Student').split(' ')[0];
+    document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+    document.getElementById('sidebarEmail').textContent = user.email || '';
+
+    await checkAccessAndInit();
+  });
+</script>
+
+
+<div class="razorpay-container" style="z-index: 2147483647; position: fixed; top: 0px; display: none; left: 0px; height: 100%; width: 100%; max-height: 100dvh; backface-visibility: hidden; overflow-y: visible;"><style>@keyframes rzp-rot{to{transform: rotate(360deg);}}@-webkit-keyframes rzp-rot{to{-webkit-transform: rotate(360deg);}} .razorpay-container > iframe {min-height: 100%!important;}</style><div class="razorpay-backdrop" style="min-height: 100%; transition: 0.3s ease-out; position: fixed; top: 0px; left: 0px; width: 100%; height: 100%;"><span style="text-decoration: none; background: rgb(214, 68, 68); border: 1px dashed white; padding: 3px; opacity: 0; transform: rotate(45deg); transition: opacity 0.3s ease-in; font-family: lato, ubuntu, helvetica, sans-serif; color: white; position: absolute; width: 200px; text-align: center; right: -50px; top: 50px;">Test Mode</span></div><iframe allowtransparency="true" frameborder="0" width="100%" height="100%" src="https://api.razorpay.com/v1/checkout/public?traffic_env=production&amp;build=be1f4db996a2de2cd20612320fd08e4f52385184&amp;build_v1=da4ee3f43a28ad81dba8ed06daf899a4520c691f&amp;checkout_v2=1&amp;new_session=1&amp;rzp_device_id=1.994916e1a28741de992b3025a9d60f9012681d52.1782364535326.17302636&amp;unified_session_id=T5kGNsaHTM40mB" class="razorpay-checkout-frame" allow="otp-credentials; payment; clipboard-write; publickey-credentials-get https://api.razorpay.com; publickey-credentials-create 'self' https://api.razorpay.com; web-share; camera *; local-network-access 'none'; loopback-network 'none';" style="opacity: 1; height: 100%; position: relative; background: none; display: block; border: 0px transparent; margin: 0px; padding: 0px; z-index: 2;"></iframe></div></body></html>

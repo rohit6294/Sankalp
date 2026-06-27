@@ -575,7 +575,7 @@ router.post('/predict', verifyToken, async (req, res) => {
           grouped[key] = {
             institute: row.institute,
             program: normalizedProgramName,
-            stream: row.stream,
+            stream: (row.stream || '').replace('/JEE(Main) Seats', '').replace('(JEE(Main) Seats)', '').replace('()', '').trim(),
             college_type: row.college_type,
             seat_type: isRowTfw ? 'TFW' : 'WBJEE Seats',
             quota: row.quota,

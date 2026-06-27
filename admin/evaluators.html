@@ -66,6 +66,9 @@
     @media (max-width: 992px) {
       .counseling-admin-grid { grid-template-columns: 1fr !important; }
     }
+    #evaluatorsTabBar.sankalp-admin-hidden, #evaluatorsHeader.sankalp-admin-hidden {
+      display: none !important;
+    }
 
     @media (max-width: 700px) {
       main.main-content { padding: 72px 14px 24px !important; }
@@ -2260,8 +2263,13 @@ function switchMainTab(tab, btn) {
   const evalHeader = document.getElementById('evaluatorsHeader');
   const evalTabBar = document.getElementById('evaluatorsTabBar');
   const isSidebarTab = isStudentList || isCollegePredictor || isChoiceFilling || isPrepPortal || isCounselingBookings;
-  if (evalHeader) evalHeader.style.display = isSidebarTab ? 'none' : 'flex';
-  if (evalTabBar) evalTabBar.style.display = isSidebarTab ? 'none' : 'flex';
+  
+  if (evalHeader) {
+    evalHeader.classList.toggle('sankalp-admin-hidden', isSidebarTab);
+  }
+  if (evalTabBar) {
+    evalTabBar.classList.toggle('sankalp-admin-hidden', isSidebarTab);
+  }
 
   document.getElementById('tabExams').style.display = tab === 'exams' ? 'block' : 'none';
   document.getElementById('tabRank').style.display = tab === 'rank' ? 'block' : 'none';

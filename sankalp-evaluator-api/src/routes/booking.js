@@ -388,7 +388,7 @@ async function sendConfirmationEmails(slotId, name, email, phone, topic, priceTe
 // ── ADMIN ENDPOINTS ──
 
 // Save default settings
-router.post('/admin/settings', verifyToken, requireAdmin, async (req, res) => {
+router.post('/settings', verifyToken, requireAdmin, async (req, res) => {
   const { price, slotDuration, breakDuration } = req.body || {};
   if (price === undefined || slotDuration === undefined || breakDuration === undefined) {
     return res.status(400).json({ error: 'missing_fields' });
@@ -408,7 +408,7 @@ router.post('/admin/settings', verifyToken, requireAdmin, async (req, res) => {
 });
 
 // Load default settings
-router.get('/admin/settings', verifyToken, requireAdmin, async (req, res) => {
+router.get('/settings', verifyToken, requireAdmin, async (req, res) => {
   try {
     const doc = await db.collection('settings').doc('booking_settings').get();
     const settings = doc.exists ? doc.data() : { price: 299, slotDuration: 15, breakDuration: 10 };
@@ -419,7 +419,7 @@ router.get('/admin/settings', verifyToken, requireAdmin, async (req, res) => {
 });
 
 // Set slot availability
-router.post('/admin/set-availability', verifyToken, requireAdmin, async (req, res) => {
+router.post('/set-availability', verifyToken, requireAdmin, async (req, res) => {
   const { date, startTime, endTime, slotDuration, breakDuration, price } = req.body || {};
   if (!date || !startTime || !endTime || !slotDuration || !breakDuration || price === undefined) {
     return res.status(400).json({ error: 'missing_fields', message: 'All availability details are required.' });
@@ -458,7 +458,7 @@ router.post('/admin/set-availability', verifyToken, requireAdmin, async (req, re
 });
 
 // Get admin booking list
-router.get('/admin/list', verifyToken, requireAdmin, async (req, res) => {
+router.get('/list', verifyToken, requireAdmin, async (req, res) => {
   try {
     const snapshot = await db.collection('slots').where('status', 'in', ['booked', 'completed']).get();
     const bookings = [];
@@ -482,7 +482,7 @@ router.get('/admin/list', verifyToken, requireAdmin, async (req, res) => {
 });
 
 // Save scheduled meeting link
-router.post('/admin/schedule-link', verifyToken, requireAdmin, async (req, res) => {
+router.post('/schedule-link', verifyToken, requireAdmin, async (req, res) => {
   const { slotId, meetingLink } = req.body || {};
   if (!slotId || !meetingLink) return res.status(400).json({ error: 'missing_fields' });
 
@@ -497,7 +497,7 @@ router.post('/admin/schedule-link', verifyToken, requireAdmin, async (req, res) 
 });
 
 // Confirm meeting completed
-router.post('/admin/mark-done', verifyToken, requireAdmin, async (req, res) => {
+router.post('/mark-done', verifyToken, requireAdmin, async (req, res) => {
   const { slotId } = req.body || {};
   if (!slotId) return res.status(400).json({ error: 'missing_slotId' });
 
@@ -512,7 +512,7 @@ router.post('/admin/mark-done', verifyToken, requireAdmin, async (req, res) => {
 });
 
 // Reschedule slot (release old and set new slot time)
-router.post('/admin/reschedule', verifyToken, requireAdmin, async (req, res) => {
+router.post('/reschedule', verifyToken, requireAdmin, async (req, res) => {
   const { slotId } = req.body || {};
   if (!slotId) return res.status(400).json({ error: 'missing_slotId' });
 

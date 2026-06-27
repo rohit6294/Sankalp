@@ -76,6 +76,7 @@ app.use('/api/notes', notesRouter);
 app.use('/api/tests', testsRouter);
 app.use('/api/prep', prepRouter);
 app.use('/api/booking', bookingRouter);
+app.use('/api/admin/booking', bookingRouter);
 
 // Student-accessible settings: any authenticated user can read mandatory fields
 app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {

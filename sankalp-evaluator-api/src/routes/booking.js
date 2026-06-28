@@ -204,7 +204,9 @@ router.post('/lock-slot', verifyToken, async (req, res) => {
     });
 
   } catch (e) {
-    res.status(409).json({ error: 'lock_failed', message: e.message });
+    const errorMsg = (e.error && e.error.description) ? e.error.description : e.message;
+    console.error('Lock slot error:', e);
+    res.status(409).json({ error: 'lock_failed', message: errorMsg || 'Unknown error occurred during lock slot.' });
   }
 });
 

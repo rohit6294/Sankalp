@@ -1493,7 +1493,7 @@
     </div>
 
     <!-- Analytics View -->
-    <div id="prepAdminView-analytics" class="glass" style="padding:24px;">
+    <div id="prepAdminView-analytics" class="predictor-panel-card" style="padding:24px;">
       <h3 style="font-size:14px; font-weight:700; margin-bottom:16px; text-transform:uppercase;">Student Completion Analytics</h3>
       <div style="overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
@@ -1518,7 +1518,7 @@
     <div id="prepAdminView-manager" style="display:none; grid-template-columns: 1fr 340px; gap:24px; align-items:start;" class="max-[900px]:grid-cols-1">
       
       <!-- Left: Chapters list -->
-      <div class="glass" style="padding:24px; overflow:hidden;">
+      <div class="predictor-panel-card" style="padding:24px; overflow:hidden;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
           <h3 style="font-size:14px; font-weight:700; text-transform:uppercase;">Chapters List</h3>
           <div style="display:flex; gap:8px;">
@@ -1552,7 +1552,7 @@
       </div>
 
       <!-- Right: Add Chapter Form -->
-      <div class="glass" style="padding:24px;">
+      <div class="predictor-panel-card" style="padding:24px;">
         <h3 style="font-size:14px; font-weight:700; margin-bottom:16px; text-transform:uppercase;">Add New Chapter</h3>
         <form id="prepAdminAddForm" onsubmit="handlePrepAdminAdd(event)" style="display:flex; flex-direction:column; gap:12px;">
           <div>
@@ -1889,7 +1889,7 @@
 
     <div class="counseling-admin-grid">
       <!-- Left: Configure Availability -->
-      <div class="glass" style="padding:20px;">
+      <div class="predictor-panel-card" style="padding:20px;">
         <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-calendar-plus" style="color:var(--rust)"></i> Set Availability</h2>
         <form id="availabilityForm" onsubmit="saveAvailability(event)" style="display:flex; flex-direction:column; gap:12px;">
           <div>
@@ -1950,7 +1950,7 @@
       </div>
 
       <!-- Right: Bookings Log -->
-      <div class="glass" style="padding:24px; min-height:400px; display:flex; flex-direction:column;">
+      <div class="predictor-panel-card" style="padding:24px; min-height:400px; display:flex; flex-direction:column;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
           <h2 style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;"><i class="fas fa-list-ul"></i> Slots & Appointments</h2>
           <div style="display:flex; gap:6px; background:var(--paper-soft); padding:4px; border-radius:6px; border:1px solid var(--rule);">
@@ -1988,7 +1988,7 @@
 
   <!-- Modal for GMeet Link Scheduler -->
   <div id="scheduleMeetModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center;">
-    <div class="glass" style="max-width:460px; width:100%; padding:24px; background:var(--paper-deep);">
+    <div class="predictor-panel-card" style="max-width:460px; width:100%; padding:24px; background:var(--paper-deep);">
       <h2 style="font-size:18px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-video" style="color:#22C55E"></i> Schedule Google Meet</h2>
       <form id="scheduleMeetForm" onsubmit="saveMeetLink(event)" style="display:flex; flex-direction:column; gap:14px;">
         <input type="hidden" id="scheduleSlotId">

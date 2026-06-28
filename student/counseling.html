@@ -30,9 +30,53 @@
     @media (max-width: 1200px) {
       .counseling-grid { grid-template-columns: minmax(0, 1fr) !important; }
     }
+    
+    /* Predictor styling components (to match choice-filling/predictor pages) */
+    .predictor-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    
+    @media(min-width: 1024px) {
+      .predictor-grid {
+        grid-template-columns: 1fr 380px;
+      }
+    }
+    
+    .predictor-card {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      transition: all 0.3s ease;
+    }
+    
+    .predictor-card:hover {
+      border-color: var(--rust);
+      box-shadow: 0 8px 24px rgba(10, 116, 245, 0.08);
+    }
+    
+    .predictor-input {
+      width: 100%;
+      background: var(--paper-soft);
+      border: 1px solid #CBD5E1;
+      color: var(--ink);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    
+    .predictor-input:focus {
+      border-color: var(--rust);
+      box-shadow: 0 0 0 3px rgba(10, 116, 245, 0.15);
+    }
   </style>
 </head>
-<body>
+<body class="bg-[var(--paper-deep)] text-[var(--ink)] font-sans">
 
 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -76,7 +120,7 @@
   </div>
 
   <!-- My Bookings Section -->
-  <div class="glass-card p-6 mb-8" id="myBookingsCard" style="display:none;">
+  <div class="predictor-card mb-8" id="myBookingsCard" style="display:none;">
     <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink);display:flex;align-items:center;gap:8px;">
       <i class="fas fa-history" style="color:var(--rust);"></i> My Bookings
     </h2>
@@ -85,11 +129,11 @@
     </div>
   </div>
 
-  <div class="counseling-grid" id="mainGrid">
+  <div class="predictor-grid" id="mainGrid">
     <!-- Left: Booking Form -->
     <div>
       <!-- Counseling Banner -->
-      <div class="glass-card p-6 mb-6" style="background:linear-gradient(135deg,rgba(201,78,31,0.1),rgba(201,78,31,0.03)); border-left: 4px solid var(--rust);">
+      <div class="predictor-card mb-6" style="background:linear-gradient(135deg,rgba(201,78,31,0.1),rgba(201,78,31,0.03)); border-left: 4px solid var(--rust);">
         <div style="display:flex;align-items:center;gap:18px;">
           <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--rust),#A63F17);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 8px 24px rgba(201,78,31,0.3);">
             <i class="fas fa-video" style="color:var(--paper);"></i>
@@ -102,7 +146,7 @@
       </div>
 
       <!-- Choose Counseling Topic -->
-      <div class="glass-card p-6 mb-6">
+      <div class="predictor-card mb-6">
         <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--ink);">Choose Counseling Topic</h2>
         <div style="display:grid;grid-template-columns:1fr;gap:12px" id="sessionTypes">
           <div class="session-type selected" onclick="selectTopic(this, 'Counselling support')">
@@ -124,13 +168,13 @@
       </div>
 
       <!-- Date Selection -->
-      <div class="glass-card p-6 mb-6">
+      <div class="predictor-card mb-6">
         <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--ink);">Select Date</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap" id="dayBtns"></div>
       </div>
 
       <!-- Time Slots -->
-      <div class="glass-card p-6 mb-6" id="slotsSection">
+      <div class="predictor-card mb-6" id="slotsSection">
         <h2 style="font-size:16px;font-weight:700;margin-bottom:6px;color:var(--ink);">Available Time Slots</h2>
         <p id="selectedDayLabel" style="font-size:13px;color:var(--ink-mute);margin-bottom:16px">Select a date to see available slots</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px" id="slotsGrid">
@@ -142,14 +186,14 @@
       </div>
 
       <!-- Details Form -->
-      <div class="glass-card p-6 mb-6" id="detailsForm">
+      <div class="predictor-card mb-6" id="detailsForm">
         <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--ink);">Your Contact Details</h2>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div>
             <label style="font-size:13px;font-weight:500;color:var(--ink-soft);display:block;margin-bottom:6px">WhatsApp Phone Number</label>
             <div style="position:relative">
-              <i class="fab fa-whatsapp" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#22C55E;font-size:16px"></i>
-              <input type="tel" id="phoneInput" class="input-field" placeholder="10-digit WhatsApp Number" style="padding-left:40px">
+              <i class="fab fa-whatsapp" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#22C55E;font-size:16px;z-index:10;"></i>
+              <input type="tel" id="phoneInput" class="predictor-input" placeholder="10-digit WhatsApp Number" style="padding-left:40px">
             </div>
             <div class="warning-box">
               <i class="fas fa-exclamation-triangle"></i> <strong>WARNING:</strong> Please make sure this is your active WhatsApp number. Meeting links will be shared only on this number!
@@ -158,8 +202,8 @@
           <div>
             <label style="font-size:13px;font-weight:500;color:var(--ink-soft);display:block;margin-bottom:6px">Email Address</label>
             <div style="position:relative">
-              <i class="fas fa-envelope" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-soft);font-size:13px"></i>
-              <input type="email" id="emailInput" class="input-field" placeholder="student@example.com" style="padding-left:40px">
+              <i class="fas fa-envelope" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-soft);font-size:13px;z-index:10;"></i>
+              <input type="email" id="emailInput" class="predictor-input" placeholder="student@example.com" style="padding-left:40px">
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -180,7 +224,7 @@
     <!-- Right: Summary -->
     <div style="position:sticky;top:24px">
       <!-- Booking Summary -->
-      <div class="glass-card p-6 mb-6" style="background:var(--paper-soft);border:1px solid var(--rule)">
+      <div class="predictor-card mb-6" style="background:var(--paper-soft);border:1px solid var(--rule)">
         <h2 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--ink);">Booking Summary</h2>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;justify-content:space-between;font-size:14px">
@@ -204,7 +248,7 @@
       </div>
 
       <!-- Instructions -->
-      <div class="glass-card p-6 mb-6">
+      <div class="predictor-card mb-6">
         <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--ink);">Instructions</h3>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;gap:10px;align-items:flex-start">
@@ -231,7 +275,7 @@
 
 <!-- Success Modal -->
 <div id="successModal" style="display:none;position:fixed;inset:0;background:rgba(26,20,16,0.8);z-index:100;align-items:center;justify-content:center;padding:24px">
-  <div class="glass-card p-10" style="max-width:440px;width:100%;text-align:center;background:var(--paper);">
+  <div class="predictor-card p-10" style="max-width:440px;width:100%;text-align:center;">
     <div style="width:72px;height:72px;border-radius:20px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px">✅</div>
     <h2 style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:8px;color:var(--ink);">Booking Confirmed!</h2>
     <p style="color:var(--ink-soft);font-size:14px;margin-bottom:20px">Your counseling session has been scheduled. You will receive the Google Meet link on your WhatsApp number shortly.</p>

@@ -115,6 +115,37 @@ router.get('/slots', verifyToken, async (req, res) => {
   }
 });
 
+// Fetch student's own bookings
+router.get('/my-bookings', verifyToken, async (req, res) => {
+  try {
+    const snapshot = await db.collection('slots')
+      .where('bookedBy', '==', req.user.uid)
+      .where('status', '==', 'booked')
+      .get();
+      
+    const bookings = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      bookings.push({
+        id: doc.id,
+        date: data.date,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        topic: data.topic,
+        meetLink: data.meetLink || '',
+        price: data.price || 0,
+        bookedAt: data.bookedAt ? data.bookedAt.toDate().toISOString() : null
+      });
+    });
+
+    bookings.sort((a, b) => new Date(b.date) - new Date(a.date)); // Most recent first
+
+    res.json({ ok: true, bookings });
+  } catch (e) {
+    console.error('Error fetching student bookings:', e);
+    res.status(500).json({ error: 'failed_to_fetch_bookings', message: e.message });
+  }
+});
 // Lock a slot and initiate order creation
 router.post('/lock-slot', verifyToken, async (req, res) => {
   const { slotId, topic, phone, email } = req.body || {};

@@ -72,7 +72,17 @@
 <main class="main-content" style="padding:32px">
   <div style="margin-bottom:32px">
     <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">1-on-1 Counseling 🎯</h1>
-    <p style="color:#475569;font-size:14px;margin-top:4px">Book a personalized slot with your mentor</p>
+    <p style="color:var(--ink-mute);font-size:14px;margin-top:4px">Book a personalized slot with your mentor</p>
+  </div>
+
+  <!-- My Bookings Section -->
+  <div class="glass-card p-6 mb-8" id="myBookingsCard" style="display:none;">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink);display:flex;align-items:center;gap:8px;">
+      <i class="fas fa-history" style="color:var(--rust);"></i> My Bookings
+    </h2>
+    <div id="myBookingsList" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="text-align:center;color:var(--ink-mute);padding:16px;"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</div>
+    </div>
   </div>
 
   <div class="counseling-grid" id="mainGrid">
@@ -226,7 +236,7 @@
     <h2 style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:8px;color:var(--ink);">Booking Confirmed!</h2>
     <p style="color:var(--ink-soft);font-size:14px;margin-bottom:20px">Your counseling session has been scheduled. You will receive the Google Meet link on your WhatsApp number shortly.</p>
     <div id="successDetails" style="background:var(--paper-soft);border:1px solid var(--rule);border-radius:12px;padding:16px;text-align:left;margin-bottom:20px;font-size:13px;display:flex;flex-direction:column;gap:8px;color:var(--ink);"></div>
-    <a href="dashboard.html" class="btn-rust" style="width:100%;justify-content:center;padding:14px"><i class="fas fa-home"></i> Back to Dashboard</a>
+    <button onclick="window.location.reload()" class="btn-rust" style="width:100%;justify-content:center;padding:14px"><i class="fas fa-check"></i> Done</button>
   </div>
 </div>
 
@@ -447,14 +457,50 @@
     }
   }
 
+  async function loadMyBookings() {
+    const list = document.getElementById('myBookingsList');
+    try {
+      const res = await apiFetch('/api/booking/my-bookings');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch bookings');
+
+      if (!data.bookings || data.bookings.length === 0) {
+        document.getElementById('myBookingsCard').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('myBookingsCard').style.display = 'block';
+      list.innerHTML = data.bookings.map(b => {
+        let meetHtml = b.meetLink 
+          ? `<a href="${b.meetLink}" target="_blank" class="btn-primary" style="padding:6px 12px;font-size:12px;background:var(--forest);border-color:var(--forest)"><i class="fas fa-video"></i> Join Meet</a>` 
+          : `<span style="font-size:12px;color:var(--ink-mute);"><i class="fas fa-clock"></i> Link pending</span>`;
+
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--paper);border:1px solid var(--rule);padding:14px;border-radius:10px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-weight:700;color:var(--ink);font-size:14px;margin-bottom:2px">${b.topic}</div>
+              <div style="font-size:12px;color:var(--ink-soft);"><i class="fas fa-calendar-day"></i> ${b.date} &nbsp;|&nbsp; <i class="fas fa-clock"></i> ${b.startTime} - ${b.endTime}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-size:13px;font-weight:600;color:var(--rust);">${b.price > 0 ? `₹${b.price}` : 'Free'}</div>
+              ${meetHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      list.innerHTML = `<div style="color:var(--rust);padding:12px;"><i class="fas fa-exclamation-triangle"></i> Error loading your bookings: ${e.message}</div>`;
+    }
+  }
+
   function showSuccessModal(slotId, topic, phone) {
     const [date, time] = slotId.split('_');
     const details = document.getElementById('successDetails');
     details.innerHTML = `
-      <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Topic:</span><span style="font-weight:600">${topic}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Date:</span><span style="font-weight:600">${date}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:#64748B">Time:</span><span style="font-weight:600">${time}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:#64748B">WhatsApp Number:</span><span style="font-weight:600">${phone}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-soft);">Topic:</span><span style="font-weight:600">${topic}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-soft);">Date:</span><span style="font-weight:600">${date}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-soft);">Time:</span><span style="font-weight:600">${time}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-soft);">WhatsApp Number:</span><span style="font-weight:600">${phone}</span></div>
     `;
     document.getElementById('successModal').style.display = 'flex';
   }
@@ -465,6 +511,8 @@
     if (!user) { window.location.href = '../login.html'; return; }
     currentUser = user;
     currentToken = await user.getIdToken();
+
+    loadMyBookings();
 
     const firstName = (user.displayName || 'Student').split(' ')[0];
     document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();

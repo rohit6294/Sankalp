@@ -11,8 +11,8 @@ let razorpay = null;
 let razorpayKeyId = null;
 
 function getRazorpayInstance() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
   if (!keyId || !keySecret) {
     throw new Error('Razorpay credentials not set in environment.');
   }
@@ -200,7 +200,7 @@ router.post('/lock-slot', verifyToken, async (req, res) => {
       order_id: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      key_id: process.env.RAZORPAY_KEY_ID
+      key_id: (process.env.RAZORPAY_KEY_ID || '').trim()
     });
 
   } catch (e) {

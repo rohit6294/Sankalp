@@ -567,9 +567,43 @@ router.post('/schedule-link', verifyToken, requireAdmin, async (req, res) => {
   if (!slotId || !meetingLink) return res.status(400).json({ error: 'missing_fields' });
 
   try {
-    await db.collection('slots').doc(slotId).update({
+    const docRef = db.collection('slots').doc(slotId);
+    const doc = await docRef.get();
+    if (!doc.exists) throw new Error('Slot not found.');
+    
+    await docRef.update({
       meetingLink: String(meetingLink).trim()
     });
+
+    const data = doc.data();
+    if (data.studentEmail) {
+      const studentHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 8px;">
+          <h2 style="color: #22C55E; margin-top: 0;">Your Google Meet Link is Ready 📹</h2>
+          <p>Hello ${data.studentName || 'Student'},</p>
+          <p>Your counselor has uploaded the meeting link for your upcoming session.</p>
+          
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 8px; margin: 20px 0;">
+            <ul style="margin: 0; padding-left: 20px; color: #475569;">
+              <li><strong>Topic:</strong> ${data.topic}</li>
+              <li><strong>Date:</strong> ${data.date}</li>
+              <li><strong>Time:</strong> ${data.startTime} - ${data.endTime}</li>
+              <li><strong>Meeting Link:</strong> <a href="${meetingLink}" target="_blank" style="color: #4F46E5; text-decoration: none;"><strong>Join Here</strong></a></li>
+            </ul>
+          </div>
+
+          <p style="color: #EF4444; font-size: 13px;"><strong>Reminder:</strong> Please join 2 minutes early. The session will end exactly on time.</p>
+          <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 25px 0;">
+          <p style="font-size: 12px; color: #777777; margin-bottom: 0;">See you soon,<br><strong>Sankalp Team</strong></p>
+        </div>
+      `;
+      sendEmail({
+        to: data.studentEmail,
+        subject: `Your Google Meet Link - ${data.topic}`,
+        html: studentHtml
+      }).catch(console.error);
+    }
+
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'failed_to_save_link', message: e.message });

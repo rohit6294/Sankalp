@@ -182,7 +182,7 @@ router.post('/lock-slot', verifyToken, async (req, res) => {
     // Create Razorpay Order
     const rzp = getRazorpayInstance();
     const amountPaise = Math.round(finalPrice * 100);
-    const receiptId = `receipt_book_${slotId.substring(0, 15)}_${Date.now()}`;
+    const receiptId = `bk_${slotId.substring(0, 12)}_${Date.now()}`;
     
     razorpayOrder = await rzp.orders.create({
       amount: amountPaise,

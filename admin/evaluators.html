@@ -6495,6 +6495,49 @@ function renderBookingsTable() {
         </tr>
       `;
     }).join('');
+  } else {
+    // Available slots view
+    tbody.innerHTML = filtered.map(b => {
+      const isLocked = b.status === 'locked';
+      const statusColor = isLocked ? '#F59E0B' : '#10B981';
+      const statusText = isLocked ? 'Locked (Checkout)' : 'Available';
+      
+      let lockDetails = '-';
+      if (isLocked && b.lockedAt) {
+        let lDate = new Date(b.lockedAt._seconds * 1000).toLocaleTimeString();
+        lockDetails = `By: ${b.lockedBy || '?'}<br><span style="font-size:10px; color:var(--ink-mute);">At: ${lDate}</span>`;
+      }
+      
+      return `
+        <tr data-id="${b.id}">
+          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
+            ${b.date}<br>
+            <span style="font-size:11px; color:var(--ink-soft);">${b.startTime} - ${b.endTime}</span>
+          </td>
+          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
+            ₹${b.price || 0}
+          </td>
+          <td style="padding:14px 20px; font-size:12px;">
+            <span style="background:rgba(${isLocked ? '245,158,11' : '16,185,129'},0.15); color:${statusColor}; font-weight:600; padding:2px 8px; border-radius:100px;">
+              ${statusText}
+            </span>
+          </td>
+          <td style="padding:14px 20px; font-size:12px;">
+            ${lockDetails}
+          </td>
+          <td style="padding:14px 20px;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn-ghost btn-sm" onclick="editAvailableSlot('${b.id}', ${b.price}, '${b.startTime}', '${b.endTime}')" style="padding:4px 8px;">
+                <i class="fas fa-edit" style="color:#3B82F6"></i> Edit
+              </button>
+              <button class="btn-ghost btn-sm" onclick="deleteAvailableSlot('${b.id}')" style="padding:4px 8px;">
+                <i class="fas fa-trash" style="color:#EF4444"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 }
 
@@ -6566,53 +6609,6 @@ async function loadFeedbacks() {
         </td>
       </tr>
     `;
-  }
-}
-
-
-  } else {
-    // Available slots view
-    tbody.innerHTML = filtered.map(b => {
-      const isLocked = b.status === 'locked';
-      const statusColor = isLocked ? '#F59E0B' : '#10B981';
-      const statusText = isLocked ? 'Locked (Checkout)' : 'Available';
-      
-      let lockDetails = '-';
-      if (isLocked && b.lockedAt) {
-        let lDate = new Date(b.lockedAt._seconds * 1000).toLocaleTimeString();
-        lockDetails = `By: ${b.lockedBy || '?'}<br><span style="font-size:10px; color:var(--ink-mute);">At: ${lDate}</span>`;
-      }
-      
-      return `
-        <tr data-id="${b.id}">
-          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
-            ${b.date}<br>
-            <span style="font-size:11px; color:var(--ink-soft);">${b.startTime} - ${b.endTime}</span>
-          </td>
-          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
-            ₹${b.price || 0}
-          </td>
-          <td style="padding:14px 20px; font-size:12px;">
-            <span style="background:rgba(${isLocked ? '245,158,11' : '16,185,129'},0.15); color:${statusColor}; font-weight:600; padding:2px 8px; border-radius:100px;">
-              ${statusText}
-            </span>
-          </td>
-          <td style="padding:14px 20px; font-size:12px;">
-            ${lockDetails}
-          </td>
-          <td style="padding:14px 20px;">
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button class="btn-ghost btn-sm" onclick="editAvailableSlot('${b.id}', ${b.price}, '${b.startTime}', '${b.endTime}')" style="padding:4px 8px;">
-                <i class="fas fa-edit" style="color:#3B82F6"></i> Edit
-              </button>
-              <button class="btn-ghost btn-sm" onclick="deleteAvailableSlot('${b.id}')" style="padding:4px 8px;">
-                <i class="fas fa-trash" style="color:#EF4444"></i> Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
   }
 }
 

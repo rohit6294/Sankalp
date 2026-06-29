@@ -481,7 +481,11 @@ router.get('/predict', verifyToken, async (req, res) => {
 
         // Seat Type Filter: Specific, or All
         if (seatType && seatType !== 'All') {
-          if (item.seat_type !== seatType) return;
+          if (seatType === 'WBJEE Seats') {
+            if (item.seat_type !== 'WBJEE Seats' && item.seat_type !== 'TFW') return;
+          } else {
+            if (item.seat_type !== seatType) return;
+          }
         }
 
         // Quota Filter: Specific, or All

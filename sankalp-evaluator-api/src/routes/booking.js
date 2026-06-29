@@ -120,7 +120,7 @@ router.get('/my-bookings', verifyToken, async (req, res) => {
   try {
     const snapshot = await db.collection('slots')
       .where('bookedBy', '==', req.user.uid)
-      .where('status', '==', 'booked')
+      .where('status', 'in', ['booked', 'completed'])
       .get();
       
     const bookings = [];
@@ -134,6 +134,8 @@ router.get('/my-bookings', verifyToken, async (req, res) => {
         topic: data.topic,
         meetLink: data.meetLink || '',
         price: data.price || 0,
+        status: data.status,
+        feedback: data.feedback || null,
         bookedAt: data.bookedAt ? data.bookedAt.toDate().toISOString() : null
       });
     });
@@ -336,9 +338,9 @@ async function sendConfirmationEmails(slotId, name, email, phone, topic, priceTe
 
   const studentHtml = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 8px;">
-      <h2 style="color: #C94E1F; margin-top: 0;">Counseling Slot Booked! 🎯</h2>
+      <h2 style="color: #C94E1F; margin-top: 0;">Counselling Slot Booked! 🎯</h2>
       <p>Hello ${name},</p>
-      <p>Your payment of <strong>${priceText}</strong> has been verified. Your 1-on-1 counseling slot is confirmed!</p>
+      <p>Your payment of <strong>${priceText}</strong> has been verified. Your 1-on-1 counselling slot is confirmed!</p>
       
       <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 8px; margin: 20px 0;">
         <h4 style="margin: 0 0 8px 0; color: #1E293B;">Booking Details:</h4>
@@ -361,13 +363,13 @@ async function sendConfirmationEmails(slotId, name, email, phone, topic, priceTe
       </ol>
 
       <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 25px 0;">
-      <p style="font-size: 12px; color: #777777; margin-bottom: 0;">Good luck with your counseling plans,<br><strong>Sankalp Team</strong></p>
+      <p style="font-size: 12px; color: #777777; margin-bottom: 0;">Good luck with your counselling plans,<br><strong>Sankalp Team</strong></p>
     </div>
   `;
 
   await sendEmail({
     to: email,
-    subject: `1-on-1 Counseling Booking Confirmed - ${topic}`,
+    subject: `1-on-1 Counselling Booking Confirmed - ${topic}`,
     html: studentHtml
   }).catch(console.error);
 
@@ -385,7 +387,7 @@ async function sendConfirmationEmails(slotId, name, email, phone, topic, priceTe
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 8px;">
       <h2 style="color: #4F46E5; margin-top: 0;">New 1-on-1 Session Booked 👨‍🏫</h2>
       <p>Hello Admin,</p>
-      <p>A student has successfully booked and paid for a counseling slot.</p>
+      <p>A student has successfully booked and paid for a counselling slot.</p>
       
       <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 8px; margin: 20px 0;">
         <h4 style="margin: 0 0 8px 0; color: #1E293B;">Student Details:</h4>
@@ -413,7 +415,7 @@ async function sendConfirmationEmails(slotId, name, email, phone, topic, priceTe
 
   await sendEmail({
     to: adminEmail,
-    subject: `New Counseling Booking - ${name} (${timePart})`,
+    subject: `New Counselling Booking - ${name} (${timePart})`,
     html: adminHtml
   }).catch(console.error);
 }
@@ -646,6 +648,75 @@ router.post('/reschedule', verifyToken, requireAdmin, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'failed_to_reschedule', message: e.message });
+  }
+});
+
+// Submit feedback for a completed session
+router.post('/feedback', verifyToken, async (req, res) => {
+  const { slotId, rating, comment } = req.body || {};
+  if (!slotId || rating === undefined) {
+    return res.status(400).json({ error: 'missing_fields', message: 'Slot ID and rating are required.' });
+  }
+
+  try {
+    const slotRef = db.collection('slots').doc(slotId);
+    const slotDoc = await slotRef.get();
+    if (!slotDoc.exists) {
+      return res.status(404).json({ error: 'not_found', message: 'Session not found.' });
+    }
+
+    const data = slotDoc.data();
+    if (data.bookedBy !== req.user.uid) {
+      return res.status(403).json({ error: 'unauthorized', message: 'You can only leave feedback for your own sessions.' });
+    }
+    if (data.status !== 'completed') {
+      return res.status(400).json({ error: 'invalid_status', message: 'You can only leave feedback for completed sessions.' });
+    }
+
+    await slotRef.update({
+      feedback: {
+        rating: Number(rating),
+        comment: String(comment || '').trim(),
+        submittedAt: admin.firestore.FieldValue.serverTimestamp()
+      }
+    });
+
+    res.json({ ok: true, message: 'Feedback submitted successfully.' });
+  } catch (e) {
+    res.status(500).json({ error: 'feedback_failed', message: e.message });
+  }
+});
+
+// Fetch all feedbacks (Admin only)
+router.get('/feedbacks', verifyToken, requireAdmin, async (req, res) => {
+  try {
+    // Get all slots that have feedback
+    const snapshot = await db.collection('slots')
+      .orderBy('feedback.submittedAt', 'desc')
+      .get();
+
+    const feedbacks = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.feedback) {
+        feedbacks.push({
+          slotId: doc.id,
+          date: data.date,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          studentName: data.studentName,
+          studentEmail: data.studentEmail,
+          topic: data.topic,
+          rating: data.feedback.rating,
+          comment: data.feedback.comment,
+          submittedAt: data.feedback.submittedAt ? data.feedback.submittedAt.toDate().toISOString() : null
+        });
+      }
+    });
+
+    res.json({ ok: true, feedbacks });
+  } catch (e) {
+    res.status(500).json({ error: 'failed_to_fetch_feedbacks', message: e.message });
   }
 });
 

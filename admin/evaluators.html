@@ -62,11 +62,11 @@
     .badge-sub-warning { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
     .sub-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .sub-detail-card { border: 1px solid var(--rule); background: var(--paper-deep); padding: 14px; border-radius: 4px; }
-    .counseling-admin-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
-    .counseling-admin-grid > * { min-width: 0; min-height: 0; }
+    .counselling-admin-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .counselling-admin-grid > * { min-width: 0; min-height: 0; }
     .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     @media (max-width: 1200px) {
-      .counseling-admin-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      .counselling-admin-grid { grid-template-columns: minmax(0, 1fr) !important; }
     }
     @media (max-width: 500px) {
       .admin-form-grid { grid-template-columns: 1fr !important; }
@@ -182,7 +182,7 @@
     <a href="#" class="sidebar-link" id="sidebarCollegePredictorBtn" onclick="switchMainTab('collegePredictor', this); return false;"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
     <a href="#" class="sidebar-link" id="sidebarChoiceFillingBtn" onclick="switchMainTab('choiceFilling', this); return false;"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling Tool</a>
     <a href="#" class="sidebar-link" id="sidebarPrepPortalBtn" onclick="switchMainTab('prepPortal', this); return false;"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal Admin</a>
-    <a href="#" class="sidebar-link" id="sidebarCounselingBtn" onclick="switchMainTab('counselingBookings', this); return false;"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counseling</a>
+    <a href="#" class="sidebar-link" id="sidebarCounsellingBtn" onclick="switchMainTab('counsellingBookings', this); return false;"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counselling</a>
     <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
     <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
   </nav>
@@ -1245,7 +1245,7 @@
   <div id="tabChoiceFilling" style="display:none;">
     <div style="margin-bottom:24px;">
       <h1 class="display-lg">Choice-Filling Preference Assistant</h1>
-      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Test and generate optimized college counseling preference lists</p>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Test and generate optimized college counselling preference lists</p>
     </div>
     <div id="cfTabBar" class="predictor-subtabs" style="display:flex; gap:8px; margin-bottom:24px; margin-top:24px;">
       <button class="tab-btn predictor-subtab-btn active" id="btnCfTool" onclick="changeCfSubView('tool')"><i class="fas fa-search" style="margin-right:6px;"></i> Testing Tool</button>
@@ -1455,7 +1455,7 @@
           <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
             <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
               <input type="checkbox" id="adminCfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;">
-              <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in counseling rounds fluctuate, so admission to any specific college is not guaranteed.</span>
+              <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in counselling rounds fluctuate, so admission to any specific college is not guaranteed.</span>
             </label>
           </div>
 
@@ -1471,7 +1471,7 @@
           <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
             <i class="fa-solid fa-list-check" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
             <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Choice List Generated</h4>
-            <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select criteria, rank, and branches, and click Generate to test the optimized counseling choice list.</p>
+            <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select criteria, rank, and branches, and click Generate to test the optimized counselling choice list.</p>
           </div>
         </div>
       </div>
@@ -1881,13 +1881,13 @@
   </div>
 
   <!-- ===== 1-ON-1 COUNSELING BOOKINGS TAB ===== -->
-  <div id="tabCounselingBookings" style="display:none;">
+  <div id="tabCounsellingBookings" style="display:none;">
     <div style="margin-bottom:24px;">
-      <h1 class="display-lg">1-on-1 Counseling Manager 🎯</h1>
+      <h1 class="display-lg">1-on-1 Counselling Manager 🎯</h1>
       <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Manage counselor availability slots and scheduled student sessions.</p>
     </div>
 
-    <div class="counseling-admin-grid">
+    <div class="counselling-admin-grid">
       <!-- Left: Configure Availability -->
       <div class="predictor-panel-card" style="padding:20px;">
         <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-calendar-plus" style="color:var(--rust)"></i> Set Availability</h2>
@@ -1953,9 +1953,11 @@
       <div class="predictor-panel-card" style="padding:24px; min-height:400px; display:flex; flex-direction:column;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
           <h2 style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;"><i class="fas fa-list-ul"></i> Slots & Appointments</h2>
-          <div style="display:flex; gap:6px; background:var(--paper-soft); padding:4px; border-radius:6px; border:1px solid var(--rule);">
+          <div style="display:flex; gap:6px; background:var(--paper-soft); padding:4px; border-radius:6px; border:1px solid var(--rule); flex-wrap:wrap;">
             <button class="btn-ghost btn-sm" id="btnFilterScheduled" onclick="setBookingFilter('scheduled')" style="background:var(--ink); color:var(--paper);">Scheduled</button>
+            <button class="btn-ghost btn-sm" id="btnFilterCompleted" onclick="setBookingFilter('completed')">Completed</button>
             <button class="btn-ghost btn-sm" id="btnFilterAvailable" onclick="setBookingFilter('available')">Available</button>
+            <button class="btn-ghost btn-sm" id="btnFilterFeedbacks" onclick="setBookingFilter('feedbacks')">Feedbacks</button>
           </div>
         </div>
         
@@ -2131,7 +2133,7 @@ function permissionForMainTab(tab) {
   if (tab === 'collegePredictor') return { section: 'collegePredictor', action: 'view' };
   if (tab === 'settings') return { section: 'settings', action: 'view' };
   if (tab === 'prepPortal') return { section: 'evaluators', action: 'view' };
-  if (tab === 'counselingBookings') return { section: 'evaluators', action: 'view' };
+  if (tab === 'counsellingBookings') return { section: 'evaluators', action: 'view' };
   return { section: 'evaluators', action: 'view' };
 }
 
@@ -2254,7 +2256,7 @@ function switchMainTab(tab, btn) {
   const isCollegePredictor = tab === 'collegePredictor';
   const isChoiceFilling = tab === 'choiceFilling';
   const isPrepPortal = tab === 'prepPortal';
-  const isCounselingBookings = tab === 'counselingBookings';
+  const isCounsellingBookings = tab === 'counsellingBookings';
 
   // Auto-close sidebar on mobile after clicking a sidebar link
   if (window.innerWidth <= 1000) {
@@ -2276,8 +2278,8 @@ function switchMainTab(tab, btn) {
     document.getElementById('sidebarChoiceFillingBtn').classList.add('active');
   } else if (isPrepPortal) {
     document.getElementById('sidebarPrepPortalBtn').classList.add('active');
-  } else if (isCounselingBookings) {
-    document.getElementById('sidebarCounselingBtn').classList.add('active');
+  } else if (isCounsellingBookings) {
+    document.getElementById('sidebarCounsellingBtn').classList.add('active');
   } else {
     document.querySelector('.sidebar-link[href="evaluators.html"]')?.classList.add('active');
     document.querySelectorAll('[data-tab]').forEach((node) => node.classList.remove('active'));
@@ -2288,7 +2290,7 @@ function switchMainTab(tab, btn) {
   // Show/hide the evaluator header, tabs, and tab panels
   const evalHeader = document.getElementById('evaluatorsHeader');
   const evalTabBar = document.getElementById('evaluatorsTabBar');
-  const isSidebarTab = isStudentList || isCollegePredictor || isChoiceFilling || isPrepPortal || isCounselingBookings;
+  const isSidebarTab = isStudentList || isCollegePredictor || isChoiceFilling || isPrepPortal || isCounsellingBookings;
   
   if (evalHeader) {
     evalHeader.classList.toggle('sankalp-admin-hidden', isSidebarTab);
@@ -2305,13 +2307,13 @@ function switchMainTab(tab, btn) {
   document.getElementById('tabCollegePredictor').style.display = isCollegePredictor ? 'block' : 'none';
   document.getElementById('tabChoiceFilling').style.display = isChoiceFilling ? 'block' : 'none';
   document.getElementById('tabPrepPortal').style.display = isPrepPortal ? 'block' : 'none';
-  document.getElementById('tabCounselingBookings').style.display = isCounselingBookings ? 'block' : 'none';
+  document.getElementById('tabCounsellingBookings').style.display = isCounsellingBookings ? 'block' : 'none';
 
   if (tab === 'submissions') loadSubmissions();
   if (isStudentList && !slStudentsLoaded) loadStudentList();
   if (isCollegePredictor || isChoiceFilling) loadPredictorDashboard();
   if (isPrepPortal) loadPrepPortalAdmin();
-  if (isCounselingBookings) loadCounselingBookings();
+  if (isCounsellingBookings) loadCounsellingBookings();
   applyEvaluatorPermissions();
 }
 
@@ -5246,7 +5248,7 @@ async function runCutoffExplorer() {
         <div style="background:var(--paper-soft); padding:14px 18px; border-radius:8px; border-left:4px solid var(--rust); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <div>
             <h4 style="font-size:15px; font-weight:700; color:var(--ink);">${selectedCollege}</h4>
-            <p style="font-size:12px; color:var(--ink-mute); margin-top:2px;">Showing ${filteredCutoffs.length} cutoff records across counseling rounds and years</p>
+            <p style="font-size:12px; color:var(--ink-mute); margin-top:2px;">Showing ${filteredCutoffs.length} cutoff records across counselling rounds and years</p>
           </div>
           <span style="background:var(--rust); color:white; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.5px;">${Object.keys(grouped).length} Branches</span>
         </div>
@@ -6157,7 +6159,7 @@ function renderAdminChoiceList(data) {
       <thead>
         <tr style="background:var(--paper-deep); border-bottom:1px solid var(--rule-strong);">
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Your preference order. Drag and drop rows to reorder."></i></th>
-          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Counseling choice code: [College Initials]-[Branch Abbreviation]"></i></th>
+          <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Counselling choice code: [College Initials]-[Branch Abbreviation]"></i></th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Institute and branch details. TFW seats indicate Tuition Fee Waiver (₹0 tuition fee)."></i></th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Latest year (2025) closing rank and Multi-year Weighted Stability cutoff. Hover to view historical trends."></i></th>
           <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Dream: Cutoff below your rank. Target: Cutoff close to your rank. Safety: Cutoff much higher (fallback)."></i></th>
@@ -6317,30 +6319,36 @@ auth.onAuthStateChanged(async (user) => {
   applyEvaluatorPermissions();
 });
 
-// ── 1-on-1 Counseling Admin Actions ──────────────────────────
+// ── 1-on-1 Counselling Admin Actions ──────────────────────────
 
 let currentBookingFilter = 'scheduled';
 let allAdminBookings = [];
 
 function setBookingFilter(filter) {
   currentBookingFilter = filter;
-  document.getElementById('btnFilterScheduled').style.background = filter === 'scheduled' ? 'var(--ink)' : 'transparent';
-  document.getElementById('btnFilterScheduled').style.color = filter === 'scheduled' ? 'var(--paper)' : 'inherit';
-  document.getElementById('btnFilterAvailable').style.background = filter === 'available' ? 'var(--ink)' : 'transparent';
-  document.getElementById('btnFilterAvailable').style.color = filter === 'available' ? 'var(--paper)' : 'inherit';
   
+  // Update button styling
+  ['scheduled', 'completed', 'available', 'feedbacks'].forEach(f => {
+    const btn = document.getElementById('btnFilter' + f.charAt(0).toUpperCase() + f.slice(1));
+    if (btn) {
+      btn.style.background = filter === f ? 'var(--ink)' : 'transparent';
+      btn.style.color = filter === f ? 'var(--paper)' : 'inherit';
+    }
+  });
+
   // Update table headers based on filter
-  const thead = document.querySelector('#tabCounselingBookings table.tbl thead tr');
-  if (filter === 'scheduled') {
+  const thead = document.querySelector('#tabCounsellingBookings table.tbl thead tr');
+  if (filter === 'scheduled' || filter === 'completed') {
     thead.innerHTML = `
       <th style="padding:14px 20px;">Date & Time</th>
       <th style="padding:14px 20px;">Student</th>
       <th style="padding:14px 20px;">WhatsApp</th>
       <th style="padding:14px 20px;">Topic</th>
+      <th style="padding:14px 20px;">Price</th>
       <th style="padding:14px 20px;">Status</th>
       <th style="padding:14px 20px;">Actions</th>
     `;
-  } else {
+  } else if (filter === 'available') {
     thead.innerHTML = `
       <th style="padding:14px 20px;">Date & Time</th>
       <th style="padding:14px 20px;">Price</th>
@@ -6348,16 +6356,29 @@ function setBookingFilter(filter) {
       <th style="padding:14px 20px;">Locked By / Lock Time</th>
       <th style="padding:14px 20px;">Actions</th>
     `;
+  } else if (filter === 'feedbacks') {
+    thead.innerHTML = `
+      <th style="padding:14px 20px;">Date & Time</th>
+      <th style="padding:14px 20px;">Student</th>
+      <th style="padding:14px 20px;">Topic</th>
+      <th style="padding:14px 20px;">Rating</th>
+      <th style="padding:14px 20px;">Comment</th>
+      <th style="padding:14px 20px;">Submitted At</th>
+    `;
   }
   
-  renderBookingsTable();
+  if (filter === 'feedbacks') {
+    loadFeedbacks();
+  } else {
+    renderBookingsTable();
+  }
 }
 
-async function loadCounselingBookings() {
+async function loadCounsellingBookings() {
   const tbody = document.getElementById('bookingsTableBody');
   tbody.innerHTML = `
     <tr>
-      <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+      <td colspan="7" style="padding:40px; text-align:center; color:var(--ink-soft);">
         <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:10px; display:block;"></i>
         Loading booking logs...
       </td>
@@ -6371,11 +6392,15 @@ async function loadCounselingBookings() {
 
     loadBookingSettings();
     allAdminBookings = data.bookings || [];
-    renderBookingsTable();
+    if (currentBookingFilter === 'feedbacks') {
+      loadFeedbacks();
+    } else {
+      renderBookingsTable();
+    }
   } catch (e) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="padding:40px; text-align:center; color:#EF4444;">
+        <td colspan="7" style="padding:40px; text-align:center; color:#EF4444;">
           <i class="fas fa-times-circle" style="font-size:24px; margin-bottom:10px; display:block;"></i>
           Error loading bookings: ${e.message}
         </td>
@@ -6389,15 +6414,19 @@ function renderBookingsTable() {
   
   let filtered = [];
   if (currentBookingFilter === 'scheduled') {
-    filtered = allAdminBookings.filter(b => b.status === 'booked' || b.status === 'completed');
+    filtered = allAdminBookings.filter(b => b.status === 'booked');
+  } else if (currentBookingFilter === 'completed') {
+    filtered = allAdminBookings.filter(b => b.status === 'completed');
   } else {
     filtered = allAdminBookings.filter(b => b.status === 'available' || b.status === 'locked');
   }
 
+  const colCount = (currentBookingFilter === 'available') ? 5 : 7;
+
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+        <td colspan="${colCount}" style="padding:40px; text-align:center; color:var(--ink-soft);">
           <i class="fas fa-calendar" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>
           No ${currentBookingFilter} slots found.
         </td>
@@ -6406,7 +6435,7 @@ function renderBookingsTable() {
     return;
   }
 
-  if (currentBookingFilter === 'scheduled') {
+  if (currentBookingFilter === 'scheduled' || currentBookingFilter === 'completed') {
     tbody.innerHTML = filtered.map(b => {
       const isCompleted = b.status === 'completed';
       const statusColor = isCompleted ? '#22C55E' : '#3B82F6';
@@ -6466,6 +6495,81 @@ function renderBookingsTable() {
         </tr>
       `;
     }).join('');
+  }
+}
+
+async function loadFeedbacks() {
+  const tbody = document.getElementById('bookingsTableBody');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:10px; display:block;"></i>
+        Loading feedbacks...
+      </td>
+    </tr>
+  `;
+  
+  try {
+    const res = await apiFetch('/api/admin/booking/feedbacks');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to load feedbacks.');
+    
+    if (!data.feedbacks || data.feedbacks.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding:40px; text-align:center; color:var(--ink-soft);">
+            <i class="fas fa-star" style="font-size:24px; margin-bottom:10px; display:block; opacity:0.3;"></i>
+            No feedbacks submitted yet.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    tbody.innerHTML = data.feedbacks.map(f => {
+      const stars = Array(5).fill(0).map((_, i) => `
+        <i class="${i < f.rating ? 'fas' : 'far'} fa-star" style="color:#EAB308;"></i>
+      `).join('');
+      
+      let formattedSubTime = '-';
+      if (f.submittedAt) {
+        const sDate = new Date(f.submittedAt);
+        formattedSubTime = sDate.toLocaleDateString('en-IN') + ' ' + sDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      }
+      
+      return `
+        <tr>
+          <td style="padding:14px 20px; font-size:13px; font-weight:600;">
+            ${f.date}<br>
+            <span style="font-size:11px; color:var(--ink-soft);">${f.startTime} - ${f.endTime}</span>
+          </td>
+          <td style="padding:14px 20px; font-size:13px;">
+            <strong>${f.studentName}</strong><br>
+            <span style="font-size:11px; color:var(--ink-soft);">${f.studentEmail}</span>
+          </td>
+          <td style="padding:14px 20px; font-size:12px; color:var(--ink-soft);">${f.topic}</td>
+          <td style="padding:14px 20px; font-size:14px;">${stars} <span style="font-size:11px; font-weight:600; margin-left:4px;">(${f.rating}/5)</span></td>
+          <td style="padding:14px 20px; font-size:12px; font-style:italic; max-width:250px; word-wrap:break-word;">
+            ${f.comment ? `"${f.comment}"` : '<span style="color:var(--ink-mute);">No comment</span>'}
+          </td>
+          <td style="padding:14px 20px; font-size:12px; color:var(--ink-soft);">${formattedSubTime}</td>
+        </tr>
+      `;
+    }).join('');
+    
+  } catch (e) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:40px; text-align:center; color:#EF4444;">
+          <i class="fas fa-times-circle" style="font-size:24px; margin-bottom:10px; display:block;"></i>
+          Error loading feedbacks: ${e.message}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+
   } else {
     // Available slots view
     tbody.innerHTML = filtered.map(b => {
@@ -6528,7 +6632,7 @@ async function editAvailableSlot(slotId, oldPrice, oldStart, oldEnd) {
       throw new Error(data.message || 'Failed to update slot.');
     }
     toast('Slot price updated!');
-    loadCounselingBookings();
+    loadCounsellingBookings();
   } catch(e) {
     toast(e.message);
   }
@@ -6546,7 +6650,7 @@ async function deleteAvailableSlot(slotId) {
       throw new Error(data.message || 'Failed to delete slot.');
     }
     toast('Slot deleted successfully!');
-    loadCounselingBookings();
+    loadCounsellingBookings();
   } catch(e) {
     toast(e.message);
   }
@@ -6618,7 +6722,7 @@ async function saveAvailability(e) {
     
     toast(data.message || 'Availability generated!');
     document.getElementById('availabilityForm').reset();
-    loadCounselingBookings();
+    loadCounsellingBookings();
   } catch(e) {
     toast(e.message);
   } finally {
@@ -6651,7 +6755,7 @@ async function saveMeetLink(e) {
 
     toast('Google Meet link saved successfully!');
     closeScheduleMeetModal();
-    loadCounselingBookings();
+    loadCounsellingBookings();
   } catch(e) {
     toast(e.message);
   }
@@ -6659,7 +6763,7 @@ async function saveMeetLink(e) {
 
 function shareOnWhatsApp(slotId, name, phone, topic, link) {
   const [date, time] = slotId.split('_');
-  const msg = `Hello ${name}, here is your Google Meet link for the '${topic}' counseling session today at ${time} (${date}): ${link}. Please note: If the link is not clickable, save this contact number first or copy the link and paste it into your browser. Join on time as the session is time-bound. See you there!`;
+  const msg = `Hello ${name}, here is your Google Meet link for the '${topic}' counselling session today at ${time} (${date}): ${link}. Please note: If the link is not clickable, save this contact number first or copy the link and paste it into your browser. Join on time as the session is time-bound. See you there!`;
   
   let cleanPhone = phone.replace(/[^0-9]/g, '');
   if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
@@ -6677,7 +6781,7 @@ async function markMeetingDone(slotId) {
     });
     if (!res.ok) throw new Error('Failed to complete meeting.');
     toast('Meeting marked as completed!');
-    loadCounselingBookings();
+    loadCounsellingBookings();
   } catch(e) {
     toast(e.message);
   }
@@ -6692,7 +6796,7 @@ async function rescheduleMeeting(slotId) {
     });
     if (!res.ok) throw new Error('Failed to release booking.');
     toast('Booking released successfully.');
-    loadCounselingBookings();
+    loadCounsellingBookings();
   } catch(e) {
     toast(e.message);
   }

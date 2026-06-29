@@ -294,7 +294,7 @@
     <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
     <a href="prep.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal</a>
     <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
-    <a href="counseling.html" class="sidebar-link"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counseling</a>
+    <a href="counselling.html" class="sidebar-link"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counselling</a>
     <a href="choice-filling.html" class="sidebar-link active" id="sidebarChoiceFillingLink"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling</a>
     <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
@@ -427,7 +427,7 @@
           <div style="margin-top: 4px; padding: 12px; background: rgba(10, 116, 245, 0.03); border: 1px solid rgba(10, 116, 245, 0.1); border-radius: 8px;">
             <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; user-select: none; font-size: 11px; line-height: 1.4; color: var(--ink-soft); font-weight: 500;">
               <input type="checkbox" id="cfAgreeCheckbox" style="margin-top: 2px; cursor: pointer;" onchange="document.getElementById('cfPredictBtn').disabled = !this.checked;">
-              <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counseling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
+              <span>I understand and agree that this choice list is mathematically optimized based on historical cutoff data. Cutoffs in actual counselling rounds fluctuate based on seat availability and current student preferences, so admission to any specific college is not guaranteed.</span>
             </label>
           </div>
 
@@ -477,7 +477,7 @@
         <div style="text-align:center; padding:80px 24px; color:var(--ink-soft); border:1px dashed var(--rule-strong); border-radius:12px; background:var(--paper);">
           <i class="fa-solid fa-list-check" style="font-size:48px; margin-bottom:16px; color:var(--ink-mute); opacity:0.4;"></i>
           <h4 style="font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;">No Choice List Generated</h4>
-          <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select your branches, rank, and TFW status, and click Generate to build your optimized counseling choice list.</p>
+          <p style="font-size:12px; max-width:340px; margin:0 auto; line-height:1.6; color:var(--ink-soft);">Select your branches, rank, and TFW status, and click Generate to build your optimized counselling choice list.</p>
         </div>
       </div>
     </div>
@@ -490,7 +490,7 @@
     <button class="paywall-close" onclick="dismissCfPaywall()"><i class="fas fa-times"></i></button>
     <div style="width:54px; height:54px; border-radius:50%; background:rgba(10, 116, 245, 0.08); color:var(--rust); display:inline-flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;"><i class="fa-solid fa-list-check"></i></div>
     <h2 id="cfPaywallTitle" style="font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--ink); margin-bottom:6px;">Premium Choice-Filling Assistant</h2>
-    <p id="cfPaywallDesc" style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:14px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.</p>
+    <p id="cfPaywallDesc" style="color:var(--ink-soft); font-size:12px; line-height:1.6; margin-bottom:14px; text-align:left;">Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counselling portal.</p>
     
     <!-- How Attempts Work Explanation -->
     <div id="cfAttemptsInfoBox" style="background:var(--paper-soft); border-radius:8px; padding:10px 12px; margin-bottom:18px; text-align:left; border:1px solid var(--rule-strong);">
@@ -764,7 +764,7 @@
           const unlockBtn = document.getElementById('cfUnlockBtn');
           
           if (title) title.textContent = "Premium Choice-Filling Assistant";
-          if (desc) desc.textContent = "Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counseling portal.";
+          if (desc) desc.textContent = "Optimize your WBJEE seat allocation. Generate a mathematically perfect, sorted choice-filling sheet with official codes ready to copy directly into the counselling portal.";
           if (attemptsBox) attemptsBox.style.display = 'block';
           if (tiersContainer) tiersContainer.style.display = 'block';
           if (benefitsBox) benefitsBox.style.display = 'none';
@@ -1142,7 +1142,7 @@
         <thead>
           <tr style="background:var(--paper-deep); border-bottom:1px solid var(--rule-strong);">
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pref <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Your preference order. Drag and drop rows to reorder."></i></th>
-            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Counseling choice code: [College Initials]-[Branch Abbreviation]"></i></th>
+            <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">Code <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Counselling choice code: [College Initials]-[Branch Abbreviation]"></i></th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px;">College & Course Preference <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Institute and branch details. TFW seats indicate Tuition Fee Waiver (₹0 tuition fee)."></i></th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Closing Rank <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Latest year (2025) closing rank and Multi-year Weighted Stability cutoff. Hover to view historical trends."></i></th>
             <th style="padding:12px 16px; font-size:10px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Strategic Tier <i class="fas fa-info-circle text-slate-400 ml-0.5 cursor-help" title="Dream: Cutoff below your rank. Target: Cutoff close to your rank. Safety: Cutoff much higher (fallback)."></i></th>
@@ -1184,7 +1184,7 @@
     if (lastChoiceResults.length === 0) return;
     
     let text = `=== WBJEE OPTIMIZED CHOICE FILLING PREFERENCE SHEET ===\n`;
-    text += `Generated via Sankalp Aspirants Counseling Portal\n`;
+    text += `Generated via Sankalp Aspirants Counselling Portal\n`;
     text += `Student Rank: ${document.getElementById('cfRank').value} | Category: ${document.getElementById('cfCategory').value}\n\n`;
     
     lastChoiceResults.forEach((c, index) => {

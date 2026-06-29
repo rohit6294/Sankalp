@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Counseling — Sankalp Aspirant</title>
+  <title>Counselling — Sankalp Aspirant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -25,10 +25,10 @@
     .session-type:hover { border-color:var(--rust); }
     .session-type.selected { border-color:var(--rust); background:rgba(201,78,31,0.1); }
     .warning-box { background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.2); border-radius: 8px; padding: 12px; font-size: 12px; color: #EF4444; line-height: 1.5; margin-top: 10px; }
-    .counseling-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
-    .counseling-grid > * { min-width: 0; min-height: 0; }
+    .counselling-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+    .counselling-grid > * { min-width: 0; min-height: 0; }
     @media (max-width: 1200px) {
-      .counseling-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      .counselling-grid { grid-template-columns: minmax(0, 1fr) !important; }
     }
     
     /* Predictor styling components (to match choice-filling/predictor pages) */
@@ -97,7 +97,7 @@
     <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
     <a href="prep.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal</a>
     <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
-    <a href="counseling.html" class="sidebar-link active"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counseling</a>
+    <a href="counselling.html" class="sidebar-link active"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counselling</a>
     <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
     <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
     <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
@@ -115,7 +115,7 @@
 
 <main class="main-content" style="padding:32px">
   <div style="margin-bottom:32px">
-    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">1-on-1 Counseling 🎯</h1>
+    <h1 style="font-size:26px;font-weight:700;font-family:'Poppins',sans-serif">1-on-1 Counselling 🎯</h1>
     <p style="color:var(--ink-mute);font-size:14px;margin-top:4px">Book a personalized slot with your mentor</p>
   </div>
 
@@ -132,22 +132,22 @@
   <div class="predictor-grid" id="mainGrid">
     <!-- Left: Booking Form -->
     <div>
-      <!-- Counseling Banner -->
+      <!-- Counselling Banner -->
       <div class="predictor-card mb-6" style="background:linear-gradient(135deg,rgba(201,78,31,0.1),rgba(201,78,31,0.03)); border-left: 4px solid var(--rust);">
         <div style="display:flex;align-items:center;gap:18px;">
           <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--rust),#A63F17);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 8px 24px rgba(201,78,31,0.3);">
             <i class="fas fa-video" style="color:var(--paper);"></i>
           </div>
           <div>
-            <div style="font-size:20px;font-weight:800;margin-bottom:6px;color:var(--ink);">Expert Counseling & Mentorship</div>
+            <div style="font-size:20px;font-weight:800;margin-bottom:6px;color:var(--ink);">Expert Counselling & Mentorship</div>
             <div style="font-size:13px;color:var(--ink-soft);line-height:1.5;">Get personalized 1-on-1 guidance on college selection, drop-year strategies, and preparation roadmaps directly from our experts. Book your slot below!</div>
           </div>
         </div>
       </div>
 
-      <!-- Choose Counseling Topic -->
+      <!-- Choose Counselling Topic -->
       <div class="predictor-card mb-6">
-        <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--ink);">Choose Counseling Topic</h2>
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--ink);">Choose Counselling Topic</h2>
         <div style="display:grid;grid-template-columns:1fr;gap:12px" id="sessionTypes">
           <div class="session-type selected" onclick="selectTopic(this, 'Counselling support')">
             <div style="font-size:24px;margin-bottom:8px">💬</div>
@@ -278,7 +278,7 @@
   <div class="predictor-card p-10" style="max-width:440px;width:100%;text-align:center;">
     <div style="width:72px;height:72px;border-radius:20px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px">✅</div>
     <h2 style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;margin-bottom:8px;color:var(--ink);">Booking Confirmed!</h2>
-    <p style="color:var(--ink-soft);font-size:14px;margin-bottom:20px">Your counseling session has been scheduled. You will receive the Google Meet link on your WhatsApp number shortly.</p>
+    <p style="color:var(--ink-soft);font-size:14px;margin-bottom:20px">Your counselling session has been scheduled. You will receive the Google Meet link on your WhatsApp number shortly.</p>
     <div id="successDetails" style="background:var(--paper-soft);border:1px solid var(--rule);border-radius:12px;padding:16px;text-align:left;margin-bottom:20px;font-size:13px;display:flex;flex-direction:column;gap:8px;color:var(--ink);">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
         <span style="color:var(--ink-soft);font-size:13px">Topic:</span>
@@ -474,8 +474,8 @@
         key: lockData.key_id,
         amount: lockData.amount,
         currency: lockData.currency,
-        name: 'Sankalp Counseling',
-        description: `1-on-1 Counseling Slot: ${selectedTopicText} on ${selectedDay.dateStr} at ${selectedSlot.time}`,
+        name: 'Sankalp Counselling',
+        description: `1-on-1 Counselling Slot: ${selectedTopicText} on ${selectedDay.dateStr} at ${selectedSlot.time}`,
         order_id: lockData.order_id,
         prefill: {
           email: email,
@@ -529,9 +529,7 @@
       bookBtn.disabled = false;
       bookBtn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Pay & Book';
     }
-  }
-
-  async function loadMyBookings() {
+  }  async function loadMyBookings() {
     const list = document.getElementById('myBookingsList');
     try {
       const res = await apiFetch('/api/booking/my-bookings');
@@ -545,20 +543,77 @@
 
       document.getElementById('myBookingsCard').style.display = 'block';
       list.innerHTML = data.bookings.map(b => {
-        let meetHtml = b.meetLink 
-          ? `<a href="${b.meetLink}" target="_blank" class="btn-primary" style="padding:6px 12px;font-size:12px;background:var(--forest);border-color:var(--forest)"><i class="fas fa-video"></i> Join Meet</a>` 
-          : `<span style="font-size:12px;color:var(--ink-mute);"><i class="fas fa-clock"></i> Link pending</span>`;
+        let purchasedAtHtml = '';
+        if (b.bookedAt) {
+          const pDate = new Date(b.bookedAt);
+          const formattedPurchased = pDate.toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          }) + ' at ' + pDate.toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+          purchasedAtHtml = `<div style="font-size:11px;color:var(--ink-mute);margin-top:4px;"><i class="fas fa-shopping-cart"></i> Purchased on: ${formattedPurchased}</div>`;
+        }
+
+        let actionHtml = '';
+        let feedbackFormHtml = '';
+        
+        if (b.status === 'completed') {
+          if (b.feedback) {
+            actionHtml = `
+              <div style="font-size:12px;color:var(--forest);font-weight:600;text-align:right;">
+                <i class="fas fa-check-circle"></i> Rated: ${b.feedback.rating} ★
+                ${b.feedback.comment ? `<div style="font-weight:normal;color:var(--ink-soft);font-style:italic;font-size:11px;margin-top:2px;">"${b.feedback.comment}"</div>` : ''}
+              </div>
+            `;
+          } else {
+            actionHtml = `
+              <div id="feedback-btn-container-${b.id}">
+                <button class="btn-rust btn-sm" onclick="toggleFeedbackForm('${b.id}', true)" style="padding:6px 12px;font-size:12px;">
+                  <i class="fas fa-star"></i> Give Feedback
+                </button>
+              </div>
+            `;
+            feedbackFormHtml = `
+              <div id="feedback-form-${b.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule);width:100%;">
+                <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--ink);">How was your session?</div>
+                <div style="display:flex;gap:8px;margin-bottom:8px;" id="stars-${b.id}">
+                  ${[1,2,3,4,5].map(num => `
+                    <i class="far fa-star star-btn" data-val="${num}" onclick="setFeedbackRating('${b.id}', ${num})" style="cursor:pointer;color:#EAB308;font-size:18px;"></i>
+                  `).join('')}
+                </div>
+                <input type="hidden" id="rating-val-${b.id}" value="0">
+                <textarea id="comment-${b.id}" class="predictor-input" placeholder="Share your experience (optional)..." style="font-size:12px;padding:8px;height:60px;margin-bottom:8px;resize:none;width:100%;box-sizing:border-box;"></textarea>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn-rust btn-sm" onclick="submitFeedback('${b.id}')" style="padding:4px 10px;font-size:11px;">Submit</button>
+                  <button class="btn-ghost btn-sm" onclick="toggleFeedbackForm('${b.id}', false)" style="padding:4px 10px;font-size:11px;border:1px solid var(--rule);">Cancel</button>
+                </div>
+              </div>
+            `;
+          }
+        } else {
+          actionHtml = b.meetLink 
+            ? `<a href="${b.meetLink}" target="_blank" class="btn-primary" style="padding:6px 12px;font-size:12px;background:var(--forest);border-color:var(--forest);text-decoration:none;"><i class="fas fa-video"></i> Join Meet</a>` 
+            : `<span style="font-size:12px;color:var(--ink-mute);"><i class="fas fa-clock"></i> Link pending</span>`;
+        }
 
         return `
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--paper);border:1px solid var(--rule);padding:14px;border-radius:10px;flex-wrap:wrap;gap:12px;">
-            <div>
-              <div style="font-weight:700;color:var(--ink);font-size:14px;margin-bottom:2px">${b.topic}</div>
-              <div style="font-size:12px;color:var(--ink-soft);"><i class="fas fa-calendar-day"></i> ${b.date} &nbsp;|&nbsp; <i class="fas fa-clock"></i> ${formatTime12Hour(b.startTime)} - ${formatTime12Hour(b.endTime)}</div>
+          <div style="display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--rule);padding:14px;border-radius:10px;margin-bottom:8px;box-shadow: 0 2px 8px rgba(0,0,0,0.02);width:100%;box-sizing:border-box;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;width:100%;">
+              <div>
+                <div style="font-weight:700;color:var(--ink);font-size:14px;margin-bottom:2px">Topic: ${b.topic}</div>
+                <div style="font-size:12px;color:var(--ink-soft);"><i class="fas fa-calendar-day"></i> ${b.date} &nbsp;|&nbsp; <i class="fas fa-clock"></i> ${formatTime12Hour(b.startTime)} - ${formatTime12Hour(b.endTime)}</div>
+                ${purchasedAtHtml}
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                <div style="font-size:13px;font-weight:600;color:var(--rust);">${b.price > 0 ? `₹${b.price}` : 'Free'}</div>
+                ${actionHtml}
+              </div>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="font-size:13px;font-weight:600;color:var(--rust);">${b.price > 0 ? `₹${b.price}` : 'Free'}</div>
-              ${meetHtml}
-            </div>
+            ${feedbackFormHtml}
           </div>
         `;
       }).join('');
@@ -566,6 +621,55 @@
       list.innerHTML = `<div style="color:var(--rust);padding:12px;"><i class="fas fa-exclamation-triangle"></i> Error loading your bookings: ${e.message}</div>`;
     }
   }
+
+  window.setFeedbackRating = function(slotId, rating) {
+    document.getElementById(`rating-val-${slotId}`).value = rating;
+    const starsContainer = document.getElementById(`stars-${slotId}`);
+    const stars = starsContainer.querySelectorAll('.star-btn');
+    stars.forEach((star, index) => {
+      if (index < rating) {
+        star.className = 'fas fa-star star-btn';
+      } else {
+        star.className = 'far fa-star star-btn';
+      }
+    });
+  };
+
+  window.toggleFeedbackForm = function(slotId, show) {
+    const form = document.getElementById(`feedback-form-${slotId}`);
+    const mainBtn = document.getElementById(`feedback-btn-container-${slotId}`);
+    if (show) {
+      form.style.display = 'block';
+      if (mainBtn) mainBtn.style.display = 'none';
+    } else {
+      form.style.display = 'none';
+      if (mainBtn) mainBtn.style.display = 'block';
+    }
+  };
+
+  window.submitFeedback = async function(slotId) {
+    const rating = Number(document.getElementById(`rating-val-${slotId}`).value);
+    const comment = document.getElementById(`comment-${slotId}`).value.trim();
+    if (!rating) {
+      showToast('Please select a star rating.', 'error');
+      return;
+    }
+
+    try {
+      const res = await apiFetch('/api/booking/feedback', {
+        method: 'POST',
+        body: JSON.stringify({ slotId, rating, comment })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to submit feedback.');
+
+      showToast('Thank you for your feedback!', 'success');
+      loadMyBookings();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  };
+
 
   function showSuccessModal(slotId, topic, phone) {
     const [date, time] = slotId.split('_');

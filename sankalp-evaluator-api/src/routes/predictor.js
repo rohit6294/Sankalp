@@ -120,6 +120,74 @@ router.get('/status', verifyToken, async (req, res) => {
   }
 });
 
+// ── WBJEE 2026 ORCR Public Routes ──────────────────────────────────────────
+router.get('/orcr2026/colleges', async (_req, res) => {
+  sqliteDb.all('SELECT DISTINCT institute FROM orcr2026 ORDER BY institute ASC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'load_colleges_failed', message: err.message });
+    res.json({ colleges: rows.map(r => r.institute).filter(Boolean) });
+  });
+});
+
+router.get('/orcr2026/branches', async (req, res) => {
+  const { college } = req.query;
+  let sql = 'SELECT DISTINCT program FROM orcr2026';
+  const params = [];
+  if (college && college !== 'All') {
+    sql += ' WHERE institute = ?';
+    params.push(college);
+  }
+  sql += ' ORDER BY program ASC';
+
+  sqliteDb.all(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'load_branches_failed', message: err.message });
+    res.json({ branches: rows.map(r => r.program).filter(Boolean) });
+  });
+});
+
+router.get('/orcr2026/categories', async (req, res) => {
+  const { college, branch } = req.query;
+  let sql = 'SELECT DISTINCT category FROM orcr2026 WHERE 1=1';
+  const params = [];
+  if (college && college !== 'All') {
+    sql += ' AND institute = ?';
+    params.push(college);
+  }
+  if (branch && branch !== 'All') {
+    sql += ' AND program = ?';
+    params.push(branch);
+  }
+  sql += ' ORDER BY category ASC';
+
+  sqliteDb.all(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'load_categories_failed', message: err.message });
+    res.json({ categories: rows.map(r => r.category).filter(Boolean) });
+  });
+});
+
+router.get('/orcr2026/cutoffs', async (req, res) => {
+  const { college, branch, category } = req.query;
+  let sql = 'SELECT * FROM orcr2026 WHERE 1=1';
+  const params = [];
+  if (college && college !== 'All') {
+    sql += ' AND institute = ?';
+    params.push(college);
+  }
+  if (branch && branch !== 'All') {
+    sql += ' AND program = ?';
+    params.push(branch);
+  }
+  if (category && category !== 'All') {
+    sql += ' AND category = ?';
+    params.push(category);
+  }
+  sql += ' ORDER BY institute ASC, program ASC, category ASC, round ASC';
+
+  sqliteDb.all(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'load_cutoffs_failed', message: err.message });
+    res.json({ cutoffs: rows });
+  });
+});
+
 // ── 2. Get Unique Caste Categories (Dynamic) ──────────────────────────────────
 router.get('/categories', verifyToken, async (req, res) => {
   // Quick access check (can read categories list before paying to populate dropdown)

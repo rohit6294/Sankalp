@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WBJEE 2026 ORCR — Opening & Closing Ranks | Sankalp Aspirants</title>
+  <meta name="description" content="Check official WBJEE 2026 Round 1 & Round 2 Opening Ranks (OR) and Closing Ranks (CR) for all engineering colleges, branches, and categories in West Bengal.">
+  <meta name="keywords" content="wbjee 2026 orcr, wbjee opening closing rank 2026, wbjee round 1 cutoff, wbjee round 2 cutoff, jadavpur university orcr, sankalp aspirants">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .orcr-card {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .orcr-card:hover {
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+    .round-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .round-badge-r1 { background: rgba(10, 116, 245, 0.1); color: var(--rust); }
+    .round-badge-r2 { background: rgba(16, 185, 129, 0.12); color: var(--forest-deep); }
+    
+    .rank-box {
+      background: var(--paper-deep);
+      border: 1px solid var(--rule);
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-align: center;
+    }
+    .rank-val {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .rank-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-mute);
+      margin-top: 2px;
+    }
+
+    .filter-select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--rule-strong);
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus {
+      border-color: var(--rust);
+    }
+
+    @media (max-width: 768px) {
+      .grid-3-col { grid-template-columns: 1fr !important; }
+      .rank-grid { grid-template-columns: 1fr 1fr !important; }
+    }
+  </style>
+</head>
+<body style="background: var(--paper-deep); color: var(--ink); font-family: var(--font-sans);">
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-inner">
+    <span>Volume 1 · Edition 1</span>
+    <span class="hide-mobile">· WBJEE 2026 Cutoff Hub ·</span>
+    <span>Est. 2026 · Bengal, India</span>
+    <span class="hide-mobile">Official ORCR Data</span>
+    <span class="hide-mobile">Round 1 & Round 2</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP ASPIRANTS</div>
+        <div class="brand-sub">JEE/WBJEE PREPARATION</div>
+      </span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="wbjee-2026-orcr.html" class="nav-link active" style="color: var(--rust); font-weight: 700;">WBJEE 2026 ORCR</a>
+      <a href="wbjee-college-predictor.html" class="nav-link">College Predictor</a>
+      <a href="wbjee-marks-calculator.html" class="nav-link">Marks Calculator</a>
+      <a href="pricing.html" class="nav-link">Pricing</a>
+      <a href="about.html" class="nav-link">About Us</a>
+      <a href="login.html" class="nav-link">Sign In</a>
+    </div>
+    <a href="register.html" class="btn-ink btn-sm">Join Sankalp</a>
+    <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu">
+      <i class="fas fa-bars" id="menuIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<main style="padding: 48px 24px; max-width: 1100px; margin: 0 auto;">
+
+  <!-- PAGE HEADER -->
+  <div style="margin-bottom: 36px; text-align: center;">
+    <span class="section-label">— WBJEE 2026 Official Cutoffs</span>
+    <h1 class="display-lg" style="margin-top: 10px; margin-bottom: 12px; font-weight: 900;">WBJEE 2026 Opening & Closing Ranks (ORCR)</h1>
+    <p style="color: var(--ink-soft); font-size: 15px; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+      Search and compare official <strong>Round 1</strong> and <strong>Round 2</strong> Opening Ranks (OR) and Closing Ranks (CR) across 87+ engineering institutions in West Bengal. Select a College, Branch, and Category below.
+    </p>
+  </div>
+
+  <!-- SEARCH FILTERS BOX -->
+  <div style="background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 16px; padding: 28px; margin-bottom: 36px; box-shadow: 0 4px 20px rgba(15,23,42,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <h2 style="font-size: 16px; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-filter" style="color: var(--rust);"></i> Select Search Criteria
+      </h2>
+      <span style="font-size: 12px; color: var(--ink-mute); font-weight: 600;">87+ Colleges · 122+ Programs</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;" class="grid-3-col">
+      <!-- 1. College Select -->
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          1. College / Institute Name
+        </label>
+        <select id="orcrCollege" class="filter-select" onchange="onCollegeChange()">
+          <option value="All">All Colleges / Institutes</option>
+        </select>
+      </div>
+
+      <!-- 2. Branch Select -->
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          2. Branch / Program
+        </label>
+        <select id="orcrBranch" class="filter-select" onchange="onBranchChange()">
+          <option value="All">All Branches / Programs</option>
+        </select>
+      </div>
+
+      <!-- 3. Category Select -->
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--ink-mute); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          3. Reservation Category
+        </label>
+        <select id="orcrCategory" class="filter-select" onchange="fetchCutoffs()">
+          <option value="All">All Categories</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div id="statsCount" style="font-size: 13px; font-weight: 700; color: var(--rust);">
+        Loading dropdown options...
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="resetFilters()" class="btn-ghost btn-sm" style="font-size: 12px;">
+          <i class="fas fa-undo" style="margin-right: 4px;"></i> Reset Filters
+        </button>
+        <button onclick="fetchCutoffs()" class="btn-rust btn-sm" style="font-size: 13px;">
+          <i class="fas fa-search" style="margin-right: 4px;"></i> View Cutoff Ranks
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUTOFF RESULTS CONTAINER -->
+  <div id="resultsContainer">
+    <div style="text-align: center; padding: 60px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 16px;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--rust); margin-bottom: 14px;"></i>
+      <p style="font-size: 15px; font-weight: 700; color: var(--ink);">Loading WBJEE 2026 ORCR Data...</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer-ink">
+  <div class="footer-inner">
+    <div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+        <span class="brand-mark" style="background: var(--paper); color: var(--ink);">S</span>
+        <span>
+          <div class="brand-name" style="color: var(--paper);">SANKALP ASPIRANTS</div>
+          <div class="brand-sub" style="color: rgba(234,219,192,0.6);">JEE/WBJEE PREPARATION</div>
+        </span>
+      </div>
+      <p>An interactive JEE/WBJEE preparation platform for students in West Bengal. Built — and maintained — by students from Jadavpur University.</p>
+    </div>
+    <div>
+      <h4>Cutoff Tools</h4>
+      <a href="wbjee-2026-orcr.html">WBJEE 2026 ORCR</a>
+      <a href="wbjee-college-predictor.html">College Predictor</a>
+      <a href="wbjee-marks-calculator.html">Marks Calculator</a>
+    </div>
+    <div>
+      <h4>Platform</h4>
+      <a href="index.html">Home</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="about.html">About Us</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+    <div>
+      <h4>Follow & Connect</h4>
+      <a href="https://www.youtube.com/@Sankalp_Wbjee12" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> YouTube</a>
+      <a href="https://www.linkedin.com/in/rahul-gupta-69795b338/" target="_blank" rel="noopener"><i class="fab fa-linkedin"></i> LinkedIn (Rahul)</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Sankalp Aspirants · Founded by Rahul Gupta &amp; Sourav Dutta (Jadavpur University)</span>
+    <span class="footer-stamp">WBJEE 2026 ORCR</span>
+    <span>
+      <a href="privacy-policy.html">Privacy Policy</a> · 
+      <a href="terms.html">Terms & Conditions</a> · 
+      <a href="disclaimer.html">Disclaimer</a> · 
+      <a href="contact.html">Contact Us</a> · 
+      <a href="about.html">About Us</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  const API_HOST = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:5001' 
+    : 'https://sankalp-evaluator-api.onrender.com';
+
+  let rawCutoffs = [];
+
+  function toggleNav() {
+    const links = document.getElementById('navLinks');
+    const icon = document.getElementById('menuIcon');
+    const open = links.classList.toggle('open');
+    icon.className = open ? 'fas fa-times' : 'fas fa-bars';
+  }
+
+  async function init() {
+    try {
+      await loadColleges();
+      await loadBranches();
+      await loadCategories();
+      await fetchCutoffs();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadColleges() {
+    const res = await fetch(`${API_HOST}/api/predictor/orcr2026/colleges`);
+    const data = await res.json();
+    const sel = document.getElementById('orcrCollege');
+    sel.innerHTML = '<option value="All">All Colleges / Institutes (87+)</option>';
+    (data.colleges || []).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+
+  async function loadBranches() {
+    const college = document.getElementById('orcrCollege').value;
+    const res = await fetch(`${API_HOST}/api/predictor/orcr2026/branches?college=${encodeURIComponent(college)}`);
+    const data = await res.json();
+    const sel = document.getElementById('orcrBranch');
+    const curVal = sel.value;
+    sel.innerHTML = '<option value="All">All Branches / Programs</option>';
+    (data.branches || []).forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      sel.appendChild(opt);
+    });
+    if ((data.branches || []).includes(curVal)) sel.value = curVal;
+  }
+
+  async function loadCategories() {
+    const college = document.getElementById('orcrCollege').value;
+    const branch = document.getElementById('orcrBranch').value;
+    const res = await fetch(`${API_HOST}/api/predictor/orcr2026/categories?college=${encodeURIComponent(college)}&branch=${encodeURIComponent(branch)}`);
+    const data = await res.json();
+    const sel = document.getElementById('orcrCategory');
+    const curVal = sel.value;
+    sel.innerHTML = '<option value="All">All Categories</option>';
+    (data.categories || []).forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      sel.appendChild(opt);
+    });
+    if ((data.categories || []).includes(curVal)) sel.value = curVal;
+  }
+
+  async function onCollegeChange() {
+    await loadBranches();
+    await loadCategories();
+    await fetchCutoffs();
+  }
+
+  async function onBranchChange() {
+    await loadCategories();
+    await fetchCutoffs();
+  }
+
+  async function resetFilters() {
+    document.getElementById('orcrCollege').value = 'All';
+    await loadBranches();
+    await loadCategories();
+    await fetchCutoffs();
+  }
+
+  async function fetchCutoffs() {
+    const college = document.getElementById('orcrCollege').value;
+    const branch = document.getElementById('orcrBranch').value;
+    const category = document.getElementById('orcrCategory').value;
+
+    const container = document.getElementById('resultsContainer');
+    container.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 16px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--rust); margin-bottom: 14px;"></i>
+        <p style="font-size: 15px; font-weight: 700; color: var(--ink);">Fetching Cutoff Ranks...</p>
+      </div>
+    `;
+
+    try {
+      const url = `${API_HOST}/api/predictor/orcr2026/cutoffs?college=${encodeURIComponent(college)}&branch=${encodeURIComponent(branch)}&category=${encodeURIComponent(category)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      rawCutoffs = data.cutoffs || [];
+      renderCutoffs();
+    } catch (e) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; color: var(--danger);">
+          <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 12px;"></i>
+          <p style="font-size: 15px; font-weight: 700;">Failed to load cutoffs. Please try again.</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderCutoffs() {
+    const container = document.getElementById('resultsContainer');
+    const statsCount = document.getElementById('statsCount');
+
+    if (rawCutoffs.length === 0) {
+      statsCount.textContent = 'Showing 0 matching records';
+      container.innerHTML = `
+        <div style="text-align: center; padding: 50px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 16px;">
+          <i class="fas fa-folder-open" style="font-size: 36px; color: var(--ink-mute); margin-bottom: 14px; opacity: 0.5;"></i>
+          <p style="font-size: 16px; font-weight: 800; color: var(--ink);">No cutoff records found</p>
+          <p style="font-size: 13px; color: var(--ink-mute); margin-top: 4px;">Try selecting "All Branches" or "All Categories" to widen your search.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Group cutoffs by College + Program + Category
+    const grouped = {};
+    rawCutoffs.forEach(row => {
+      const key = `${row.institute}|||${row.program}|||${row.category}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          institute: row.institute,
+          program: row.program,
+          category: row.category,
+          seat_type: row.seat_type,
+          quota: row.quota,
+          rounds: {}
+        };
+      }
+      grouped[key].rounds[row.round] = {
+        opening: row.opening_rank,
+        closing: row.closing_rank
+      };
+    });
+
+    const keys = Object.keys(grouped);
+    statsCount.textContent = `Showing ${keys.length} Course & Category Combination(s)`;
+
+    container.innerHTML = keys.map(key => {
+      const item = grouped[key];
+      const r1 = item.rounds['Round 1'];
+      const r2 = item.rounds['Round 2'];
+
+      return `
+        <div class="orcr-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--rust); margin-bottom: 4px;">
+                ${item.institute}
+              </div>
+              <h3 style="font-size: 18px; font-weight: 800; color: var(--ink); line-height: 1.3;">
+                ${item.program}
+              </h3>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <span style="background: rgba(15,23,42,0.06); color: var(--ink); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">
+                Category: ${item.category}
+              </span>
+              <span style="background: rgba(16,185,129,0.1); color: var(--forest-deep); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">
+                ${item.quota || 'Home State'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Cutoffs Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: var(--paper-deep); border: 1px solid var(--rule); border-radius: 12px; padding: 18px;">
+            
+            <!-- Round 1 -->
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span class="round-badge round-badge-r1"><i class="fas fa-flag"></i> Round 1 Cutoff</span>
+              </div>
+              ${r1 ? `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="rank-grid">
+                  <div class="rank-box">
+                    <div class="rank-val">${r1.opening.toLocaleString('en-IN')}</div>
+                    <div class="rank-lbl">Opening Rank (OR)</div>
+                  </div>
+                  <div class="rank-box">
+                    <div class="rank-val" style="color: var(--rust);">${r1.closing.toLocaleString('en-IN')}</div>
+                    <div class="rank-lbl">Closing Rank (CR)</div>
+                  </div>
+                </div>
+              ` : `
+                <div style="font-size: 12px; color: var(--ink-mute); font-style: italic; padding: 12px 0;">No Round 1 data</div>
+              `}
+            </div>
+
+            <!-- Round 2 -->
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span class="round-badge round-badge-r2"><i class="fas fa-check-circle"></i> Round 2 Cutoff</span>
+              </div>
+              ${r2 ? `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="rank-grid">
+                  <div class="rank-box">
+                    <div class="rank-val">${r2.opening.toLocaleString('en-IN')}</div>
+                    <div class="rank-lbl">Opening Rank (OR)</div>
+                  </div>
+                  <div class="rank-box">
+                    <div class="rank-val" style="color: var(--forest-deep);">${r2.closing.toLocaleString('en-IN')}</div>
+                    <div class="rank-lbl">Closing Rank (CR)</div>
+                  </div>
+                </div>
+              ` : `
+                <div style="font-size: 12px; color: var(--ink-mute); font-style: italic; padding: 12px 0;">No Round 2 data</div>
+              `}
+            </div>
+
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

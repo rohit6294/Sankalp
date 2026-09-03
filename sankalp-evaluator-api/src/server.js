@@ -20,6 +20,7 @@ const testsRouter = require('./routes/tests');
 const prepRouter = require('./routes/prep');
 const choiceFillingRouter = require('./routes/choice-filling');
 const bookingRouter = require('./routes/booking');
+const workshopsRouter = require('./routes/workshops');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
 const { sendEmail } = require('./mailer');
@@ -50,6 +51,7 @@ app.get('/api/debug-routes', (_req, res) => {
       else if (layer.regexp.toString().includes('result')) routerPath += '/api/result';
       else if (layer.regexp.toString().includes('rank')) routerPath += '/api/rank';
       else if (layer.regexp.toString().includes('payment')) routerPath += '/api/payment';
+      else if (layer.regexp.toString().includes('workshops')) routerPath += '/api/workshops';
       
       layer.handle.stack.forEach(print.bind(null, routerPath));
     } else if (layer.method) {
@@ -77,6 +79,8 @@ app.use('/api/tests', testsRouter);
 app.use('/api/prep', prepRouter);
 app.use('/api/booking', bookingRouter);
 app.use('/api/admin/booking', bookingRouter);
+app.use('/api/workshops', workshopsRouter);
+app.use('/api/admin/workshops', workshopsRouter);
 
 // Student-accessible settings: any authenticated user can read mandatory fields
 app.get('/api/settings/mandatory-fields', verifyToken, async (_req, res) => {

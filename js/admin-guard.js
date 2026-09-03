@@ -9,6 +9,7 @@
     'tests.html': 'tests',
     'evaluators.html': 'evaluators',
     'bookings.html': 'bookings',
+    'workshops.html': 'workshops',
     'announcements.html': 'announcements',
     'payments.html': 'payments',
     'analytics.html': 'analytics',
@@ -21,6 +22,7 @@
     content: 'content.html',
     tests: 'tests.html',
     evaluators: 'evaluators.html#exams',
+    workshops: 'workshops.html',
     collegePredictor: 'evaluators.html#collegePredictor',
     settings: 'evaluators.html#settings',
     subAdmins: 'sub-admins.html',
@@ -31,6 +33,7 @@
     'content',
     'tests',
     'evaluators',
+    'workshops',
     'collegePredictor',
     'settings',
   ];

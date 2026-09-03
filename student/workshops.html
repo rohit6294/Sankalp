@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Workshops — Sankalp Aspirants</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/profile-check.js"></script>
+  <style>
+    .tab-btn { padding: 12px 24px; font-weight: 700; font-size: 14px; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--ink-mute); transition: all 0.2s; }
+    .tab-btn.active { border-bottom-color: var(--rust); color: var(--rust); font-weight: 800; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-card { background: var(--paper); border: 1px solid var(--ink); width: min(540px, 100%); max-height: 90vh; display: flex; flex-direction: column; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden; }
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 999999; opacity: 0; transition: opacity 0.2s; border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .toast.show { opacity: 1; }
+    .badge-full { background: #EF4444; color: white; }
+    .badge-filling { background: #F59E0B; color: #1E293B; }
+    .badge-open { background: #10B981; color: white; }
+    .timer-badge { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #EF4444; font-family: var(--font-mono); font-weight: 800; padding: 6px 12px; border-radius: 8px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- Mobile Menu Toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP ASPIRANTS</div>
+        <div class="brand-sub">JEE/WBJEE PREPARATION</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px;">Main</div>
+    <a href="evaluate.html" class="sidebar-link"><i class="fas fa-clipboard-check" style="width:18px"></i> Evaluate Sheet</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="prep.html" class="sidebar-link"><i class="fas fa-book-open" style="width:18px"></i> Prep Portal</a>
+    <a href="predictor.html" class="sidebar-link"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="counselling.html" class="sidebar-link"><i class="fas fa-comments" style="width:18px"></i> 1-on-1 Counselling</a>
+    <a href="workshops.html" class="sidebar-link active"><i class="fas fa-chalkboard-teacher" style="width:18px"></i> Workshops</a>
+    <a href="choice-filling.html" class="sidebar-link" id="sidebarChoiceFillingLink" style="display:none;"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling</a>
+    <div class="eyebrow" style="padding:14px 22px 8px;">Account</div>
+    <a href="profile.html" class="sidebar-link"><i class="fas fa-user" style="width:18px"></i> Profile</a>
+    <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+  <div style="position:absolute; bottom:0; left:0; right:0; padding:16px 22px; border-top:1px solid var(--ink);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="avatarSidebar" class="brand-mark" style="width:34px; height:34px; font-size:14px;">?</div>
+      <div style="overflow:hidden;">
+        <div id="sidebarName" style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading...</div>
+        <div id="sidebarEmail" style="font-size:11px; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:32px;">
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="display-lg">Live Online Workshops 🎓</h1>
+      <p style="color:var(--ink-mute); font-size:14px; margin-top:4px;">Register for interactive live sessions led by experts & top WBJEE rankers.</p>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div style="display:flex; border-bottom:2px solid var(--rule); margin-bottom:28px;">
+    <button class="tab-btn active" id="tabBrowse" onclick="switchTab('browse')">
+      <i class="fas fa-compass" style="margin-right:6px;"></i> Browse Workshops
+    </button>
+    <button class="tab-btn" id="tabMyWorkshops" onclick="switchTab('my')">
+      <i class="fas fa-check-circle" style="margin-right:6px;"></i> My Workshops <span id="myCountBadge" style="background:var(--rust); color:white; font-size:11px; padding:2px 8px; border-radius:10px; margin-left:6px; display:none;">0</span>
+    </button>
+  </div>
+
+  <!-- Tab 1: Browse Workshops -->
+  <div id="browseSection">
+    <div id="workshopsList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:24px;">
+      <div style="text-align:center; padding:48px; color:var(--ink-mute); grid-column: 1 / -1;">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:12px; display:block;"></i>
+        Loading upcoming workshops...
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: My Workshops -->
+  <div id="mySection" style="display:none;">
+    <div id="myWorkshopsList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:24px;">
+      <div style="text-align:center; padding:48px; color:var(--ink-mute); grid-column: 1 / -1;">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:12px; display:block;"></i>
+        Fetching your registered workshops...
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Registration & Checkout Modal -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal-card">
+    <div style="padding:20px 24px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:center; background:var(--paper-soft);">
+      <div>
+        <h3 style="font-size:16px; font-weight:800; font-family:var(--font-display);" id="modalWsTitle">Workshop Registration</h3>
+        <p style="font-size:12px; color:var(--ink-mute);">Provide your details for Google Meet admission</p>
+      </div>
+      <button onclick="closeCheckoutModal()" style="font-size:18px; border:none; background:none; cursor:pointer; color:var(--ink-mute);">&times;</button>
+    </div>
+    
+    <div style="padding:24px; overflow-y:auto;">
+      <!-- Step 1: Input Form -->
+      <form id="checkoutForm" onsubmit="initiateSeatReservation(event)">
+        <div style="background:var(--paper-soft); padding:16px; border-radius:10px; border:1px solid var(--rule); margin-bottom:20px;">
+          <div style="font-size:14px; font-weight:700; font-family:var(--font-display);" id="modalWsName">—</div>
+          <div style="display:flex; gap:16px; font-size:12px; color:var(--ink-mute); margin-top:6px;">
+            <span><i class="fas fa-calendar" style="color:var(--rust);"></i> <span id="modalWsDate">—</span></span>
+            <span><i class="fas fa-clock" style="color:var(--rust);"></i> <span id="modalWsTime">—</span></span>
+            <span><i class="fas fa-tag" style="color:var(--rust);"></i> <strong id="modalWsPrice" style="color:var(--rust);">—</strong></span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="input-label">Full Name * (For Google Meet Admission)</label>
+          <input type="text" id="regName" class="input-field" placeholder="Enter your full name" required>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="input-label">Email Address *</label>
+          <input type="email" id="regEmail" class="input-field" placeholder="student@gmail.com" required>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label class="input-label">WhatsApp Mobile Number *</label>
+          <input type="tel" id="regPhone" class="input-field" placeholder="+91 9876543210" required>
+        </div>
+
+        <!-- Timer Notice when Seat Reserved -->
+        <div id="reservationTimerBox" style="display:none; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); padding:16px; border-radius:10px; margin-bottom:20px; text-align:center;">
+          <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:8px;">
+            <i class="fas fa-lock" style="color:#EF4444;"></i> Seat Temporarily Reserved For You!
+          </div>
+          <div class="timer-badge" id="timerBadge">
+            <i class="fas fa-stopwatch"></i> <span id="timerCountdown">05:00</span> remaining
+          </div>
+          <p style="font-size:12px; color:var(--ink-mute); margin-top:8px;">Complete payment before timer expires or seat will be unlocked for others.</p>
+        </div>
+
+        <button type="submit" id="checkoutBtn" class="btn-rust" style="width:100%; justify-content:center; padding:14px; font-size:14px;">
+          <i class="fas fa-lock" style="margin-right:8px;"></i> Reserve Seat & Proceed to Pay
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Toast Notifications -->
+<div class="toast" id="toast"></div>
+
+<script>
+let currentUser = null;
+let userDataCache = null;
+let activeWorkshops = [];
+let myWorkshops = [];
+let selectedWorkshop = null;
+let reservationTimer = null;
+let reservationExpiresAt = 0;
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#EF4444' : 'var(--ink)';
+  t.style.color = isError ? '#FFFFFF' : 'var(--paper)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function logout() {
+  auth.signOut().then(() => window.location.href = '../login.html');
+}
+
+async function apiJson(path, options = {}) {
+  if (!currentUser) throw new Error('Not authenticated');
+  const token = await currentUser.getIdToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...(options.headers || {})
+  };
+  let response = await fetch(`${window.EVALUATOR_API || ''}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    const freshToken = await currentUser.getIdToken(true);
+    headers['Authorization'] = `Bearer ${freshToken}`;
+    response = await fetch(`${window.EVALUATOR_API || ''}${path}`, { ...options, headers });
+  }
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  }
+  return payload;
+}
+
+function switchTab(tab) {
+  document.getElementById('tabBrowse').classList.toggle('active', tab === 'browse');
+  document.getElementById('tabMyWorkshops').classList.toggle('active', tab === 'my');
+
+  document.getElementById('browseSection').style.display = tab === 'browse' ? 'block' : 'none';
+  document.getElementById('mySection').style.display = tab === 'my' ? 'block' : 'none';
+
+  if (tab === 'my') {
+    loadMyWorkshops();
+  }
+}
+
+// Load Published Workshops
+async function loadPublishedWorkshops() {
+  const container = document.getElementById('workshopsList');
+  try {
+    const res = await apiJson('/api/workshops/list');
+    activeWorkshops = res.workshops || [];
+
+    // Also fetch user's confirmed workshops to check registration status
+    await fetchMyWorkshopsIds();
+
+    if (activeWorkshops.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:48px; border:1px dashed var(--rule); border-radius:12px; grid-column:1/-1; background:var(--paper-soft);">
+          <i class="fas fa-chalkboard-teacher" style="font-size:36px; color:var(--ink-mute); margin-bottom:12px; display:block;"></i>
+          <div style="font-weight:700; font-size:16px;">No Upcoming Workshops</div>
+          <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Check back soon for new live sessions and concept masterclasses.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = activeWorkshops.map(w => {
+      const isRegistered = myWorkshops.some(m => m.workshopId === w.id);
+      let statusBadgeClass = 'badge-open';
+      let statusText = `${w.availableSeats} Seats Available`;
+
+      if (w.seatStatus === 'FULL') {
+        statusBadgeClass = 'badge-full';
+        statusText = 'WORKSHOP FULL';
+      } else if (w.seatStatus === 'FILLING_FAST') {
+        statusBadgeClass = 'badge-filling';
+        statusText = '🔥 FILLING FAST';
+      }
+
+      return `
+        <div style="border:1px solid var(--ink); border-radius:14px; background:var(--paper); padding:24px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 14px rgba(0,0,0,0.06); transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px;">
+              <span class="badge ${statusBadgeClass}" style="font-weight:800; font-size:11px; padding:4px 12px; border-radius:20px;">${statusText}</span>
+              <div style="font-size:20px; font-weight:800; font-family:var(--font-display); color:var(--rust);">${w.price === 0 ? 'FREE' : '₹' + w.price}</div>
+            </div>
+
+            <h3 style="font-size:18px; font-weight:800; font-family:var(--font-display); margin-bottom:8px; line-height:1.3;">${escapeHtml(w.name)}</h3>
+            <p style="font-size:13px; color:var(--ink-mute); margin-bottom:18px; line-height:1.5;">${escapeHtml(w.description)}</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; background:var(--paper-soft); padding:12px 14px; border-radius:10px; margin-bottom:18px; border:1px solid var(--rule);">
+              <div><i class="fas fa-calendar-alt" style="color:var(--rust); margin-right:6px;"></i> <strong>Date:</strong> ${w.date}</div>
+              <div><i class="fas fa-clock" style="color:var(--rust); margin-right:6px;"></i> <strong>Time:</strong> ${w.startTime} ${w.endTime ? '– ' + w.endTime : ''}</div>
+            </div>
+
+            ${w.rules ? `
+              <div style="margin-bottom:18px;">
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-mute); margin-bottom:6px;"><i class="fas fa-info-circle"></i> Rules & Guidelines</div>
+                <div style="font-size:12px; color:var(--ink); background:rgba(0,0,0,0.02); padding:10px 12px; border-radius:8px; border-left:3px solid var(--rust); white-space:pre-line;">${escapeHtml(w.rules)}</div>
+              </div>
+            ` : ''}
+
+            <!-- Seat Stats Bar -->
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--ink-mute); margin-bottom:6px;">
+              <span>Seat Occupancy</span>
+              <span><strong>${w.confirmedSeats}</strong> / ${w.totalSeats} seats filled</span>
+            </div>
+            <div class="progress-bar" style="margin-bottom:20px; height:8px;"><div class="progress-fill" style="width:${Math.min(100, Math.round((w.confirmedSeats / w.totalSeats) * 100))}%;"></div></div>
+          </div>
+
+          <div>
+            ${isRegistered ? `
+              <button onclick="switchTab('my')" class="btn-rust" style="width:100%; justify-content:center; background:#10B981; border-color:#10B981;">
+                <i class="fas fa-check-circle" style="margin-right:6px;"></i> Already Registered — View Link
+              </button>
+            ` : (w.seatStatus === 'FULL' ? `
+              <button disabled class="btn-paper" style="width:100%; justify-content:center; opacity:0.6; cursor:not-allowed; border:1px solid var(--rule);">
+                <i class="fas fa-ban" style="margin-right:6px;"></i> Workshop Full
+              </button>
+            ` : `
+              <button onclick="openCheckoutModal('${w.id}')" class="btn-rust" style="width:100%; justify-content:center;">
+                <i class="fas fa-ticket-alt" style="margin-right:6px;"></i> Register / Checkout
+              </button>
+            `)}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Failed to load workshops:', err);
+    container.innerHTML = `<div style="text-align:center; padding:32px; color:#EF4444; grid-column:1/-1;">Error loading workshops: ${err.message}</div>`;
+  }
+}
+
+async function fetchMyWorkshopsIds() {
+  try {
+    const res = await apiJson('/api/workshops/my-workshops');
+    myWorkshops = res.workshops || [];
+    const countBadge = document.getElementById('myCountBadge');
+    if (myWorkshops.length > 0) {
+      countBadge.textContent = myWorkshops.length;
+      countBadge.style.display = 'inline-block';
+    } else {
+      countBadge.style.display = 'none';
+    }
+  } catch (e) {
+    console.warn('Failed to fetch my workshops:', e);
+  }
+}
+
+// Load My Workshops
+async function loadMyWorkshops() {
+  const container = document.getElementById('myWorkshopsList');
+  try {
+    await fetchMyWorkshopsIds();
+
+    if (myWorkshops.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:48px; border:1px dashed var(--rule); border-radius:12px; grid-column:1/-1; background:var(--paper-soft);">
+          <i class="fas fa-ticket-alt" style="font-size:36px; color:var(--ink-mute); margin-bottom:12px; display:block;"></i>
+          <div style="font-weight:700; font-size:16px;">No Registered Workshops Yet</div>
+          <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Browse available workshops and register to unlock Google Meet links.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = myWorkshops.map(w => {
+      return `
+        <div style="border:1px solid var(--ink); border-radius:14px; background:var(--paper); padding:24px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 14px rgba(0,0,0,0.06);">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span class="badge" style="background:#10B981; color:white; font-weight:800; font-size:11px; padding:4px 12px; border-radius:20px;"><i class="fas fa-check-circle"></i> CONFIRMED</span>
+              <span style="font-size:11px; color:var(--ink-mute); font-family:var(--font-mono);">Ref: ${w.paymentId || 'Free'}</span>
+            </div>
+
+            <h3 style="font-size:18px; font-weight:800; font-family:var(--font-display); margin-bottom:8px;">${escapeHtml(w.name)}</h3>
+            <p style="font-size:13px; color:var(--ink-mute); margin-bottom:16px;">${escapeHtml(w.description)}</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; background:var(--paper-soft); padding:12px; border-radius:10px; margin-bottom:16px; border:1px solid var(--rule);">
+              <div><i class="fas fa-calendar-alt" style="color:var(--rust); margin-right:6px;"></i> <strong>Date:</strong> ${w.date}</div>
+              <div><i class="fas fa-clock" style="color:var(--rust); margin-right:6px;"></i> <strong>Time:</strong> ${w.startTime} ${w.endTime ? '– ' + w.endTime : ''}</div>
+            </div>
+
+            ${w.rules ? `
+              <div style="margin-bottom:16px; font-size:12px; color:var(--ink-mute);">
+                <strong>Rules:</strong> ${escapeHtml(w.rules)}
+              </div>
+            ` : ''}
+          </div>
+
+          <div>
+            ${w.googleMeetUrl ? `
+              <a href="${w.googleMeetUrl}" target="_blank" class="btn-rust" style="width:100%; justify-content:center; text-decoration:none; padding:12px; font-size:14px; background:#4F46E5; border-color:#4F46E5;">
+                <i class="fas fa-video" style="margin-right:8px;"></i> Join Workshop (Google Meet)
+              </a>
+              <div style="font-size:11px; color:var(--ink-mute); text-align:center; margin-top:6px;">Please join with your registered name</div>
+            ` : `
+              <button disabled class="btn-paper" style="width:100%; justify-content:center;">Meet Link Pending</button>
+            `}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center; padding:32px; color:#EF4444; grid-column:1/-1;">Error loading your workshops: ${err.message}</div>`;
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Checkout Modal logic
+function openCheckoutModal(workshopId) {
+  const ws = activeWorkshops.find(w => w.id === workshopId);
+  if (!ws) return;
+
+  selectedWorkshop = ws;
+  document.getElementById('modalWsTitle').textContent = `Register for ${ws.name}`;
+  document.getElementById('modalWsName').textContent = ws.name;
+  document.getElementById('modalWsDate').textContent = ws.date;
+  document.getElementById('modalWsTime').textContent = `${ws.startTime} ${ws.endTime ? '– ' + ws.endTime : ''}`;
+  document.getElementById('modalWsPrice').textContent = ws.price === 0 ? 'FREE' : `₹${ws.price}`;
+
+  // Pre-fill user data
+  document.getElementById('regName').value = currentUser.displayName || (userDataCache ? userDataCache.name : '') || '';
+  document.getElementById('regEmail').value = currentUser.email || '';
+  document.getElementById('regPhone').value = (userDataCache ? userDataCache.phone : '') || '';
+
+  // Reset timer box
+  stopReservationTimer();
+  document.getElementById('reservationTimerBox').style.display = 'none';
+  document.getElementById('checkoutBtn').disabled = false;
+  document.getElementById('checkoutBtn').innerHTML = '<i class="fas fa-lock" style="margin-right:8px;"></i> Reserve Seat & Proceed to Pay';
+
+  document.getElementById('checkoutModal').classList.add('open');
+}
+
+function closeCheckoutModal() {
+  stopReservationTimer();
+  document.getElementById('checkoutModal').classList.remove('open');
+}
+
+function startReservationTimer(expiresAtMs) {
+  stopReservationTimer();
+  reservationExpiresAt = expiresAtMs;
+  document.getElementById('reservationTimerBox').style.display = 'block';
+
+  function update() {
+    const diff = reservationExpiresAt - Date.now();
+    if (diff <= 0) {
+      stopReservationTimer();
+      document.getElementById('timerCountdown').textContent = '00:00';
+      document.getElementById('checkoutBtn').disabled = true;
+      document.getElementById('checkoutBtn').innerHTML = 'Seat Lock Expired. Please Try Again.';
+      showToast('Your 5-minute seat reservation has expired.', true);
+      return;
+    }
+    const mins = String(Math.floor(diff / 60000)).padStart(2, '0');
+    const secs = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    document.getElementById('timerCountdown').textContent = `${mins}:${secs}`;
+  }
+
+  update();
+  reservationTimer = setInterval(update, 1000);
+}
+
+function stopReservationTimer() {
+  if (reservationTimer) {
+    clearInterval(reservationTimer);
+    reservationTimer = null;
+  }
+}
+
+// Initiate atomic seat lock & Razorpay payment
+async function initiateSeatReservation(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+
+  if (!name || !email || !phone) {
+    showToast('Please provide your name, email, and phone number.', true);
+    return;
+  }
+
+  const btn = document.getElementById('checkoutBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Reserving Seat...';
+
+  try {
+    const res = await apiJson('/api/workshops/lock-seat', {
+      method: 'POST',
+      body: JSON.stringify({
+        workshopId: selectedWorkshop.id,
+        studentName: name,
+        studentEmail: email,
+        studentPhone: phone
+      })
+    });
+
+    if (res.free) {
+      showToast('Registration successful!');
+      closeCheckoutModal();
+      switchTab('my');
+      return;
+    }
+
+    // Start 5-minute countdown UI
+    startReservationTimer(res.expiresAt);
+
+    // Launch Razorpay Payment Popup
+    const options = {
+      key: res.key_id,
+      amount: res.amount,
+      currency: res.currency,
+      name: 'Sankalp Learning',
+      description: `Registration for ${selectedWorkshop.name}`,
+      order_id: res.order_id,
+      prefill: {
+        name: name,
+        email: email,
+        contact: phone
+      },
+      theme: { color: '#C94E1F' },
+      handler: async function (response) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying Payment...';
+        try {
+          const verifyRes = await apiJson('/api/workshops/verify-payment', {
+            method: 'POST',
+            body: JSON.stringify({
+              workshopId: selectedWorkshop.id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+
+          showToast('Payment verified! Registration confirmed.');
+          closeCheckoutModal();
+          switchTab('my');
+        } catch (err) {
+          showToast('Payment verification failed: ' + err.message, true);
+          btn.disabled = false;
+          btn.innerHTML = 'Retry Payment';
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-lock" style="margin-right:8px;"></i> Proceed to Pay (Seat Reserved)';
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    showToast('Reservation Error: ' + err.message, true);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-lock" style="margin-right:8px;"></i> Reserve Seat & Proceed to Pay';
+  }
+}
+
+// Authentication listener
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  currentUser = user;
+
+  const firstName = (user.displayName || 'Student').split(' ')[0];
+  document.getElementById('avatarSidebar').textContent = firstName[0].toUpperCase();
+  document.getElementById('sidebarName').textContent = user.displayName || 'Student';
+  document.getElementById('sidebarEmail').textContent = user.email;
+
+  try {
+    const doc = await db.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      userDataCache = doc.data();
+    }
+  } catch (e) {}
+
+  await loadPublishedWorkshops();
+});
+</script>
+</body>
+</html>

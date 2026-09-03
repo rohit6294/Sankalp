@@ -195,6 +195,24 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /workshops/{id} {
+      allow read: if signedIn();
+      allow write: if canEdit('workshops');
+
+      match /private/{doc} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    match /workshopRegistrations/{id} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || canView('workshops')
+        );
+      allow write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

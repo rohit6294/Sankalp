@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workshops Management — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/admin-guard.js"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .toast { position: fixed; top: 24px; right: 24px; padding: 12px 18px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 99999; opacity: 0; transition: opacity 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .toast.show { opacity: 1; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-card { background: var(--paper); border: 1px solid var(--ink); width: min(720px, 100%); max-height: 90vh; display: flex; flex-direction: column; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); overflow: hidden; }
+    .modal-body { overflow-y: auto; padding: 24px; }
+    .badge-full { background: #EF4444; color: white; }
+    .badge-filling { background: #F59E0B; color: #1E293B; }
+    .badge-open { background: #10B981; color: white; }
+    .badge-draft { background: #64748B; color: white; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Admin Sidebar -->
+<aside class="sidebar sidebar-ink" id="adminSidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">Admin Panel</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
+    <a href="evaluators.html" class="sidebar-link"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> WBJEE Tests</a>
+    <a href="workshops.html" class="sidebar-link active"><i class="fas fa-chalkboard-teacher" style="width:18px"></i> Workshops</a>
+    <a href="announcements.html" class="sidebar-link"><i class="fas fa-bullhorn" style="width:18px"></i> Announcements</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
+    <a href="evaluators.html#studentList" class="sidebar-link" id="sidebarStudentListBtn"><i class="fas fa-users" style="width:18px"></i> Student List</a>
+    <a href="evaluators.html#collegePredictor" class="sidebar-link" id="sidebarCollegePredictorBtn"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="evaluators.html#choiceFilling" class="sidebar-link" id="sidebarChoiceFillingBtn"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling Tool</a>
+    <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
+    <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:28px 32px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="display-lg">Workshop Management</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Create online workshops, monitor 5-min seat locks, manage Google Meet links, and view registered students.</p>
+    </div>
+    <button onclick="openCreateWorkshopModal()" class="btn-rust" style="display:flex; align-items:center; gap:8px;">
+      <i class="fas fa-plus"></i> Create New Workshop
+    </button>
+  </div>
+
+  <!-- Workshops Grid -->
+  <div id="workshopsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:24px;">
+    <div style="text-align:center; padding:48px; color:var(--ink-mute); grid-column: 1 / -1;">
+      <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:12px; display:block;"></i>
+      Loading workshops...
+    </div>
+  </div>
+</main>
+
+<!-- Create / Edit Workshop Modal -->
+<div class="modal-overlay" id="workshopModal">
+  <div class="modal-card">
+    <div style="padding:20px 24px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:center; background:var(--paper-soft);">
+      <h3 style="font-size:16px; font-weight:800; font-family:var(--font-display);" id="modalTitle">Create Workshop</h3>
+      <button onclick="closeWorkshopModal()" style="font-size:18px; border:none; background:none; cursor:pointer; color:var(--ink-mute);">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="workshopForm" onsubmit="saveWorkshop(event)">
+        <input type="hidden" id="workshopId">
+        
+        <div style="display:grid; gap:16px;">
+          <div>
+            <label class="input-label">Workshop Title *</label>
+            <input type="text" id="wsName" class="input-field" placeholder="e.g. DC Workshop & Concept Masterclass" required>
+          </div>
+
+          <div>
+            <label class="input-label">Short Description *</label>
+            <textarea id="wsDescription" class="input-field" rows="3" placeholder="Explain what students will learn in this session..." required></textarea>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+              <label class="input-label">Date *</label>
+              <input type="date" id="wsDate" class="input-field" required>
+            </div>
+            <div>
+              <label class="input-label">Registration Fee (₹) *</label>
+              <input type="number" id="wsPrice" class="input-field" placeholder="299" min="0" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+            <div>
+              <label class="input-label">Start Time *</label>
+              <input type="text" id="wsStartTime" class="input-field" placeholder="e.g. 7:00 PM" required>
+            </div>
+            <div>
+              <label class="input-label">End Time</label>
+              <input type="text" id="wsEndTime" class="input-field" placeholder="e.g. 9:00 PM">
+            </div>
+            <div>
+              <label class="input-label">Maximum Seats *</label>
+              <input type="number" id="wsTotalSeats" class="input-field" value="25" min="1" required>
+            </div>
+          </div>
+
+          <div>
+            <label class="input-label">Google Meet Link * (Protected — Only visible to paid students)</label>
+            <input type="url" id="wsMeetUrl" class="input-field" placeholder="https://meet.google.com/abc-defg-hij" required>
+          </div>
+
+          <div>
+            <label class="input-label">Rules & Instructions *</label>
+            <textarea id="wsRules" class="input-field" rows="3" placeholder="1. Join 10 minutes before session. 2. Keep microphone muted." required></textarea>
+          </div>
+
+          <div>
+            <label class="input-label">Banner Image URL (Optional)</label>
+            <input type="url" id="wsBannerUrl" class="input-field" placeholder="https://example.com/banner.jpg">
+          </div>
+
+          <div>
+            <label class="input-label">Status *</label>
+            <select id="wsStatus" class="input-field" required>
+              <option value="PUBLISHED">PUBLISHED (Visible to students)</option>
+              <option value="DRAFT">DRAFT (Hidden from students)</option>
+              <option value="CANCELLED">CANCELLED</option>
+              <option value="COMPLETED">COMPLETED</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px; border-top:1px solid var(--rule); padding-top:16px;">
+          <button type="button" onclick="closeWorkshopModal()" class="btn-paper" style="border:1px solid var(--rule);">Cancel</button>
+          <button type="submit" id="saveWsBtn" class="btn-rust">Save Workshop</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Registrations List Modal -->
+<div class="modal-overlay" id="registrationsModal">
+  <div class="modal-card" style="width: min(900px, 100%);">
+    <div style="padding:20px 24px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:center; background:var(--paper-soft);">
+      <div>
+        <h3 style="font-size:16px; font-weight:800; font-family:var(--font-display);" id="regModalTitle">Registered Students</h3>
+        <p style="font-size:12px; color:var(--ink-mute);" id="regModalSub">Workshop Student List</p>
+      </div>
+      <button onclick="closeRegistrationsModal()" style="font-size:18px; border:none; background:none; cursor:pointer; color:var(--ink-mute);">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Search & Controls -->
+      <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; justify-content:space-between; align-items:center;">
+        <input type="text" id="regSearch" class="input-field" placeholder="Search by name, email, or phone..." oninput="filterRegistrations()" style="max-width:320px;">
+        <div style="display:flex; gap:12px;">
+          <select id="regStatusFilter" class="input-field" onchange="filterRegistrations()" style="width:160px;">
+            <option value="ALL">All Statuses</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="RESERVED">Active Reserved</option>
+            <option value="EXPIRED">Expired</option>
+          </select>
+          <button onclick="exportRegistrationsCSV()" class="btn-paper" style="border:1px solid var(--rule); font-size:12px; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-file-csv"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+          <thead>
+            <tr style="background:var(--paper-soft); border-bottom:2px solid var(--rule); font-weight:700;">
+              <th style="padding:10px 12px;">Student Name</th>
+              <th style="padding:10px 12px;">Email</th>
+              <th style="padding:10px 12px;">WhatsApp Mobile</th>
+              <th style="padding:10px 12px;">Status</th>
+              <th style="padding:10px 12px;">Payment ID</th>
+              <th style="padding:10px 12px;">Confirmed At</th>
+            </tr>
+          </thead>
+          <tbody id="registrationsTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; padding:32px; color:var(--ink-mute);">Loading registrations...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Toast Notifications -->
+<div class="toast" id="toast"></div>
+
+<script>
+let allWorkshops = [];
+let currentRegistrations = [];
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#EF4444' : 'var(--ink)';
+  t.style.color = isError ? '#FFFFFF' : 'var(--paper)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function logout() {
+  auth.signOut().then(() => { window.location.href = '../login.html'; });
+}
+
+async function apiJson(path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  const token = await user.getIdToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...(options.headers || {})
+  };
+  let response = await fetch(`${window.EVALUATOR_API || ''}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    const freshToken = await user.getIdToken(true);
+    headers['Authorization'] = `Bearer ${freshToken}`;
+    response = await fetch(`${window.EVALUATOR_API || ''}${path}`, { ...options, headers });
+  }
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  }
+  return payload;
+}
+
+// Load Workshops List
+async function loadWorkshops() {
+  const grid = document.getElementById('workshopsGrid');
+  try {
+    const res = await apiJson('/api/workshops/list');
+    allWorkshops = res.workshops || [];
+
+    if (allWorkshops.length === 0) {
+      grid.innerHTML = `
+        <div style="text-align:center; padding:48px; border:1px dashed var(--rule); border-radius:12px; grid-column:1/-1; background:var(--paper-soft);">
+          <i class="fas fa-chalkboard-teacher" style="font-size:36px; color:var(--ink-mute); margin-bottom:12px; display:block;"></i>
+          <div style="font-weight:700; font-size:16px;">No Workshops Found</div>
+          <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Click "Create New Workshop" above to get started.</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = allWorkshops.map(w => {
+      let statusBadgeClass = 'badge-open';
+      let statusText = 'OPEN';
+      if (w.status === 'DRAFT') { statusBadgeClass = 'badge-draft'; statusText = 'DRAFT'; }
+      else if (w.seatStatus === 'FULL') { statusBadgeClass = 'badge-full'; statusText = 'FULL'; }
+      else if (w.seatStatus === 'FILLING_FAST') { statusBadgeClass = 'badge-filling'; statusText = '🔥 FILLING FAST'; }
+
+      return `
+        <div style="border:1px solid var(--ink); border-radius:12px; background:var(--paper); padding:20px; display:flex; flex-direction:column; justify-space-between; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
+              <span class="badge ${statusBadgeClass}" style="font-weight:800; font-size:11px; padding:4px 10px; border-radius:20px;">${statusText}</span>
+              <div style="font-size:18px; font-weight:800; font-family:var(--font-display); color:var(--rust);">₹${w.price}</div>
+            </div>
+
+            <h3 style="font-size:17px; font-weight:800; font-family:var(--font-display); margin-bottom:6px;">${escapeHtml(w.name)}</h3>
+            <p style="font-size:12px; color:var(--ink-mute); margin-bottom:16px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${escapeHtml(w.description)}</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; background:var(--paper-soft); padding:12px; border-radius:8px; margin-bottom:16px;">
+              <div><i class="fas fa-calendar" style="color:var(--rust); margin-right:4px;"></i> <strong>Date:</strong> ${w.date}</div>
+              <div><i class="fas fa-clock" style="color:var(--rust); margin-right:4px;"></i> <strong>Time:</strong> ${w.startTime}</div>
+            </div>
+
+            <!-- Seat Breakdown -->
+            <div style="border:1px solid var(--rule); border-radius:8px; padding:10px; margin-bottom:16px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-mute); margin-bottom:6px;">Seat Capacity Breakdown</div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; text-align:center; gap:4px;">
+                <div style="background:rgba(0,0,0,0.03); padding:6px; border-radius:6px;">
+                  <div style="font-size:14px; font-weight:800;">${w.totalSeats}</div>
+                  <div style="font-size:10px; color:var(--ink-mute);">Total</div>
+                </div>
+                <div style="background:rgba(16,185,129,0.1); padding:6px; border-radius:6px;">
+                  <div style="font-size:14px; font-weight:800; color:#10B981;">${w.confirmedSeats}</div>
+                  <div style="font-size:10px; color:#10B981;">Paid</div>
+                </div>
+                <div style="background:rgba(245,158,11,0.1); padding:6px; border-radius:6px;">
+                  <div style="font-size:14px; font-weight:800; color:#D97706;">${w.reservedSeats}</div>
+                  <div style="font-size:10px; color:#D97706;">Locked</div>
+                </div>
+                <div style="background:rgba(59,130,246,0.1); padding:6px; border-radius:6px;">
+                  <div style="font-size:14px; font-weight:800; color:#2563EB;">${w.availableSeats}</div>
+                  <div style="font-size:10px; color:#2563EB;">Available</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+            <button onclick="viewRegistrations('${w.id}', '${escapeJs(w.name)}')" class="btn-paper" style="border:1px solid var(--rule); font-size:12px; justify-content:center;">
+              <i class="fas fa-users" style="margin-right:4px;"></i> Students (${w.confirmedSeats})
+            </button>
+            <button onclick="openEditWorkshopModal('${w.id}')" class="btn-rust btn-sm" style="font-size:12px; justify-content:center;">
+              <i class="fas fa-edit" style="margin-right:4px;"></i> Edit
+            </button>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--rule);">
+            <button onclick="togglePublish('${w.id}', '${w.status}')" style="font-size:11px; font-weight:700; color:var(--rust); background:none; border:none; cursor:pointer;">
+              <i class="fas ${w.status === 'PUBLISHED' ? 'fa-eye-slash' : 'fa-eye'}"></i> ${w.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
+            </button>
+            <button onclick="deleteWorkshop('${w.id}')" style="font-size:11px; font-weight:700; color:#EF4444; background:none; border:none; cursor:pointer;">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Failed to load workshops:', err);
+    grid.innerHTML = `<div style="text-align:center; padding:32px; color:#EF4444; grid-column:1/-1;">Error loading workshops: ${err.message}</div>`;
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escapeJs(str) {
+  return String(str || '').replace(/'/g, "\\'");
+}
+
+// Modal Handlers
+function openCreateWorkshopModal() {
+  document.getElementById('modalTitle').textContent = 'Create Workshop';
+  document.getElementById('workshopForm').reset();
+  document.getElementById('workshopId').value = '';
+  document.getElementById('wsTotalSeats').value = '25';
+  document.getElementById('wsPrice').value = '299';
+  document.getElementById('wsStatus').value = 'PUBLISHED';
+  document.getElementById('workshopModal').classList.add('open');
+}
+
+async function openEditWorkshopModal(id) {
+  const ws = allWorkshops.find(w => w.id === id);
+  if (!ws) return;
+
+  document.getElementById('modalTitle').textContent = 'Edit Workshop';
+  document.getElementById('workshopId').value = ws.id;
+  document.getElementById('wsName').value = ws.name || '';
+  document.getElementById('wsDescription').value = ws.description || '';
+  document.getElementById('wsDate').value = ws.date || '';
+  document.getElementById('wsStartTime').value = ws.startTime || '';
+  document.getElementById('wsEndTime').value = ws.endTime || '';
+  document.getElementById('wsPrice').value = ws.price !== undefined ? ws.price : 0;
+  document.getElementById('wsTotalSeats').value = ws.totalSeats || 25;
+  document.getElementById('wsRules').value = ws.rules || '';
+  document.getElementById('wsBannerUrl').value = ws.bannerUrl || '';
+  document.getElementById('wsStatus').value = ws.status || 'PUBLISHED';
+
+  // Fetch private Meet URL
+  try {
+    const res = await apiJson(`/api/workshops/${id}`);
+    if (res.workshop) {
+      document.getElementById('wsMeetUrl').value = res.workshop.googleMeetUrl || '';
+    }
+  } catch (e) {}
+
+  document.getElementById('workshopModal').classList.add('open');
+}
+
+function closeWorkshopModal() {
+  document.getElementById('workshopModal').classList.remove('open');
+}
+
+async function saveWorkshop(event) {
+  event.preventDefault();
+  const id = document.getElementById('workshopId').value;
+  const name = document.getElementById('wsName').value.trim();
+  const description = document.getElementById('wsDescription').value.trim();
+  const date = document.getElementById('wsDate').value;
+  const startTime = document.getElementById('wsStartTime').value.trim();
+  const endTime = document.getElementById('wsEndTime').value.trim();
+  const price = Number(document.getElementById('wsPrice').value || 0);
+  const totalSeats = Number(document.getElementById('wsTotalSeats').value || 25);
+  const googleMeetUrl = document.getElementById('wsMeetUrl').value.trim();
+  const rules = document.getElementById('wsRules').value.trim();
+  const bannerUrl = document.getElementById('wsBannerUrl').value.trim();
+  const status = document.getElementById('wsStatus').value;
+
+  const btn = document.getElementById('saveWsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const path = id ? '/api/workshops/admin/update' : '/api/workshops/admin/create';
+    const body = { workshopId: id, name, description, date, startTime, endTime, price, totalSeats, rules, googleMeetUrl, bannerUrl, status };
+
+    await apiJson(path, { method: 'POST', body: JSON.stringify(body) });
+    showToast(`Workshop ${id ? 'updated' : 'created'} successfully!`);
+    closeWorkshopModal();
+    await loadWorkshops();
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Workshop';
+  }
+}
+
+async function togglePublish(id, currentStatus) {
+  const newStatus = currentStatus === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+  try {
+    await apiJson('/api/workshops/admin/update', {
+      method: 'POST',
+      body: JSON.stringify({ workshopId: id, status: newStatus })
+    });
+    showToast(`Workshop is now ${newStatus}`);
+    await loadWorkshops();
+  } catch (e) {
+    showToast('Failed to update status: ' + e.message, true);
+  }
+}
+
+async function deleteWorkshop(id) {
+  if (!confirm('Are you sure you want to delete this workshop? Registered student data will remain in database logs.')) return;
+  try {
+    await apiJson('/api/workshops/admin/delete', {
+      method: 'POST',
+      body: JSON.stringify({ workshopId: id })
+    });
+    showToast('Workshop deleted successfully.');
+    await loadWorkshops();
+  } catch (e) {
+    showToast('Delete failed: ' + e.message, true);
+  }
+}
+
+// Registrations Viewer Modal
+async function viewRegistrations(workshopId, workshopName) {
+  document.getElementById('regModalTitle').textContent = `Registrations for ${workshopName}`;
+  document.getElementById('regModalSub').textContent = 'Students must be admitted to Google Meet using their registered name/email below.';
+  document.getElementById('registrationsModal').classList.add('open');
+
+  const tbody = document.getElementById('registrationsTableBody');
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px;"><i class="fas fa-spinner fa-spin"></i> Fetching student list...</td></tr>`;
+
+  try {
+    const res = await apiJson(`/api/workshops/admin/registrations/${workshopId}`);
+    currentRegistrations = res.registrations || [];
+    filterRegistrations();
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:#EF4444;">Failed to load registrations: ${e.message}</td></tr>`;
+  }
+}
+
+function filterRegistrations() {
+  const search = document.getElementById('regSearch').value.toLowerCase().trim();
+  const statusFilter = document.getElementById('regStatusFilter').value;
+  const tbody = document.getElementById('registrationsTableBody');
+
+  const filtered = currentRegistrations.filter(r => {
+    const matchSearch = (r.studentName || '').toLowerCase().includes(search) ||
+                        (r.studentEmail || '').toLowerCase().includes(search) ||
+                        (r.studentPhone || '').toLowerCase().includes(search);
+    let matchStatus = true;
+    if (statusFilter !== 'ALL') {
+      matchStatus = r.status === statusFilter;
+    }
+    return matchSearch && matchStatus;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--ink-mute);">No registrations match criteria.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    let badgeClass = 'background:#10B981; color:white;';
+    if (r.status === 'RESERVED') badgeClass = 'background:#F59E0B; color:#1E293B;';
+    if (r.status === 'EXPIRED') badgeClass = 'background:#64748B; color:white;';
+
+    const confirmedDate = r.confirmedAt ? new Date(r.confirmedAt).toLocaleString('en-IN', { dateStyle:'short', timeStyle:'short' }) : '—';
+
+    return `
+      <tr style="border-bottom:1px solid var(--rule);">
+        <td style="padding:10px 12px; font-weight:700;">${escapeHtml(r.studentName)}</td>
+        <td style="padding:10px 12px;">${escapeHtml(r.studentEmail)}</td>
+        <td style="padding:10px 12px; font-family:var(--font-mono);">${escapeHtml(r.studentPhone)}</td>
+        <td style="padding:10px 12px;">
+          <span style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:12px; ${badgeClass}">${r.status}</span>
+        </td>
+        <td style="padding:10px 12px; font-family:var(--font-mono); font-size:11px;">${r.paymentId || '—'}</td>
+        <td style="padding:10px 12px; font-size:12px; color:var(--ink-mute);">${confirmedDate}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function closeRegistrationsModal() {
+  document.getElementById('registrationsModal').classList.remove('open');
+}
+
+function exportRegistrationsCSV() {
+  if (currentRegistrations.length === 0) {
+    alert('No registrations available to export.');
+    return;
+  }
+
+  let csvContent = 'data:text/csv;charset=utf-8,Name,Email,Phone,Status,Payment ID,Confirmed At\n';
+  currentRegistrations.forEach(r => {
+    const name = `"${(r.studentName || '').replace(/"/g, '""')}"`;
+    const email = `"${(r.studentEmail || '').replace(/"/g, '""')}"`;
+    const phone = `"${(r.studentPhone || '').replace(/"/g, '""')}"`;
+    const status = r.status;
+    const paymentId = r.paymentId || '';
+    const confirmedAt = r.confirmedAt || '';
+    csvContent += `${name},${email},${phone},${status},${paymentId},${confirmedAt}\n`;
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `workshop_registrations_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  await loadWorkshops();
+});
+</script>
+</body>
+</html>

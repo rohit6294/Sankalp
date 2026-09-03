@@ -22,27 +22,25 @@ router.get('/registry', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// 2. List Saved Segments
+// 2. List Saved Segments (Fast read using stored metadata)
 router.get('/list', verifyToken, requireAdmin, async (req, res) => {
   try {
     const snap = await db.collection('studentSegments').orderBy('createdAt', 'desc').get();
     const segments = [];
 
-    for (const doc of snap.docs) {
+    snap.forEach(doc => {
       const data = doc.data() || {};
-      const evalRes = await evaluateSegmentRules(data.rules || {}).catch(() => ({ matchingCount: 0 }));
-
       segments.push({
         id: doc.id,
         name: data.name || 'Untitled Segment',
         description: data.description || '',
         rules: data.rules || {},
-        matchingCount: evalRes.matchingCount,
+        matchingCount: data.recipientCount || 0,
         createdBy: data.createdBy || 'Admin',
         createdAt: data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : null,
         updatedAt: data.updatedAt ? (data.updatedAt.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt) : null
       });
-    }
+    });
 
     res.json({ ok: true, segments });
   } catch (e) {

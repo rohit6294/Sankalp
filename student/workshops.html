@@ -431,7 +431,7 @@ function closeCheckoutModal() {
   document.getElementById('checkoutModal').classList.remove('open');
 }
 
-function startReservationTimer(expiresAtMs) {
+function startReservationTimer(expiresAtMs, lockMinutes = 5) {
   stopReservationTimer();
   reservationExpiresAt = expiresAtMs;
   document.getElementById('reservationTimerBox').style.display = 'block';
@@ -443,7 +443,7 @@ function startReservationTimer(expiresAtMs) {
       document.getElementById('timerCountdown').textContent = '00:00';
       document.getElementById('checkoutBtn').disabled = true;
       document.getElementById('checkoutBtn').innerHTML = 'Seat Lock Expired. Please Try Again.';
-      showToast('Your 5-minute seat reservation has expired.', true);
+      showToast(`Your ${lockMinutes}-minute seat reservation has expired.`, true);
       return;
     }
     const mins = String(Math.floor(diff / 60000)).padStart(2, '0');
@@ -497,8 +497,8 @@ async function initiateSeatReservation(event) {
       return;
     }
 
-    // Start 5-minute countdown UI
-    startReservationTimer(res.expiresAt);
+    // Start countdown UI dynamically with server lockMinutes
+    startReservationTimer(res.expiresAt, res.lockMinutes || 5);
 
     // Launch Razorpay Payment Popup
     const options = {

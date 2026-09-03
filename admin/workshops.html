@@ -125,6 +125,10 @@
               <label class="input-label">Maximum Seats *</label>
               <input type="number" id="wsTotalSeats" class="input-field" value="25" min="1" required>
             </div>
+            <div>
+              <label class="input-label">Seat Lock Duration (Mins) *</label>
+              <input type="number" id="wsSeatLockMinutes" class="input-field" value="5" min="1" max="120" placeholder="5" required>
+            </div>
           </div>
 
           <div>
@@ -298,6 +302,7 @@ async function loadWorkshops() {
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; background:var(--paper-soft); padding:12px; border-radius:8px; margin-bottom:16px;">
               <div><i class="fas fa-calendar" style="color:var(--rust); margin-right:4px;"></i> <strong>Date:</strong> ${w.date}</div>
               <div><i class="fas fa-clock" style="color:var(--rust); margin-right:4px;"></i> <strong>Time:</strong> ${w.startTime}</div>
+              <div style="grid-column: 1 / -1;"><i class="fas fa-stopwatch" style="color:var(--rust); margin-right:4px;"></i> <strong>Hold Lock Duration:</strong> ${w.seatLockMinutes || 5} Minutes</div>
             </div>
 
             <!-- Seat Breakdown -->
@@ -363,6 +368,7 @@ function openCreateWorkshopModal() {
   document.getElementById('workshopForm').reset();
   document.getElementById('workshopId').value = '';
   document.getElementById('wsTotalSeats').value = '25';
+  document.getElementById('wsSeatLockMinutes').value = '5';
   document.getElementById('wsPrice').value = '299';
   document.getElementById('wsStatus').value = 'PUBLISHED';
   document.getElementById('workshopModal').classList.add('open');
@@ -381,6 +387,7 @@ async function openEditWorkshopModal(id) {
   document.getElementById('wsEndTime').value = ws.endTime || '';
   document.getElementById('wsPrice').value = ws.price !== undefined ? ws.price : 0;
   document.getElementById('wsTotalSeats').value = ws.totalSeats || 25;
+  document.getElementById('wsSeatLockMinutes').value = ws.seatLockMinutes || 5;
   document.getElementById('wsRules').value = ws.rules || '';
   document.getElementById('wsBannerUrl').value = ws.bannerUrl || '';
   document.getElementById('wsStatus').value = ws.status || 'PUBLISHED';
@@ -410,6 +417,7 @@ async function saveWorkshop(event) {
   const endTime = document.getElementById('wsEndTime').value.trim();
   const price = Number(document.getElementById('wsPrice').value || 0);
   const totalSeats = Number(document.getElementById('wsTotalSeats').value || 25);
+  const seatLockMinutes = Number(document.getElementById('wsSeatLockMinutes').value || 5);
   const googleMeetUrl = document.getElementById('wsMeetUrl').value.trim();
   const rules = document.getElementById('wsRules').value.trim();
   const bannerUrl = document.getElementById('wsBannerUrl').value.trim();
@@ -421,7 +429,7 @@ async function saveWorkshop(event) {
 
   try {
     const path = id ? '/api/workshops/admin/update' : '/api/workshops/admin/create';
-    const body = { workshopId: id, name, description, date, startTime, endTime, price, totalSeats, rules, googleMeetUrl, bannerUrl, status };
+    const body = { workshopId: id, name, description, date, startTime, endTime, price, totalSeats, seatLockMinutes, rules, googleMeetUrl, bannerUrl, status };
 
     await apiJson(path, { method: 'POST', body: JSON.stringify(body) });
     showToast(`Workshop ${id ? 'updated' : 'created'} successfully!`);

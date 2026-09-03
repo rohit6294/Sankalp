@@ -118,6 +118,7 @@ router.get('/list', async (req, res) => {
         endTime: data.endTime || '',
         price: Number(data.price || 0),
         totalSeats: stats.totalSeats,
+        seatLockMinutes: Number(data.seatLockMinutes || 5),
         confirmedSeats: stats.confirmedSeats,
         reservedSeats: stats.reservedSeats,
         availableSeats: stats.availableSeats,
@@ -207,6 +208,7 @@ router.get('/:id', async (req, res) => {
         endTime: data.endTime,
         price: Number(data.price || 0),
         totalSeats: stats.totalSeats,
+        seatLockMinutes: Number(data.seatLockMinutes || 5),
         confirmedSeats: stats.confirmedSeats,
         reservedSeats: stats.reservedSeats,
         availableSeats: stats.availableSeats,
@@ -221,7 +223,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 4. Lock seat (5-minute atomic reservation with transactional locking)
+// 4. Lock seat (Atomic reservation with dynamic seatLockMinutes)
 router.post('/lock-seat', verifyToken, async (req, res) => {
   const { workshopId, studentName, studentEmail, studentPhone } = req.body || {};
 
@@ -235,9 +237,10 @@ router.post('/lock-seat', verifyToken, async (req, res) => {
 
   try {
     let finalPrice = 0;
+    let lockMinutes = 5;
+    let expiresAtMs = 0;
+    let expiresAtDate = null;
     const nowMs = Date.now();
-    const expiresAtMs = nowMs + 5 * 60 * 1000;
-    const expiresAtDate = new Date(expiresAtMs);
 
     await db.runTransaction(async (transaction) => {
       // 1. Transaction read on wRef locks the workshop document across concurrent requests
@@ -253,6 +256,9 @@ router.post('/lock-seat', verifyToken, async (req, res) => {
 
       finalPrice = Number(wData.price || 0);
       const totalSeats = Number(wData.totalSeats || wData.maxSeats || 25);
+      lockMinutes = Math.max(1, Number(wData.seatLockMinutes || 5));
+      expiresAtMs = nowMs + lockMinutes * 60 * 1000;
+      expiresAtDate = new Date(expiresAtMs);
 
       // Check existing registration for this student
       const regDoc = await transaction.get(regRef);
@@ -375,7 +381,8 @@ router.post('/lock-seat', verifyToken, async (req, res) => {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       key_id: (process.env.RAZORPAY_KEY_ID || '').trim(),
-      expiresAt: expiresAtMs
+      expiresAt: expiresAtMs,
+      lockMinutes
     });
 
   } catch (e) {
@@ -525,7 +532,7 @@ async function sendWorkshopConfirmationEmail(workshopId, name, email, phone, pay
 
 // Create workshop (Admin)
 router.post('/admin/create', verifyToken, requireAdmin, async (req, res) => {
-  const { name, description, date, startTime, endTime, price, totalSeats, rules, googleMeetUrl, bannerUrl, status } = req.body || {};
+  const { name, description, date, startTime, endTime, price, totalSeats, seatLockMinutes, rules, googleMeetUrl, bannerUrl, status } = req.body || {};
 
   if (!name || !date || !startTime || totalSeats === undefined) {
     return res.status(400).json({ error: 'missing_fields', message: 'Name, date, start time, and total seats are required.' });
@@ -543,6 +550,7 @@ router.post('/admin/create', verifyToken, requireAdmin, async (req, res) => {
       endTime: String(endTime || '').trim(),
       price: Number(price || 0),
       totalSeats: Number(totalSeats || 25),
+      seatLockMinutes: Math.max(1, Number(seatLockMinutes || 5)),
       confirmedSeats: 0,
       activeReservations: {},
       rules: String(rules || '').trim(),
@@ -568,7 +576,7 @@ router.post('/admin/create', verifyToken, requireAdmin, async (req, res) => {
 
 // Update workshop (Admin)
 router.post('/admin/update', verifyToken, requireAdmin, async (req, res) => {
-  const { workshopId, name, description, date, startTime, endTime, price, totalSeats, rules, googleMeetUrl, bannerUrl, status } = req.body || {};
+  const { workshopId, name, description, date, startTime, endTime, price, totalSeats, seatLockMinutes, rules, googleMeetUrl, bannerUrl, status } = req.body || {};
 
   if (!workshopId) {
     return res.status(400).json({ error: 'missing_workshopId' });
@@ -592,6 +600,7 @@ router.post('/admin/update', verifyToken, requireAdmin, async (req, res) => {
     if (endTime !== undefined) updates.endTime = String(endTime).trim();
     if (price !== undefined) updates.price = Number(price);
     if (totalSeats !== undefined) updates.totalSeats = Number(totalSeats);
+    if (seatLockMinutes !== undefined) updates.seatLockMinutes = Math.max(1, Number(seatLockMinutes));
     if (rules !== undefined) updates.rules = String(rules).trim();
     if (bannerUrl !== undefined) updates.bannerUrl = String(bannerUrl).trim();
     if (status !== undefined) updates.status = String(status).trim();

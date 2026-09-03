@@ -76,8 +76,17 @@
           <label class="input-label">Audience Category *</label>
           <select class="input-field" id="targetType" onchange="onTargetTypeChange()" required>
             <option value="all">All Registered Students</option>
+            <option value="segment">Saved Audience Segment (Custom Rules)</option>
             <option value="year">Filter by Target WBJEE Year</option>
             <option value="series">Filter by Mock Test Series Purchase</option>
+          </select>
+        </div>
+
+        <!-- Saved Segment Dropdown Container -->
+        <div id="segmentSelectContainer" style="display: none;">
+          <label class="input-label">Select Saved Audience Segment *</label>
+          <select class="input-field" id="targetSegment">
+            <option value="">-- Select Saved Segment --</option>
           </select>
         </div>
 
@@ -178,15 +187,19 @@ function onTargetTypeChange() {
   const type = document.getElementById('targetType').value;
   const yearContainer = document.getElementById('yearSelectContainer');
   const seriesContainer = document.getElementById('seriesSelectContainer');
+  const segmentContainer = document.getElementById('segmentSelectContainer');
   
   const targetYear = document.getElementById('targetYear');
   const targetSeries = document.getElementById('targetSeries');
+  const targetSegment = document.getElementById('targetSegment');
 
-  // Hide both initially
+  // Hide all initially
   yearContainer.style.display = 'none';
   seriesContainer.style.display = 'none';
+  segmentContainer.style.display = 'none';
   targetYear.required = false;
   targetSeries.required = false;
+  targetSegment.required = false;
 
   if (type === 'year') {
     yearContainer.style.display = 'block';
@@ -194,6 +207,9 @@ function onTargetTypeChange() {
   } else if (type === 'series') {
     seriesContainer.style.display = 'block';
     targetSeries.required = true;
+  } else if (type === 'segment') {
+    segmentContainer.style.display = 'block';
+    targetSegment.required = true;
   }
 }
 
@@ -203,6 +219,23 @@ async function loadMetadata() {
     const data = await apiJson('/api/admin/announcement-meta');
     metaCache = data;
     
+    // Populate Saved Segments
+    try {
+      const segRes = await apiJson('/api/admin/segments/list');
+      const segSelect = document.getElementById('targetSegment');
+      segSelect.innerHTML = '<option value="">-- Select Saved Segment --</option>';
+      if (segRes.segments && segRes.segments.length > 0) {
+        segRes.segments.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.name} (🎯 ${s.matchingCount || 0} Students)`;
+          segSelect.appendChild(opt);
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to load segments in broadcast UI:', e);
+    }
+
     // Populate Years
     const yearSelect = document.getElementById('targetYear');
     yearSelect.innerHTML = '<option value="">-- Select Year --</option>';
@@ -245,6 +278,8 @@ async function sendBroadcast(event) {
     targetValue = document.getElementById('targetYear').value;
   } else if (targetType === 'series') {
     targetValue = document.getElementById('targetSeries').value;
+  } else if (targetType === 'segment') {
+    targetValue = document.getElementById('targetSegment').value;
   }
 
   const btn = document.getElementById('submitBtn');

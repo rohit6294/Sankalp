@@ -786,7 +786,7 @@ router.get('/announcement-meta', requirePermission('announcements', 'view'), asy
 
 // Broadcast announcement via email
 router.post('/broadcast-announcement', requirePermission('announcements', 'edit'), async (req, res) => {
-  const { title, message, targetType, targetValue } = req.body || {};
+  const { title, message, targetType, targetValue, targetRules } = req.body || {};
   if (!title || !message) return res.status(400).json({ error: 'missing_fields' });
 
   try {
@@ -841,6 +841,18 @@ router.post('/broadcast-announcement', requirePermission('announcements', 'edit'
           });
         });
       }
+    } else if (targetType === 'segment') {
+      if (!targetValue) return res.status(400).json({ error: 'missing_target_value', message: 'Target audience segment selection is required.' });
+      const segDoc = await db.collection('studentSegments').doc(String(targetValue).trim()).get();
+      if (!segDoc.exists) return res.status(404).json({ error: 'segment_not_found', message: 'Selected audience segment doc does not exist.' });
+      const { evaluateSegmentRules } = require('../segment-engine');
+      const evalRes = await evaluateSegmentRules(segDoc.data().rules || {});
+      emails = evalRes.recipientEmails || [];
+    } else if (targetType === 'custom_rules') {
+      if (!targetRules) return res.status(400).json({ error: 'missing_target_rules', message: 'Rule condition tree is required for custom broadcast.' });
+      const { evaluateSegmentRules } = require('../segment-engine');
+      const evalRes = await evaluateSegmentRules(targetRules);
+      emails = evalRes.recipientEmails || [];
     } else {
       return res.status(400).json({ error: 'invalid_target_type', message: 'Invalid target type specified.' });
     }
@@ -852,7 +864,7 @@ router.post('/broadcast-announcement', requirePermission('announcements', 'edit'
       return res.json({ ok: true, recipientCount: 0 });
     }
 
-    // Trigger sending process in the background and return immediately to prevent client timeouts
+    // Trigger sending process in the background using parallel batching (chunks of 15)
     let sentCount = 0;
     
     const sendBatch = async () => {
@@ -865,20 +877,24 @@ router.post('/broadcast-announcement', requirePermission('announcements', 'edit'
         </div>
       `;
 
-      for (const email of emails) {
-        try {
-          const resEmail = await sendEmail({
-            to: email,
-            subject: title,
-            text: message,
-            html: emailHtml
-          });
-          if (resEmail.success) {
-            sentCount++;
+      const chunkSize = 15;
+      for (let i = 0; i < emails.length; i += chunkSize) {
+        const chunk = emails.slice(i, i + chunkSize);
+        await Promise.all(chunk.map(async (email) => {
+          try {
+            const resEmail = await sendEmail({
+              to: email,
+              subject: title,
+              text: message,
+              html: emailHtml
+            });
+            if (resEmail.success) {
+              sentCount++;
+            }
+          } catch (err) {
+            console.error(`Failed to send broadcast email to ${email}:`, err);
           }
-        } catch (err) {
-          console.error(`Failed to send broadcast email to ${email}:`, err);
-        }
+        }));
       }
       console.log(`Broadcast completed. Sent ${sentCount}/${emails.length} successfully.`);
     };

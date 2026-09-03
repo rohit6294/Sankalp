@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audience Segments — Sankalp Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/admin-guard.js"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-card { background: var(--paper); border: 1px solid var(--ink); width: min(840px, 100%); max-height: 92vh; display: flex; flex-direction: column; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden; }
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; z-index: 999999; opacity: 0; transition: opacity 0.2s; border-radius: 10px; }
+    .toast.show { opacity: 1; }
+    .rule-row { background: var(--paper-soft); border: 1px solid var(--rule); padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; display: grid; grid-template-columns: 2fr 1.5fr 2fr auto; gap: 10px; align-items: center; }
+    @media (max-width: 640px) { .rule-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="menu-toggle" onclick="toggleSidebar()" style="z-index:60"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Admin Sidebar -->
+<aside class="sidebar sidebar-ink" id="adminSidebar">
+  <div class="sidebar-head">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">S</span>
+      <span>
+        <div class="brand-name">SANKALP</div>
+        <div class="brand-sub">Admin Panel</div>
+      </span>
+    </a>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Launch</div>
+    <a href="evaluators.html" class="sidebar-link"><i class="fas fa-calculator" style="width:18px"></i> Evaluators</a>
+    <a href="notes.html" class="sidebar-link"><i class="fas fa-sticky-note" style="width:18px"></i> Notes</a>
+    <a href="tests.html" class="sidebar-link"><i class="fas fa-clipboard-list" style="width:18px"></i> WBJEE Tests</a>
+    <a href="announcements.html" class="sidebar-link"><i class="fas fa-bullhorn" style="width:18px"></i> Announcements</a>
+    <a href="workshops.html" class="sidebar-link"><i class="fas fa-video" style="width:18px"></i> Workshops</a>
+    <div class="eyebrow" style="padding:14px 22px 8px; color:rgba(234,219,192,0.5);">Manage</div>
+    <a href="segments.html" class="sidebar-link active"><i class="fas fa-layer-group" style="width:18px"></i> Audience Segments</a>
+    <a href="evaluators.html#studentList" class="sidebar-link" id="sidebarStudentListBtn"><i class="fas fa-users" style="width:18px"></i> Student List</a>
+    <a href="evaluators.html#collegePredictor" class="sidebar-link" id="sidebarCollegePredictorBtn"><i class="fas fa-graduation-cap" style="width:18px"></i> College Predictor</a>
+    <a href="evaluators.html#choiceFilling" class="sidebar-link" id="sidebarChoiceFillingBtn"><i class="fa-solid fa-list-check" style="width:18px"></i> Choice Filling Tool</a>
+    <a href="sub-admins.html" class="sidebar-link"><i class="fas fa-user-shield" style="width:18px"></i> Sub Admins</a>
+    <a href="../login.html" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt" style="width:18px"></i> Logout</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" style="padding:28px 32px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="display-lg">Student Audience Segments 🎯</h1>
+      <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Build reusable, rule-based student audience segments for targeted communications & broadcasts.</p>
+    </div>
+    <button onclick="openCreateSegmentModal()" class="btn-rust">
+      <i class="fas fa-plus" style="margin-right:8px;"></i> Create Segment
+    </button>
+  </div>
+
+  <!-- Segments Grid -->
+  <div id="segmentsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:20px;">
+    <div style="text-align:center; padding:48px; color:var(--ink-mute); grid-column:1/-1;">
+      <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-bottom:12px; display:block;"></i>
+      Loading audience segments...
+    </div>
+  </div>
+</main>
+
+<!-- Segment Builder Modal -->
+<div class="modal-overlay" id="segmentModal">
+  <div class="modal-card">
+    <div style="padding:20px 24px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:center; background:var(--paper-soft);">
+      <div>
+        <h3 style="font-size:16px; font-weight:800; font-family:var(--font-display);" id="modalTitle">Create Audience Segment</h3>
+        <p style="font-size:12px; color:var(--ink-mute);">Define rules to filter & target specific student groups</p>
+      </div>
+      <button onclick="closeSegmentModal()" style="font-size:18px; border:none; background:none; cursor:pointer; color:var(--ink-mute);">&times;</button>
+    </div>
+
+    <form id="segmentForm" onsubmit="saveSegment(event)" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div style="padding:24px; overflow-y:auto; flex:1;">
+        <input type="hidden" id="segmentId">
+
+        <div style="margin-bottom:16px;">
+          <label class="input-label">Segment Name *</label>
+          <input type="text" id="segName" class="input-field" placeholder="e.g. WBJEE 2026 Unconverted Free Students" required>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label class="input-label">Description (Optional)</label>
+          <input type="text" id="segDescription" class="input-field" placeholder="e.g. 2026 aspirants who registered recently and haven't bought Predictor">
+        </div>
+
+        <!-- Rule Engine Box -->
+        <div style="border:1px solid var(--ink); border-radius:12px; padding:20px; background:var(--paper); margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+            <div style="font-weight:800; font-size:14px; font-family:var(--font-display);">
+              <i class="fas fa-filter" style="color:var(--rust); margin-right:6px;"></i> Rules Combination Logic
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:12px; color:var(--ink-mute);">Match:</span>
+              <select id="segConjunction" class="input-field" style="padding:4px 8px; font-size:12px;" onchange="updateLivePreview()">
+                <option value="AND">ALL Conditions Must Match (AND)</option>
+                <option value="OR">ANY Condition Can Match (OR)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="rulesContainer">
+            <!-- Dynamic Rule Rows will be inserted here -->
+          </div>
+
+          <button type="button" onclick="addRuleRow()" class="btn-paper" style="font-size:12px; border:1px dashed var(--rust); color:var(--rust); width:100%; justify-content:center; margin-top:8px;">
+            <i class="fas fa-plus-circle" style="margin-right:6px;"></i> Add Another Condition Rule
+          </button>
+        </div>
+
+        <!-- Live Counter Card -->
+        <div style="background:var(--paper-soft); border:1px solid var(--rule); padding:16px; border-radius:12px; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:13px; font-weight:700; color:var(--ink);">
+              <i class="fas fa-bullseye" style="color:var(--rust); margin-right:6px;"></i> Live Matching Students
+            </div>
+            <div id="liveCountBadge" style="background:var(--rust); color:white; font-size:13px; font-weight:800; padding:4px 12px; border-radius:20px;">
+              Calculating...
+            </div>
+          </div>
+
+          <!-- Sample Students Table -->
+          <div id="samplePreviewContainer" style="margin-top:12px; max-height:160px; overflow-y:auto; font-size:11px; display:none;">
+            <table style="width:100%; text-align:left; border-collapse:collapse;">
+              <thead>
+                <tr style="border-bottom:1px solid var(--rule); color:var(--ink-mute);">
+                  <th style="padding:4px;">Name</th>
+                  <th style="padding:4px;">Email</th>
+                  <th style="padding:4px;">Year</th>
+                  <th style="padding:4px;">Rank</th>
+                </tr>
+              </thead>
+              <tbody id="samplePreviewTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:16px 24px; border-top:1px solid var(--rule); background:var(--paper-soft); display:flex; justify-content:flex-end; gap:12px;">
+        <button type="button" onclick="closeSegmentModal()" class="btn-paper" style="font-size:13px;">Cancel</button>
+        <button type="submit" id="saveSegBtn" class="btn-rust" style="font-size:13px;">
+          <i class="fas fa-save" style="margin-right:6px;"></i> Save Segment
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Custom Toast Notifications -->
+<div class="toast" id="toast"></div>
+
+<script>
+let currentToken = null;
+let allSegments = [];
+let registryData = null;
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#EF4444' : 'var(--ink)';
+  t.style.color = isError ? '#FFFFFF' : 'var(--paper)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function logout() {
+  auth.signOut().then(() => window.location.href = '../login.html');
+}
+
+async function apiJson(path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  const token = currentToken || await user.getIdToken();
+  currentToken = token;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...(options.headers || {})
+  };
+  let response = await fetch(`${window.EVALUATOR_API || ''}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    currentToken = await user.getIdToken(true);
+    headers['Authorization'] = `Bearer ${currentToken}`;
+    response = await fetch(`${window.EVALUATOR_API || ''}${path}`, { ...options, headers });
+  }
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+  return payload;
+}
+
+// Load Registry Metadata
+async function loadRegistry() {
+  try {
+    registryData = await apiJson('/api/admin/segments/registry');
+  } catch (err) {
+    console.error('Failed to load segment registry:', err);
+    showToast('Failed to load segment registry definitions', true);
+  }
+}
+
+// Load Saved Segments List
+async function loadSegments() {
+  const grid = document.getElementById('segmentsGrid');
+  try {
+    const res = await apiJson('/api/admin/segments/list');
+    allSegments = res.segments || [];
+
+    if (allSegments.length === 0) {
+      grid.innerHTML = `
+        <div style="text-align:center; padding:48px; border:1px dashed var(--rule); border-radius:12px; grid-column:1/-1; background:var(--paper-soft);">
+          <i class="fas fa-layer-group" style="font-size:36px; color:var(--ink-mute); margin-bottom:12px; display:block;"></i>
+          <div style="font-weight:700; font-size:16px;">No Audience Segments Created</div>
+          <p style="font-size:13px; color:var(--ink-mute); margin-top:4px;">Create custom rule-based segments to target specific student groups for broadcasts.</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = allSegments.map(s => {
+      return `
+        <div style="border:1px solid var(--ink); border-radius:14px; background:var(--paper); padding:20px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 14px rgba(0,0,0,0.06);">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px;">
+              <h3 style="font-size:16px; font-weight:800; font-family:var(--font-display);">${escapeHtml(s.name)}</h3>
+              <span class="badge" style="background:var(--rust); color:white; font-size:11px; font-weight:800; padding:4px 10px; border-radius:14px; white-space:nowrap;">
+                🎯 ${s.matchingCount || 0} Students
+              </span>
+            </div>
+
+            <p style="font-size:12px; color:var(--ink-mute); margin-bottom:16px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+              ${escapeHtml(s.description || 'No description provided.')}
+            </p>
+
+            <div style="font-size:11px; color:var(--ink-mute); background:var(--paper-soft); padding:10px; border-radius:8px; margin-bottom:16px; border:1px solid var(--rule);">
+              <i class="fas fa-code-branch" style="color:var(--rust); margin-right:4px;"></i> Logic: <strong>${s.rules ? s.rules.conjunction || 'AND' : 'AND'}</strong> (${s.rules && s.rules.conditions ? s.rules.conditions.length : 0} rules)
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--rule); padding-top:12px; margin-top:8px;">
+            <button onclick="openEditSegmentModal('${s.id}')" class="btn-paper" style="font-size:12px; padding:6px 12px;">
+              <i class="fas fa-edit" style="margin-right:4px;"></i> Edit
+            </button>
+            <button onclick="deleteSegment('${s.id}')" style="font-size:12px; color:#EF4444; background:none; border:none; cursor:pointer; font-weight:700;">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    grid.innerHTML = `<div style="text-align:center; padding:32px; color:#EF4444; grid-column:1/-1;">Error loading segments: ${err.message}</div>`;
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Modal Handlers
+function openCreateSegmentModal() {
+  document.getElementById('modalTitle').textContent = 'Create Audience Segment';
+  document.getElementById('segmentForm').reset();
+  document.getElementById('segmentId').value = '';
+  document.getElementById('rulesContainer').innerHTML = '';
+  
+  // Add 1 initial rule row
+  addRuleRow();
+  document.getElementById('segmentModal').classList.add('open');
+}
+
+function openEditSegmentModal(id) {
+  const seg = allSegments.find(s => s.id === id);
+  if (!seg) return;
+
+  document.getElementById('modalTitle').textContent = 'Edit Audience Segment';
+  document.getElementById('segmentId').value = seg.id;
+  document.getElementById('segName').value = seg.name || '';
+  document.getElementById('segDescription').value = seg.description || '';
+  document.getElementById('segConjunction').value = seg.rules ? seg.rules.conjunction || 'AND' : 'AND';
+
+  document.getElementById('rulesContainer').innerHTML = '';
+
+  const conditions = seg.rules && Array.isArray(seg.rules.conditions) ? seg.rules.conditions : [];
+  if (conditions.length === 0) {
+    addRuleRow();
+  } else {
+    conditions.forEach(cond => addRuleRow(cond));
+  }
+
+  document.getElementById('segmentModal').classList.add('open');
+  updateLivePreview();
+}
+
+function closeSegmentModal() {
+  document.getElementById('segmentModal').classList.remove('open');
+}
+
+// Dynamic Rule Row Builder
+function addRuleRow(cond = null) {
+  if (!registryData) return;
+
+  const container = document.getElementById('rulesContainer');
+  const rowId = `rule_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+  const div = document.createElement('div');
+  div.className = 'rule-row';
+  div.id = rowId;
+
+  // 1. Field Select
+  let fieldOpts = '<option value="">-- Select Rule Field --</option>';
+  const categories = {};
+  registryData.rules.forEach(r => {
+    if (!categories[r.category]) categories[r.category] = [];
+    categories[r.category].push(r);
+  });
+
+  Object.keys(categories).forEach(cat => {
+    fieldOpts += `<optgroup label="${escapeHtml(cat)}">`;
+    categories[cat].forEach(r => {
+      const selected = cond && cond.field === r.id ? 'selected' : '';
+      fieldOpts += `<option value="${r.id}" ${selected}>${escapeHtml(r.label)}</option>`;
+    });
+    fieldOpts += `</optgroup>`;
+  });
+
+  div.innerHTML = `
+    <div>
+      <select class="input-field field-select" style="font-size:12px;" onchange="onRuleFieldChange('${rowId}')">
+        ${fieldOpts}
+      </select>
+    </div>
+    <div>
+      <select class="input-field operator-select" style="font-size:12px;" onchange="updateLivePreview()">
+        <option value="equals">Equals (=)</option>
+      </select>
+    </div>
+    <div class="value-container">
+      <input type="text" class="input-field value-input" placeholder="Value" style="font-size:12px;" oninput="updateLivePreview()">
+    </div>
+    <div>
+      <button type="button" onclick="removeRuleRow('${rowId}')" style="color:#EF4444; border:none; background:none; cursor:pointer; font-size:14px; padding:4px;">
+        <i class="fas fa-times-circle"></i>
+      </button>
+    </div>
+  `;
+
+  container.appendChild(div);
+
+  if (cond && cond.field) {
+    onRuleFieldChange(rowId, cond);
+  }
+}
+
+function removeRuleRow(rowId) {
+  const el = document.getElementById(rowId);
+  if (el) el.remove();
+  updateLivePreview();
+}
+
+function onRuleFieldChange(rowId, cond = null) {
+  const row = document.getElementById(rowId);
+  if (!row || !registryData) return;
+
+  const fieldId = row.querySelector('.field-select').value;
+  const ruleDef = registryData.rules.find(r => r.id === fieldId);
+  const opSelect = row.querySelector('.operator-select');
+  const valContainer = row.querySelector('.value-container');
+
+  if (!ruleDef) {
+    opSelect.innerHTML = '<option value="equals">Equals</option>';
+    valContainer.innerHTML = '<input type="text" class="input-field value-input" style="font-size:12px;" oninput="updateLivePreview()">';
+    return;
+  }
+
+  // Populate Operators
+  opSelect.innerHTML = ruleDef.operators.map(opKey => {
+    const opDef = registryData.operators[opKey] || { label: opKey };
+    const selected = cond && cond.operator === opKey ? 'selected' : '';
+    return `<option value="${opKey}" ${selected}>${escapeHtml(opDef.label)}</option>`;
+  }).join('');
+
+  // Populate Value Input
+  const val = cond ? cond.value : '';
+
+  if (ruleDef.dynamicProvider) {
+    const optsList = registryData.options[ruleDef.dynamicProvider] || [];
+    if (ruleDef.dataType === 'multi_select') {
+      const selectedVals = Array.isArray(val) ? val : [val];
+      valContainer.innerHTML = `
+        <select class="input-field value-input" multiple style="font-size:12px; height:60px;" onchange="updateLivePreview()">
+          ${optsList.map(o => `<option value="${o.value}" ${selectedVals.includes(o.value) ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}
+        </select>
+      `;
+    } else {
+      valContainer.innerHTML = `
+        <select class="input-field value-input" style="font-size:12px;" onchange="updateLivePreview()">
+          <option value="">-- Select Option --</option>
+          ${optsList.map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}
+        </select>
+      `;
+    }
+  } else if (ruleDef.options) {
+    valContainer.innerHTML = `
+      <select class="input-field value-input" style="font-size:12px;" onchange="updateLivePreview()">
+        <option value="">-- Select Option --</option>
+        ${ruleDef.options.map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}
+      </select>
+    `;
+  } else if (ruleDef.dataType === 'number') {
+    valContainer.innerHTML = `<input type="number" class="input-field value-input" value="${val || ''}" placeholder="Enter number" style="font-size:12px;" oninput="updateLivePreview()">`;
+  } else if (ruleDef.dataType === 'date') {
+    valContainer.innerHTML = `<input type="date" class="input-field value-input" value="${val || ''}" style="font-size:12px;" onchange="updateLivePreview()">`;
+  } else {
+    valContainer.innerHTML = `<input type="text" class="input-field value-input" value="${val || ''}" placeholder="Enter value" style="font-size:12px;" oninput="updateLivePreview()">`;
+  }
+
+  updateLivePreview();
+}
+
+// Build Current Rule Tree Payload from UI
+function buildCurrentRuleTree() {
+  const conjunction = document.getElementById('segConjunction').value;
+  const rows = document.querySelectorAll('.rule-row');
+  const conditions = [];
+
+  rows.forEach(r => {
+    const field = r.querySelector('.field-select').value;
+    const operator = r.querySelector('.operator-select').value;
+    const valInput = r.querySelector('.value-input');
+
+    if (!field || !operator) return;
+
+    let value = '';
+    if (valInput) {
+      if (valInput.multiple) {
+        value = Array.from(valInput.selectedOptions).map(o => o.value);
+      } else {
+        value = valInput.value;
+      }
+    }
+
+    conditions.push({ field, operator, value });
+  });
+
+  return { conjunction, conditions };
+}
+
+// Live Preview Real-Time Match Calculation
+let previewDebounce = null;
+function updateLivePreview() {
+  clearTimeout(previewDebounce);
+  previewDebounce = setTimeout(async () => {
+    const badge = document.getElementById('liveCountBadge');
+    const previewContainer = document.getElementById('samplePreviewContainer');
+    const tableBody = document.getElementById('samplePreviewTable');
+
+    badge.textContent = 'Calculating...';
+
+    const rules = buildCurrentRuleTree();
+    try {
+      const res = await apiJson('/api/admin/segments/preview', {
+        method: 'POST',
+        body: JSON.stringify({ rules })
+      });
+
+      badge.textContent = `🎯 ${res.matchingCount || 0} Students Match`;
+
+      if (res.sampleStudents && res.sampleStudents.length > 0) {
+        tableBody.innerHTML = res.sampleStudents.map(s => `
+          <tr style="border-bottom:1px solid var(--rule);">
+            <td style="padding:4px; font-weight:700;">${escapeHtml(s.name)}</td>
+            <td style="padding:4px; color:var(--ink-mute);">${escapeHtml(s.email)}</td>
+            <td style="padding:4px;">${s.wbjeeYear || '—'}</td>
+            <td style="padding:4px; color:var(--rust); font-weight:700;">${s.bestEngRank ? '#' + s.bestEngRank : '—'}</td>
+          </tr>
+        `).join('');
+        previewContainer.style.display = 'block';
+      } else {
+        previewContainer.style.display = 'none';
+      }
+
+    } catch (e) {
+      badge.textContent = 'Preview Error';
+    }
+  }, 400);
+}
+
+// Save Segment
+async function saveSegment(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('segmentId').value;
+  const name = document.getElementById('segName').value.trim();
+  const description = document.getElementById('segDescription').value.trim();
+  const rules = buildCurrentRuleTree();
+
+  if (rules.conditions.length === 0) {
+    showToast('Please add at least 1 condition rule to save segment.', true);
+    return;
+  }
+
+  const btn = document.getElementById('saveSegBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const path = id ? '/api/admin/segments/update' : '/api/admin/segments/create';
+    const body = { segmentId: id, name, description, rules };
+
+    await apiJson(path, { method: 'POST', body: JSON.stringify(body) });
+    showToast(`Segment ${id ? 'updated' : 'created'} successfully!`);
+    closeSegmentModal();
+    await loadSegments();
+  } catch (err) {
+    showToast('Error saving segment: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save" style="margin-right:6px;"></i> Save Segment';
+  }
+}
+
+// Delete Segment
+async function deleteSegment(id) {
+  if (!confirm('Are you sure you want to delete this audience segment?')) return;
+  try {
+    await apiJson('/api/admin/segments/delete', {
+      method: 'POST',
+      body: JSON.stringify({ segmentId: id })
+    });
+    showToast('Segment deleted successfully.');
+    await loadSegments();
+  } catch (err) {
+    showToast('Error deleting segment: ' + err.message, true);
+  }
+}
+
+// Auth Listener Initialization
+auth.onAuthStateChanged(async user => {
+  if (!user) { window.location.href = '../login.html'; return; }
+  await loadRegistry();
+  await loadSegments();
+});
+</script>
+</body>
+</html>

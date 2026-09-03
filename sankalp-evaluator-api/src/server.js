@@ -21,6 +21,7 @@ const prepRouter = require('./routes/prep');
 const choiceFillingRouter = require('./routes/choice-filling');
 const bookingRouter = require('./routes/booking');
 const workshopsRouter = require('./routes/workshops');
+const segmentsRouter = require('./routes/segments');
 const { verifyToken } = require('./auth');
 const { db } = require('./firebase');
 const { sendEmail } = require('./mailer');
@@ -69,6 +70,7 @@ app.use('/api/result', resultRouter);
 app.use('/api/rank', rankRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/admin/sub-admins', subadminsRouter);
+app.use('/api/admin/segments', segmentsRouter);
 app.use('/api/payment', paymentRouter);
 // Standard Razorpay endpoint aliases: /api/create-order and /api/verify-payment.
 app.use('/api', paymentRouter);

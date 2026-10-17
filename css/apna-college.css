@@ -1,0 +1,1136 @@
+/* ==========================================================
+   SANKALP ASPIRANTS — APNA COLLEGE DESIGN SYSTEM
+   Yellow & Black Signature Theme
+   ========================================================== */
+
+:root {
+  --ac-yellow: #F59E0B;
+  --ac-yellow-bright: #FBBF24;
+  --ac-yellow-gold: #EAB308;
+  --ac-yellow-dark: #D97706;
+  --ac-yellow-glow: rgba(245, 158, 11, 0.25);
+  --ac-yellow-tint: rgba(245, 158, 11, 0.12);
+  --ac-yellow-border: rgba(245, 158, 11, 0.35);
+
+  --ac-black: #080C14;
+  --ac-black-soft: #0F172A;
+  --ac-black-card: #111827;
+  --ac-black-border: #1E293B;
+
+  --ac-white: #FFFFFF;
+  --ac-bg-light: #F8FAFC;
+  --ac-text: #0F172A;
+  --ac-text-soft: #334155;
+  --ac-text-mute: #64748B;
+  --ac-card-border: rgba(15, 23, 42, 0.08);
+}
+
+/* ==========================================================
+   1. APNA COLLEGE NAVBAR WITH DROPDOWNS
+   ========================================================== */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ac-card-border);
+  transition: all 0.25s ease;
+}
+
+.navbar.scrolled {
+  box-shadow: 0 4px 20px rgba(8, 12, 20, 0.06);
+  border-bottom-color: var(--ac-yellow-border);
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--ac-black);
+  color: var(--ac-yellow-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  border: 2px solid var(--ac-yellow);
+  box-shadow: 0 0 12px var(--ac-yellow-glow);
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  color: var(--ac-black);
+  line-height: 1.1;
+}
+
+.brand-sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ac-yellow-dark);
+}
+
+/* Nav Links & Dropdowns */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ac-text-soft);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--ac-black);
+  background: var(--ac-yellow-tint);
+  border-color: var(--ac-yellow-border);
+}
+
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ac-text-soft);
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.nav-dropdown-toggle:hover, .nav-dropdown.open .nav-dropdown-toggle {
+  color: var(--ac-black);
+  background: var(--ac-yellow-tint);
+  border-color: var(--ac-yellow-border);
+}
+
+.nav-dropdown-toggle i {
+  font-size: 11px;
+  transition: transform 0.2s ease;
+  color: var(--ac-yellow-dark);
+}
+
+.nav-dropdown.open .nav-dropdown-toggle i {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 300px;
+  background: var(--ac-white);
+  border: 1px solid var(--ac-yellow-border);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(8, 12, 20, 0.12), 0 0 20px var(--ac-yellow-glow);
+  padding: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1001;
+  animation: dropdownFadeIn 0.2s ease forwards;
+}
+
+.nav-dropdown.open .nav-dropdown-menu {
+  display: flex;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ac-text);
+  transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--ac-yellow-tint);
+  transform: translateX(4px);
+}
+
+.dropdown-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--ac-yellow-dark);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.dropdown-item:hover .dropdown-item-icon {
+  background: var(--ac-yellow);
+  color: var(--ac-black);
+  box-shadow: 0 0 10px var(--ac-yellow-glow);
+}
+
+.dropdown-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ac-black);
+  margin-bottom: 2px;
+}
+
+.dropdown-item-desc {
+  font-size: 11px;
+  color: var(--ac-text-mute);
+  line-height: 1.3;
+}
+
+/* Nav Action Buttons */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-apna-login {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ac-black);
+  background: transparent;
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 1.5px solid var(--ac-black);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-apna-login:hover {
+  background: var(--ac-black);
+  color: var(--ac-yellow-bright);
+}
+
+.btn-apna-yellow {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ac-black);
+  background: linear-gradient(135deg, var(--ac-yellow-bright), var(--ac-yellow));
+  padding: 9px 22px;
+  border-radius: 50px;
+  border: none;
+  text-decoration: none;
+  box-shadow: 0 4px 14px var(--ac-yellow-glow);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.btn-apna-yellow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+  background: linear-gradient(135deg, #FDE047, var(--ac-yellow-bright));
+}
+
+.btn-apna-dark {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ac-white);
+  background: var(--ac-black);
+  padding: 9px 22px;
+  border-radius: 50px;
+  border: 1.5px solid var(--ac-black);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-apna-dark:hover {
+  border-color: var(--ac-yellow);
+  color: var(--ac-yellow-bright);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================
+   2. APNA COLLEGE HERO SECTION
+   ========================================================== */
+.apna-hero-section {
+  position: relative;
+  padding: 64px 24px 80px;
+  background: radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
+              radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.04) 0%, transparent 50%),
+              var(--ac-white);
+  overflow: hidden;
+}
+
+.apna-hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.apna-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--ac-yellow-tint);
+  border: 1px solid var(--ac-yellow-border);
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ac-yellow-dark);
+  margin-bottom: 24px;
+}
+
+.apna-pill-badge i {
+  color: var(--ac-yellow);
+}
+
+.apna-hero-headline {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2.5rem, 4.5vw, 4rem);
+  line-height: 1.08;
+  color: var(--ac-black);
+  margin-bottom: 20px;
+  letter-spacing: -0.03em;
+}
+
+.apna-hero-headline .highlight-yellow {
+  background: linear-gradient(135deg, var(--ac-yellow), var(--ac-yellow-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.apna-hero-desc {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ac-text-soft);
+  max-width: 540px;
+  margin-bottom: 36px;
+}
+
+.apna-hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Apna College Shield Framed Instructor Card */
+.apna-shield-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.apna-shield-badge {
+  position: relative;
+  width: 340px;
+  padding: 24px 20px 28px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
+  border: 2px solid var(--ac-yellow);
+  border-radius: 28px 28px 120px 120px;
+  box-shadow: 0 20px 50px rgba(8, 12, 20, 0.1), 0 0 30px var(--ac-yellow-glow);
+  text-align: center;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.apna-shield-badge:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px rgba(8, 12, 20, 0.14), 0 0 40px rgba(245, 158, 11, 0.4);
+}
+
+.apna-shield-header {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ac-yellow-dark);
+  margin-bottom: 14px;
+}
+
+.apna-shield-img-wrap {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  margin: 0 auto 16px;
+}
+
+.apna-shield-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--ac-yellow);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.apna-shield-verified {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  background: var(--ac-black);
+  border: 2px solid var(--ac-yellow);
+  color: var(--ac-yellow-bright);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.apna-shield-name {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 900;
+  color: var(--ac-black);
+  margin-bottom: 4px;
+}
+
+.apna-shield-role {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ac-yellow-dark);
+  margin-bottom: 12px;
+}
+
+.apna-shield-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.apna-shield-tag {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 50px;
+  background: var(--ac-black);
+  color: var(--ac-yellow-bright);
+}
+
+/* Floating Badges */
+.apna-float-badge {
+  position: absolute;
+  background: var(--ac-white);
+  border: 1px solid var(--ac-yellow-border);
+  box-shadow: 0 10px 24px rgba(8, 12, 20, 0.1);
+  padding: 10px 14px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ac-black);
+  animation: floatAnim 3s ease-in-out infinite alternate;
+}
+
+.apna-float-left {
+  top: 15%;
+  left: -20px;
+}
+
+.apna-float-right {
+  bottom: 18%;
+  right: -20px;
+  animation-delay: 1.5s;
+}
+
+@keyframes floatAnim {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+/* ==========================================================
+   3. APNA COLLEGE WAVY STATS SECTION (BLACK & YELLOW WAVE)
+   ========================================================== */
+.apna-wave-section {
+  position: relative;
+  background: var(--ac-black);
+  color: var(--ac-white);
+  padding: 60px 24px;
+  overflow: hidden;
+}
+
+.apna-wave-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.apna-wave-top svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 40px;
+}
+
+.apna-wave-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  transform: rotate(180deg);
+}
+
+.apna-wave-bottom svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 40px;
+}
+
+.apna-stats-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.apna-stat-card {
+  padding: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.apna-stat-card:last-child {
+  border-right: none;
+}
+
+.apna-stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 900;
+  color: var(--ac-yellow-bright);
+  line-height: 1;
+  margin-bottom: 8px;
+  text-shadow: 0 0 16px var(--ac-yellow-glow);
+}
+
+.apna-stat-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================
+   4. APNA COLLEGE FEATURED PROGRAMS BANNER
+   ========================================================== */
+.apna-programs-section {
+  padding: 80px 24px;
+  background: var(--ac-bg-light);
+  text-align: center;
+}
+
+.apna-programs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.apna-programs-banner {
+  background: var(--ac-white);
+  border: 1px solid var(--ac-yellow-border);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 12px 36px rgba(8, 12, 20, 0.05);
+  margin-bottom: 48px;
+}
+
+.apna-programs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  text-align: left;
+  margin-top: 32px;
+}
+
+.apna-program-card {
+  background: var(--ac-white);
+  border: 1.5px solid var(--ac-card-border);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 6px 20px rgba(8, 12, 20, 0.03);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.apna-program-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--ac-yellow);
+  box-shadow: 0 12px 32px var(--ac-yellow-glow);
+}
+
+.apna-program-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.apna-program-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ac-black);
+  margin-bottom: 10px;
+}
+
+.apna-program-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ac-text-soft);
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+/* ==========================================================
+   5. "THOUSANDS OF STUDENTS CRACKED DREAM COLLEGES" (LOGO CLOUD)
+   ========================================================== */
+.apna-colleges-section {
+  padding: 70px 24px;
+  background: var(--ac-white);
+  border-top: 1px solid var(--ac-card-border);
+  border-bottom: 1px solid var(--ac-card-border);
+  text-align: center;
+}
+
+.apna-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 900;
+  color: var(--ac-black);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.apna-section-sub {
+  font-size: 15px;
+  color: var(--ac-text-mute);
+  max-width: 600px;
+  margin: 0 auto 40px;
+}
+
+.apna-colleges-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.apna-college-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--ac-bg-light);
+  border: 1px solid var(--ac-card-border);
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ac-black);
+  transition: all 0.2s ease;
+}
+
+.apna-college-pill:hover {
+  background: var(--ac-white);
+  border-color: var(--ac-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--ac-yellow-glow);
+  color: var(--ac-yellow-dark);
+}
+
+.apna-college-pill i {
+  color: var(--ac-yellow-dark);
+}
+
+/* ==========================================================
+   6. "OUR PROUD ACHIEVERS" (HALL OF FAME SUCCESS CARDS)
+   ========================================================== */
+.apna-achievers-section {
+  padding: 80px 24px;
+  background: var(--ac-bg-light);
+}
+
+.apna-achievers-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.apna-achievers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.apna-achiever-card {
+  background: var(--ac-white);
+  border: 1px solid var(--ac-card-border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(8, 12, 20, 0.04);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.apna-achiever-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--ac-yellow);
+  box-shadow: 0 12px 30px var(--ac-yellow-glow);
+}
+
+.apna-achiever-header {
+  background: linear-gradient(135deg, var(--ac-black), #1E293B);
+  padding: 16px 14px 20px;
+  text-align: center;
+  position: relative;
+  border-bottom: 2px solid var(--ac-yellow);
+}
+
+.apna-achiever-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  background: var(--ac-yellow-tint);
+  border: 3px solid var(--ac-yellow-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ac-yellow-bright);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.apna-achiever-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ac-white);
+  margin-bottom: 2px;
+}
+
+.apna-achiever-rank {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ac-yellow-bright);
+}
+
+.apna-achiever-body {
+  padding: 18px 16px;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.apna-achiever-dept {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ac-text-soft);
+  margin-bottom: 14px;
+}
+
+.apna-achiever-college {
+  padding-top: 12px;
+  border-top: 1px dashed var(--ac-card-border);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ac-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.apna-achiever-college i {
+  color: var(--ac-yellow-dark);
+}
+
+/* ==========================================================
+   7. CELEBRATION COMMUNITY BANNER
+   ========================================================== */
+.apna-community-section {
+  padding: 60px 24px 80px;
+  background: var(--ac-white);
+}
+
+.apna-community-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--ac-black), #0F172A);
+  color: var(--ac-white);
+  border: 2px solid var(--ac-yellow-border);
+  border-radius: 28px;
+  padding: 48px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 40px;
+  align-items: center;
+  box-shadow: 0 20px 50px rgba(8, 12, 20, 0.2);
+}
+
+.apna-community-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid var(--ac-yellow);
+  color: var(--ac-yellow-bright);
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.apna-community-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.apna-community-desc {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.apna-community-quote-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--ac-yellow);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.apna-community-quote {
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+}
+
+.apna-community-author {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ac-yellow-bright);
+}
+
+/* ==========================================================
+   8. "START YOUR JOURNEY TODAY" SOCIAL CHANNELS
+   ========================================================== */
+.apna-social-strip {
+  padding: 40px 24px 60px;
+  background: var(--ac-white);
+  text-align: center;
+}
+
+.apna-social-title {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ac-text-mute);
+  margin-bottom: 24px;
+}
+
+.apna-social-grid {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.apna-social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: var(--ac-white);
+  border: 1.5px solid var(--ac-card-border);
+  border-radius: 50px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ac-black);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(8, 12, 20, 0.03);
+}
+
+.apna-social-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--ac-yellow);
+  box-shadow: 0 6px 18px var(--ac-yellow-glow);
+}
+
+.apna-social-btn.youtube i { color: #FF0000; font-size: 18px; }
+.apna-social-btn.whatsapp i { color: #25D366; font-size: 18px; }
+.apna-social-btn.telegram i { color: #229ED9; font-size: 18px; }
+.apna-social-btn.linkedin i { color: #0A66C2; font-size: 18px; }
+.apna-social-btn.email i { color: var(--ac-yellow-dark); font-size: 18px; }
+
+/* ==========================================================
+   9. APNA COLLEGE MULTI-COLUMN FOOTER
+   ========================================================== */
+.apna-footer {
+  background: var(--ac-black);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 70px 24px 30px;
+  border-top: 2px solid var(--ac-yellow);
+}
+
+.apna-footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 50px;
+}
+
+.apna-footer-brand p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 16px;
+  max-width: 320px;
+}
+
+.apna-footer-col h4 {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ac-yellow-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 20px;
+}
+
+.apna-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apna-footer-links a {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.apna-footer-links a:hover {
+  color: var(--ac-yellow-bright);
+  transform: translateX(3px);
+}
+
+.apna-footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.apna-footer-bottom a {
+  color: var(--ac-yellow-bright);
+  text-decoration: none;
+}
+
+/* ==========================================================
+   RESPONSIVE DESIGN (MOBILE & TABLET)
+   ========================================================== */
+@media (max-width: 1024px) {
+  .apna-hero-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 48px;
+  }
+  .apna-hero-desc {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .apna-hero-cta-group {
+    justify-content: center;
+  }
+  .apna-stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .apna-stat-card:nth-child(2) {
+    border-right: none;
+  }
+  .apna-programs-grid {
+    grid-template-columns: 1fr;
+  }
+  .apna-achievers-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .apna-community-card {
+    grid-template-columns: 1fr;
+  }
+  .apna-footer-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: var(--ac-white);
+    border-bottom: 2px solid var(--ac-yellow);
+    box-shadow: 0 10px 24px rgba(8, 12, 20, 0.15);
+    flex-direction: column;
+    padding: 20px 24px;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: 1px solid var(--ac-yellow-tint);
+    background: var(--ac-bg-light);
+    margin-top: 6px;
+    display: none;
+  }
+
+  .nav-dropdown.open .nav-dropdown-menu {
+    display: flex;
+  }
+
+  .apna-stats-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .apna-stat-card {
+    border-right: none;
+  }
+
+  .apna-achievers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .apna-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .apna-float-badge {
+    display: none;
+  }
+
+  .apna-shield-badge {
+    width: 290px;
+  }
+}

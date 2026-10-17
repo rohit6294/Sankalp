@@ -34,16 +34,102 @@
         <div class="brand-sub">JEE/WBJEE PREPARATION</div>
       </span>
     </a>
+
     <div class="nav-links" id="navLinks">
       <a href="index.html" class="nav-link">Home</a>
+
+      <!-- Academics Dropdown -->
+      <div class="nav-dropdown" id="academicsDropdown">
+        <button type="button" class="nav-dropdown-toggle" onclick="toggleNavDropdown('academicsDropdown', event)">
+          <i class="fas fa-graduation-cap"></i> Academics <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="nav-dropdown-menu">
+          <a href="wbjee-college-predictor.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-university"></i></div>
+            <div>
+              <div class="dropdown-item-title">College Predictor</div>
+              <div class="dropdown-item-desc">Predict admission chances across 87+ colleges</div>
+            </div>
+          </a>
+          <a href="wbjee-marks-calculator.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-calculator"></i></div>
+            <div>
+              <div class="dropdown-item-title">Marks Calculator</div>
+              <div class="dropdown-item-desc">Category 1, 2 &amp; 3 partial mark calculation</div>
+            </div>
+          </a>
+          <a href="wbjee-2026-orcr.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-chart-line"></i></div>
+            <div>
+              <div class="dropdown-item-title">WBJEE 2026 ORCR</div>
+              <div class="dropdown-item-desc">Official Round 1 &amp; 2 Opening &amp; Closing ranks</div>
+            </div>
+          </a>
+          <a href="student/mock-test.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-vial"></i></div>
+            <div>
+              <div class="dropdown-item-title">Mock Tests &amp; PYQs</div>
+              <div class="dropdown-item-desc">Real WBJEE-pattern tests with detailed review</div>
+            </div>
+          </a>
+          <a href="student/notes.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-book-open"></i></div>
+            <div>
+              <div class="dropdown-item-title">Notes Library</div>
+              <div class="dropdown-item-desc">Physics, Chemistry, Maths formula revision packs</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Non-Academics Dropdown -->
+      <div class="nav-dropdown" id="nonAcademicsDropdown">
+        <button type="button" class="nav-dropdown-toggle" onclick="toggleNavDropdown('nonAcademicsDropdown', event)">
+          <i class="fas fa-users-gear"></i> Non-Academics <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="nav-dropdown-menu">
+          <a href="student/counselling.html" class="dropdown-item">
+            <div class="dropdown-item-icon" style="background: rgba(16,185,129,0.15); color: #10B981;"><i class="fas fa-comments"></i></div>
+            <div>
+              <div class="dropdown-item-title">1-on-1 Counselling</div>
+              <div class="dropdown-item-desc">Private Google Meet sessions with JU seniors</div>
+            </div>
+          </a>
+          <a href="student/workshops.html" class="dropdown-item">
+            <div class="dropdown-item-icon" style="background: rgba(16,185,129,0.15); color: #10B981;"><i class="fas fa-chalkboard-teacher"></i></div>
+            <div>
+              <div class="dropdown-item-title">Live Workshops</div>
+              <div class="dropdown-item-desc">Strategy sessions, webinars &amp; seat booking</div>
+            </div>
+          </a>
+          <a href="student/choice-filling.html" class="dropdown-item">
+            <div class="dropdown-item-icon" style="background: rgba(16,185,129,0.15); color: #10B981;"><i class="fa-solid fa-list-check"></i></div>
+            <div>
+              <div class="dropdown-item-title">Choice Filling Guidance</div>
+              <div class="dropdown-item-desc">Priority order generator for WBJEE counselling</div>
+            </div>
+          </a>
+          <a href="https://chat.whatsapp.com/DazcJbwBT81K4ROSqjodEi" target="_blank" rel="noopener" class="dropdown-item">
+            <div class="dropdown-item-icon" style="background: rgba(37,211,102,0.15); color: #25D366;"><i class="fab fa-whatsapp"></i></div>
+            <div>
+              <div class="dropdown-item-title">WhatsApp Community</div>
+              <div class="dropdown-item-desc">Free peer group for WBJEE 2026 &amp; 2027</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
       <a href="pricing.html" class="nav-link active">Pricing</a>
       <a href="about.html" class="nav-link">About Us</a>
-      <a href="login.html" class="nav-link">Sign In</a>
     </div>
-    <a href="register.html" class="btn-ink btn-sm">Join Sankalp</a>
-    <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu" style="position:static; display:none;">
-      <i class="fas fa-bars" id="menuIcon"></i>
-    </button>
+
+    <div class="nav-actions">
+      <a href="login.html" class="btn-apna-login"><i class="fas fa-sign-in-alt"></i> Login</a>
+      <a href="register.html" class="btn-apna-yellow"><i class="fas fa-bolt"></i> Join Sankalp</a>
+      <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu">
+        <i class="fas fa-bars" id="menuIcon"></i>
+      </button>
+    </div>
   </div>
 </nav>
 
@@ -177,17 +263,65 @@
   </div>
 </section>
 
-<footer class="footer-ink">
-  <div class="footer-bottom" style="margin-top:0;">
-    <span>© 2026 Sankalp Aspirants · Founded by Rahul Gupta &amp; Sourav Dutta (Jadavpur University)</span>
-    <span class="footer-stamp">Pricing</span>
-    <span>
-      <a href="privacy-policy.html" style="color:var(--paper); opacity:0.7;">Privacy Policy</a> · 
-      <a href="terms.html" style="color:var(--paper); opacity:0.7;">Terms & Conditions</a> · 
-      <a href="disclaimer.html" style="color:var(--paper); opacity:0.7;">Disclaimer</a> · 
-      <a href="contact.html" style="color:var(--paper); opacity:0.7;">Contact Us</a> · 
-      <a href="about.html" style="color:var(--paper); opacity:0.7;">About Us</a>
-    </span>
+<!-- APNA COLLEGE MULTI-COLUMN FOOTER -->
+<footer class="apna-footer">
+  <div class="apna-footer-inner">
+    <div class="apna-footer-brand">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="brand-mark" style="background: var(--ac-black); color: var(--ac-yellow-bright);">S</span>
+        <div>
+          <div class="brand-name" style="color: #FFFFFF;">SANKALP ASPIRANTS</div>
+          <div class="brand-sub" style="color: var(--ac-yellow-bright);">JEE/WBJEE PREPARATION</div>
+        </div>
+      </div>
+      <p>
+        West Bengal's premier WBJEE preparation, college prediction, and 1-on-1 mentorship platform. Founded and maintained by students from Jadavpur University.
+      </p>
+    </div>
+
+    <div class="apna-footer-col">
+      <h4>Academics</h4>
+      <div class="apna-footer-links">
+        <a href="wbjee-college-predictor.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> College Predictor</a>
+        <a href="wbjee-marks-calculator.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Marks Calculator</a>
+        <a href="wbjee-2026-orcr.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> WBJEE 2026 ORCR</a>
+        <a href="student/mock-test.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Mock Tests &amp; PYQs</a>
+        <a href="student/notes.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Notes Library</a>
+      </div>
+    </div>
+
+    <div class="apna-footer-col">
+      <h4>Non-Academics</h4>
+      <div class="apna-footer-links">
+        <a href="student/counselling.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> 1-on-1 Counselling</a>
+        <a href="student/workshops.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Live Workshops</a>
+        <a href="student/choice-filling.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Choice Filling Guidance</a>
+        <a href="https://chat.whatsapp.com/DazcJbwBT81K4ROSqjodEi" target="_blank" rel="noopener"><i class="fas fa-chevron-right" style="font-size:10px;"></i> WhatsApp Community</a>
+      </div>
+    </div>
+
+    <div class="apna-footer-col">
+      <h4>Company</h4>
+      <div class="apna-footer-links">
+        <a href="about.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> About Us</a>
+        <a href="pricing.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Pricing</a>
+        <a href="contact.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Contact Us</a>
+        <a href="privacy-policy.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Privacy Policy</a>
+        <a href="terms.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Terms &amp; Conditions</a>
+        <a href="disclaimer.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Disclaimer</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="apna-footer-bottom">
+    <div>
+      © 2026 Sankalp Aspirants · Founded by <a href="https://www.linkedin.com/in/rahul-gupta-69795b338/" target="_blank" rel="noopener">Rahul Gupta</a> &amp; Sourav Dutta (Jadavpur University)
+    </div>
+    <div style="display: flex; gap: 16px;">
+      <a href="https://www.youtube.com/@Sankalp_Wbjee12" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> YouTube</a>
+      <a href="https://www.linkedin.com/in/rahul-gupta-69795b338/" target="_blank" rel="noopener"><i class="fab fa-linkedin"></i> LinkedIn</a>
+      <a href="mailto:sankalpaspirants2605@gmail.com"><i class="fas fa-envelope"></i> Support</a>
+    </div>
   </div>
 </footer>
 
@@ -197,24 +331,36 @@
     <div style="font-size:56px; margin-bottom:16px;">🔧</div>
     <h2 class="display-md" style="margin-bottom:10px;">Payment Coming Soon.</h2>
     <p class="lede" style="margin:0 auto 28px; max-width:none;">We're integrating payments. Be the first to know when it's live.</p>
-    <a href="register.html" class="btn-rust" style="width:100%; justify-content:center; padding:14px; margin-bottom:14px;"><i class="fas fa-rocket"></i> Start Free in the Meantime</a>
-    <button onclick="document.getElementById('csModal').style.display='none'" class="btn-ghost" style="width:100%; justify-content:center; padding:12px;">Close</button>
+    <a href="register.html" class="btn-apna-yellow" style="width:100%; justify-content:center; padding:14px; margin-bottom:14px;"><i class="fas fa-rocket"></i> Start Free in the Meantime</a>
+    <button onclick="document.getElementById('csModal').style.display='none'" class="btn-apna-login" style="width:100%; justify-content:center; padding:12px;">Close</button>
   </div>
 </div>
 
 <script>
-  // Navbar scroll
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
   });
 
-  // Mobile nav toggle
   function toggleNav() {
     const links = document.getElementById('navLinks');
     const icon = document.getElementById('menuIcon');
     const open = links.classList.toggle('open');
     icon.className = open ? 'fas fa-times' : 'fas fa-bars';
   }
+
+  function toggleNavDropdown(id, e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById(id);
+    const wasOpen = dropdown.classList.contains('open');
+    document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+    if (!wasOpen) dropdown.classList.add('open');
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-dropdown')) {
+      document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+    }
+  });
 
   let billing = 'monthly';
   function setBilling(type, btn) {

@@ -5,23 +5,24 @@
    ========================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('apna-college.css');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Sololearn modern palette */
+  /* Sankalp Apna-College Signature Yellow & Black palette */
   --paper: #FFFFFF;          /* Main background color - crisp white */
   --paper-soft: #FFFFFF;     /* Card background color - crisp white */
   --paper-deep: #F8FAFC;     /* Secondary soft background - slate-50 */
   --ink: #0F172A;            /* Deep dark slate text - slate-900 */
   --ink-soft: #334155;       /* Primary body text color - slate-700 */
   --ink-mute: #64748B;       /* Muted text color - slate-500 */
-  --rust: #0A74F5;           /* Primary electric blue accent */
-  --rust-deep: #0059E3;      /* Slightly darker electric blue for hover states */
-  --forest: #10B981;         /* Mint green accent for success badges and states */
-  --forest-deep: #059669;    /* Darker mint green for success hover states */
+  --rust: #F59E0B;           /* Primary vibrant yellow/gold accent */
+  --rust-deep: #D97706;      /* Slightly darker amber/gold for hover states */
+  --forest: #10B981;         /* Emerald green accent for success badges and states */
+  --forest-deep: #059669;    /* Darker green for success hover states */
   --rule: rgba(15,23,42,0.08); /* Clean, faint border line - slate-900 at 8% opacity */
-  --rule-strong: rgba(15,23,42,0.15); /* Slightly stronger border line - slate-900 at 15% opacity */
+  --rule-strong: rgba(245,158,11,0.25); /* Gold-tinted border line */
 
   /* Aliases for back-compat with existing markup */
   --primary: var(--rust);

@@ -891,15 +891,15 @@ select.input-field {
 .glass, .glass-card {
   background: var(--paper-soft);
   backdrop-filter: none;
-  border: 1px solid var(--ink);
-  border-radius: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: 16px;
 }
 
 .glass-card:hover {
-  background: var(--ink);
-  color: var(--paper);
-  transform: none;
-  box-shadow: 6px 6px 0 var(--ink);
+  background: var(--paper-soft);
+  color: var(--ink);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .bg-hero,

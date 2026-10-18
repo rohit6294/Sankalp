@@ -326,6 +326,100 @@
   </div>
 </section>
 
+<!-- WBJEE 2026 LIVE COUNTDOWN & OFFICIAL DATES TRACKER -->
+<section class="wbjee-tracker-section">
+  <div class="wbjee-tracker-card">
+    <div style="text-align: center;">
+      <span class="apna-pill-badge"><i class="fas fa-clock"></i> Official Board Schedule</span>
+      <h2 style="font-family: var(--font-display); font-size: clamp(1.8rem, 2.8vw, 2.5rem); font-weight: 900; color: var(--ac-black); margin-top: 10px;">
+        WBJEE 2026 Live Countdown &amp; Dates Tracker
+      </h2>
+      <p style="color: var(--ac-text-mute); font-size: 14.5px; max-width: 620px; margin: 6px auto 0;">
+        Official schedule, exam shifts, and live countdown to the West Bengal Joint Entrance Examination 2026 (Sunday, May 24, 2026).
+      </p>
+    </div>
+
+    <!-- Live Timer Grid -->
+    <div class="countdown-timer-container">
+      <div class="countdown-box">
+        <div class="countdown-val" id="cdDays">00</div>
+        <div class="countdown-lbl">Days</div>
+      </div>
+      <div class="countdown-box">
+        <div class="countdown-val" id="cdHours">00</div>
+        <div class="countdown-lbl">Hours</div>
+      </div>
+      <div class="countdown-box">
+        <div class="countdown-val" id="cdMinutes">00</div>
+        <div class="countdown-lbl">Minutes</div>
+      </div>
+      <div class="countdown-box">
+        <div class="countdown-val" id="cdSeconds">00</div>
+        <div class="countdown-lbl">Seconds</div>
+      </div>
+    </div>
+
+    <!-- Official Milestones Grid -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+      <h3 style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--ac-black); display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-calendar-check" style="color: var(--ac-yellow-dark);"></i> Key Milestones &amp; Important Dates
+      </h3>
+      <span style="font-size: 12px; font-weight: 700; color: var(--ac-text-mute);">
+        Source: WBJEEB Official Bulletin (wbjeeb.nic.in)
+      </span>
+    </div>
+
+    <div class="timeline-milestones-grid">
+      <!-- Milestone 1 -->
+      <div class="milestone-card">
+        <div>
+          <span class="milestone-badge completed"><i class="fas fa-check"></i> Window Closed</span>
+          <h4 class="milestone-title">Online Application &amp; Fee</h4>
+          <div class="milestone-dates">March 10 – April 8, 2026</div>
+          <p class="milestone-desc">Online registration, document upload (photo &amp; signature), and application fee payment.</p>
+        </div>
+      </div>
+
+      <!-- Milestone 2 -->
+      <div class="milestone-card">
+        <div>
+          <span class="milestone-badge completed"><i class="fas fa-check"></i> Window Closed</span>
+          <h4 class="milestone-title">Application Correction Window</h4>
+          <div class="milestone-dates">April 7 – April 9, 2026</div>
+          <p class="milestone-desc">Correction of allowable particulars in candidate application forms.</p>
+        </div>
+      </div>
+
+      <!-- Milestone 3 -->
+      <div class="milestone-card">
+        <div>
+          <span class="milestone-badge"><i class="fas fa-id-card"></i> Hall Ticket</span>
+          <h4 class="milestone-title">Admit Card Download</h4>
+          <div class="milestone-dates">May 15 – May 24, 2026</div>
+          <p class="milestone-desc">Official hall ticket download with designated exam centre allocation.</p>
+        </div>
+      </div>
+
+      <!-- Milestone 4 (Exam Day) -->
+      <div class="milestone-card active-target">
+        <div>
+          <span class="milestone-badge" style="background: var(--ac-black); color: var(--ac-yellow-bright);">
+            <i class="fas fa-star" style="color: var(--ac-yellow-bright);"></i> D-Day Exam
+          </span>
+          <h4 class="milestone-title">WBJEE 2026 Exam Date</h4>
+          <div class="milestone-dates" style="color: var(--ac-black); font-size: 14px; font-weight: 900;">
+            May 24, 2026 (Sunday)
+          </div>
+          <p class="milestone-desc">
+            <strong>Paper 1 (Maths):</strong> 11:00 AM – 1:00 PM<br>
+            <strong>Paper 2 (Phy &amp; Chem):</strong> 2:00 PM – 4:00 PM
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- INTERACTIVE LIVE COLLEGE & CUTOFF FINDER WIDGET -->
 <section class="interactive-search-section">
   <div class="interactive-search-card">
@@ -968,10 +1062,50 @@
     if (!wasOpen) item.classList.add('open');
   }
 
+  // Live WBJEE 2026 Countdown Timer Logic
+  function startWbjeeCountdown() {
+    // Official Exam Date: May 24, 2026 at 11:00 AM IST
+    const targetDate = new Date("2026-05-24T11:00:00+05:30").getTime();
+
+    function update() {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance < 0) {
+        document.getElementById('cdDays').textContent = "00";
+        document.getElementById('cdHours').textContent = "00";
+        document.getElementById('cdMinutes').textContent = "00";
+        document.getElementById('cdSeconds').textContent = "00";
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      const pad = (n) => String(n).padStart(2, '0');
+
+      const daysEl = document.getElementById('cdDays');
+      const hoursEl = document.getElementById('cdHours');
+      const minutesEl = document.getElementById('cdMinutes');
+      const secondsEl = document.getElementById('cdSeconds');
+
+      if (daysEl) daysEl.textContent = pad(days);
+      if (hoursEl) hoursEl.textContent = pad(hours);
+      if (minutesEl) minutesEl.textContent = pad(minutes);
+      if (secondsEl) secondsEl.textContent = pad(seconds);
+    }
+
+    update();
+    setInterval(update, 1000);
+  }
+
   // Initialize interactive widgets
   document.addEventListener('DOMContentLoaded', () => {
     renderCollegeCards(POPULAR_COLLEGES);
     updateMarksEstimate(110);
+    startWbjeeCountdown();
   });
 </script>
 

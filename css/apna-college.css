@@ -393,18 +393,20 @@
   justify-content: center;
   align-items: center;
   position: relative;
+  padding: 10px 0;
 }
 
 .apna-shield-badge {
   position: relative;
-  width: 350px;
-  padding: 28px 24px 32px;
+  width: 360px;
+  max-width: 100%;
+  padding: 28px 22px 52px;
   background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
-  border: 2px solid var(--ac-yellow);
-  border-radius: 32px 32px 140px 140px;
+  border: 2.5px solid var(--ac-yellow);
+  border-radius: 36px 36px 88px 88px;
   box-shadow: 0 24px 60px rgba(9, 13, 22, 0.12), 0 0 35px var(--ac-yellow-glow);
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
   transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
@@ -424,9 +426,9 @@
 
 .apna-shield-img-wrap {
   position: relative;
-  width: 175px;
-  height: 175px;
-  margin: 0 auto 18px;
+  width: 170px;
+  height: 170px;
+  margin: 0 auto 16px;
 }
 
 .apna-shield-img {
@@ -457,33 +459,40 @@
 
 .apna-shield-name {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 23px;
   font-weight: 900;
   color: var(--ac-black);
   margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .apna-shield-role {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--ac-yellow-dark);
   margin-bottom: 14px;
+  line-height: 1.4;
+  padding: 0 8px;
 }
 
 .apna-shield-tags {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 0 8px;
 }
 
 .apna-shield-tag {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 800;
-  padding: 4px 12px;
+  padding: 5px 13px;
   border-radius: 50px;
   background: var(--ac-black);
   color: var(--ac-yellow-bright);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .apna-float-badge {

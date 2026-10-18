@@ -8,7 +8,12 @@
   <meta name="keywords" content="wbjee 2026 orcr, wbjee opening closing rank 2026, wbjee round 1 cutoff, wbjee round 2 cutoff, jadavpur university orcr, sankalp aspirants">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/apna-college.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
   <style>
     .orcr-card {
       background: var(--paper);
@@ -369,9 +374,46 @@
     icon.className = open ? 'fas fa-times' : 'fas fa-bars';
   }
 
+  // Auth state awareness for navbar
+  if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged((user) => {
+      const actionsEl = document.querySelector('.nav-actions');
+      if (user && actionsEl) {
+        const name = (user.displayName || user.email.split('@')[0] || 'Account');
+        actionsEl.innerHTML = `
+          <a href="student/dashboard.html" class="btn-apna-login" style="background:var(--ac-black); color:var(--ac-yellow-bright); border:1px solid var(--ac-yellow-border);">
+            <i class="fas fa-user-circle"></i> ${name}
+          </a>
+          <button onclick="auth.signOut().then(() => window.location.reload())" class="btn-apna-login" style="padding: 7px 12px; font-size: 12px;" title="Logout">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+          <button class="menu-toggle" id="menuToggle" onclick="toggleNav()" aria-label="Toggle menu">
+            <i class="fas fa-bars" id="menuIcon"></i>
+          </button>
+        `;
+      }
+    });
+  }
+
   async function init() {
     try {
       await loadColleges();
+
+      // Check if URL specifies a target college (e.g. from homepage cards)
+      const params = new URLSearchParams(window.location.search);
+      const urlCollege = params.get('college');
+      if (urlCollege) {
+        const sel = document.getElementById('orcrCollege');
+        // Find exact or partial match
+        const matchingOpt = Array.from(sel.options).find(o => 
+          o.value.toLowerCase().includes(urlCollege.toLowerCase()) || 
+          urlCollege.toLowerCase().includes(o.value.toLowerCase())
+        );
+        if (matchingOpt) {
+          sel.value = matchingOpt.value;
+        }
+      }
+
       await loadBranches();
       await loadCategories();
       await fetchCutoffs();

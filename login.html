@@ -153,10 +153,17 @@
       }
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
-      if (redirect === 'predictor') return 'student/predictor.html';
-      if (redirect === 'evaluate') return 'student/evaluate.html';
-      if (redirect === 'counselling') return 'student/counselling.html';
-      if (redirect === 'notes') return 'student/notes.html';
+      if (redirect) {
+        if (redirect === 'predictor') return 'student/predictor.html';
+        if (redirect === 'evaluate') return 'student/evaluate.html';
+        if (redirect === 'counselling') return 'student/counselling.html';
+        if (redirect === 'notes') return 'student/notes.html';
+        if (redirect === 'orcr' || redirect === 'cutoff') return 'wbjee-2026-orcr.html';
+        // Support safe relative URL paths (prevent open redirect to external domains)
+        if (!redirect.startsWith('http://') && !redirect.startsWith('https://') && !redirect.startsWith('//')) {
+          return redirect;
+        }
+      }
       return 'student/evaluate.html';
     }
 

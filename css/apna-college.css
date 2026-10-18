@@ -920,6 +920,63 @@
 }
 
 /* ==========================================================
+   6.5 TARGET COLLEGES SHOWCASE (APNA COLLEGE STYLE PILLS & GRID)
+   ========================================================== */
+.apna-colleges-section {
+  padding: 72px 24px;
+  background: #FFFFFF;
+  border-top: 1px solid var(--ac-card-border);
+  text-align: center;
+}
+
+.apna-colleges-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  max-width: 1050px;
+  margin: 36px auto 0;
+}
+
+.apna-college-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-radius: 50px;
+  background: var(--ac-bg-light);
+  border: 1.5px solid var(--ac-card-border);
+  color: var(--ac-black);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(9, 13, 22, 0.04);
+}
+
+.apna-college-pill i {
+  color: var(--ac-yellow-dark);
+  font-size: 15px;
+  transition: transform 0.2s ease;
+}
+
+.apna-college-pill:hover {
+  background: var(--ac-black);
+  color: var(--ac-yellow-bright);
+  border-color: var(--ac-black);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(9, 13, 22, 0.15), 0 0 16px var(--ac-yellow-glow);
+}
+
+.apna-college-pill:hover i {
+  color: var(--ac-yellow-bright);
+  transform: scale(1.15);
+}
+
+/* ==========================================================
    7. INTERACTIVE ACCORDION FAQS
    ========================================================== */
 .interactive-faq-section {

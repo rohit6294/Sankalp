@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EADBC0'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%231A1410'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%23EADBC0' font-size='32' font-weight='900' font-family='Georgia,serif' font-style='italic'%3ES%3C/text%3E%3Crect x='14' y='82' width='72' height='10' fill='%23C94E1F'/%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/apna-college.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -16,173 +17,203 @@
   <!-- Chart.js for Mock Test Graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* ==========================================================
+       APNA COLLEGE MODERN DESIGN SYSTEM FOR PREP PORTAL
+       ========================================================== */
     .glass-card {
-      background: var(--paper-soft);
-      border: 1px solid var(--ink);
-      border-radius: 0;
+      background: #FFFFFF;
+      border: 1.5px solid rgba(15, 23, 42, 0.08);
+      border-radius: 18px;
       padding: 24px;
-      transition: none;
+      box-shadow: 0 4px 16px rgba(9, 13, 22, 0.04);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .glass-card:hover {
-      background: var(--paper-soft) !important;
-      color: var(--ink) !important;
-      transform: none !important;
-      box-shadow: none !important;
+      box-shadow: 0 10px 24px rgba(9, 13, 22, 0.07);
     }
-    .welcome-card:hover {
-      background: var(--ink) !important;
-      color: var(--paper) !important;
+    
+    .welcome-card {
+      background: linear-gradient(135deg, #090D16 0%, #1E293B 100%) !important;
+      color: #FFFFFF !important;
+      border: 1.5px solid rgba(245, 158, 11, 0.3) !important;
+      box-shadow: 0 12px 32px rgba(9, 13, 22, 0.18), 0 0 24px rgba(245, 158, 11, 0.15) !important;
     }
     
     .nav-tabs {
       display: flex;
-      gap: 0;
-      border-bottom: 1px solid var(--ink);
+      gap: 8px;
+      padding-bottom: 12px;
       margin-bottom: 24px;
       overflow-x: auto;
       white-space: nowrap;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     }
     .nav-tab-btn {
-      padding: 12px 22px;
-      border: 1px solid var(--ink);
-      border-bottom: none;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--ink-mute);
+      padding: 10px 20px;
+      border: 1.5px solid rgba(15, 23, 42, 0.08);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink-soft);
       cursor: pointer;
-      transition: all 0.2s;
-      border-radius: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      background: var(--paper-soft);
-      margin-right: -1px;
+      transition: all 0.2s ease;
+      border-radius: 50px;
+      background: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     .nav-tab-btn:hover {
       background: var(--paper-deep);
-      color: var(--ink);
+      border-color: #F59E0B;
+      color: #090D16;
     }
     .nav-tab-btn.active {
-      background: var(--ink);
-      color: var(--paper);
-      border-color: var(--ink);
+      background: #090D16;
+      color: #FBBF24;
+      border-color: #090D16;
+      box-shadow: 0 4px 14px rgba(9, 13, 22, 0.18);
     }
     
     .subject-tab-btn {
-      padding: 8px 14px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border: 1px solid var(--ink);
-      border-radius: 0;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1.5px solid rgba(15, 23, 42, 0.08);
+      border-radius: 50px;
       cursor: pointer;
       color: var(--ink-soft);
-      background: var(--paper-soft);
-      transition: all 0.2s;
-      margin-right: 4px;
+      background: #FFFFFF;
+      transition: all 0.2s ease;
+      margin-right: 6px;
     }
     .subject-tab-btn:hover {
       background: var(--paper-deep);
+      border-color: #F59E0B;
     }
     .subject-tab-btn.active {
-      background: var(--rust);
-      color: white;
-      border-color: var(--rust);
+      background: #F59E0B;
+      color: #090D16;
+      border-color: #F59E0B;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
     }
     
     .chapter-card {
-      border: 1px solid var(--ink);
-      background: var(--paper);
-      padding: 18px;
-      border-radius: 0;
+      border: 1.5px solid rgba(15, 23, 42, 0.08);
+      background: #FFFFFF;
+      padding: 20px;
+      border-radius: 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 10px rgba(9, 13, 22, 0.03);
     }
     .chapter-card:hover {
-      box-shadow: 4px 4px 0 var(--rust);
-      border-color: var(--ink);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(9, 13, 22, 0.08), 0 0 18px rgba(245, 158, 11, 0.12);
+      border-color: #F59E0B;
     }
     
     .status-select {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 0;
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 50px;
       outline: none;
-      border: 1px solid var(--ink);
-      background: var(--paper-soft);
+      border: 1.5px solid rgba(15, 23, 42, 0.15);
+      background: #FFFFFF;
       color: var(--ink);
       cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .status-select.status-not_started { border-color: #64748B; color: #64748B; }
-    .status-select.status-studying { border-color: #3B82F6; color: #3B82F6; }
-    .status-select.status-completed { border-color: #10B981; color: #10B981; }
-    .status-select.status-needs_revision { border-color: #F59E0B; color: #F59E0B; }
-    .status-select.status-mastered { border-color: #8B5CF6; color: #8B5CF6; }
+    .status-select.status-not_started { border-color: #94A3B8; color: #64748B; background: #F8FAFC; }
+    .status-select.status-studying { border-color: #3B82F6; color: #2563EB; background: rgba(59, 130, 246, 0.08); }
+    .status-select.status-completed { border-color: #10B981; color: #059669; background: rgba(16, 185, 129, 0.08); }
+    .status-select.status-needs_revision { border-color: #F59E0B; color: #D97706; background: rgba(245, 158, 11, 0.1); }
+    .status-select.status-mastered { border-color: #8B5CF6; color: #7C3AED; background: rgba(139, 92, 246, 0.08); }
 
     .res-link {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--ink);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #090D16;
       text-decoration: none;
-      padding: 6px 10px;
-      border: 1px solid var(--ink);
-      border-radius: 0;
-      background: var(--paper-soft);
-      transition: all 0.2s;
+      padding: 7px 12px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 10px;
+      background: var(--paper-deep);
+      transition: all 0.2s ease;
     }
     .res-link:hover {
-      border-color: var(--rust);
-      color: white;
-      background: var(--rust);
+      border-color: #F59E0B;
+      color: #090D16;
+      background: #FEF3C7;
+      transform: translateY(-1px);
     }
     .res-link.disabled {
       opacity: 0.4;
       cursor: not-allowed;
       pointer-events: none;
-      border-color: var(--rule-strong);
+      border-color: rgba(15, 23, 42, 0.05);
     }
     
     .quote-box {
-      border-left: 4px solid var(--rust);
-      padding-left: 16px;
+      border-left: 4px solid #F59E0B;
+      padding-left: 14px;
       font-style: italic;
       color: var(--ink-soft);
-      font-family: var(--font-display);
+      font-size: 14px;
+      line-height: 1.6;
     }
     
     .task-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 12px;
-      border: 1px solid var(--ink);
-      background: var(--paper);
-      border-radius: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #FFFFFF;
+      border-radius: 12px;
       margin-bottom: 8px;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
-    .task-item.completed { opacity: 0.6; }
+    .task-item:hover {
+      border-color: #F59E0B;
+    }
+    .task-item.completed { opacity: 0.55; background: var(--paper-deep); }
     .task-item.completed span { text-decoration: line-through; }
+
+    .progress-bar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.06);
+      border-radius: 50px;
+      overflow: hidden;
+      height: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B, #FBBF24);
+      border-radius: 50px;
+      transition: width 0.4s ease;
+    }
 
     .toast {
       position: fixed;
       top: 24px;
       right: 24px;
-      padding: 12px 18px;
-      background: var(--ink);
-      color: var(--paper);
-      font-size: 13px;
+      padding: 12px 20px;
+      background: #090D16;
+      color: #FBBF24;
+      font-size: 13.5px;
       font-weight: 700;
       z-index: 9999;
       opacity: 0;
-      transition: opacity 0.2s;
-      border: 1px solid var(--ink);
+      transition: opacity 0.25s ease;
+      border-radius: 12px;
+      border: 1.5px solid rgba(245, 158, 11, 0.3);
+      box-shadow: 0 12px 30px rgba(9, 13, 22, 0.25);
     }
     .toast.show { opacity: 1; }
 
@@ -198,31 +229,33 @@
       bottom: 100%;
       left: 0;
       width: 100%;
-      margin-bottom: 4px;
-      background: var(--paper);
-      border: 1px solid var(--ink);
+      margin-bottom: 6px;
+      background: #FFFFFF;
+      border: 1.5px solid rgba(15, 23, 42, 0.1);
+      border-radius: 12px;
       z-index: 100;
-      box-shadow: 4px 4px 0 var(--ink);
+      box-shadow: 0 10px 25px rgba(9, 13, 22, 0.12);
+      overflow: hidden;
     }
     .prep-dropdown-menu.show {
       display: block;
     }
     .prep-dropdown-item {
       display: block;
-      padding: 8px 12px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--ink);
+      padding: 9px 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #090D16;
       text-decoration: none;
-      border-bottom: 1px solid var(--rule);
-      transition: all 0.2s;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+      transition: all 0.15s ease;
     }
     .prep-dropdown-item:last-child {
       border-bottom: none;
     }
     .prep-dropdown-item:hover {
-      background: var(--rust);
-      color: white;
+      background: #FEF3C7;
+      color: #D97706;
     }
   </style>
 </head>
@@ -273,8 +306,9 @@
   <!-- Header -->
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
     <div>
-      <h1 class="display-lg">🚀 Free Preparation Portal</h1>
-      <p style="color:var(--ink-mute); font-size:14px; margin-top:4px;">Access curated resources and track your progress chapter-by-chapter.</p>
+      <span class="apna-pill-badge" style="margin-bottom:8px; display:inline-block;"><i class="fas fa-graduation-cap"></i> Free Preparation Portal</span>
+      <h1 class="display-lg" style="font-family:var(--font-display); font-weight:900; margin-top:4px;">WBJEE &amp; JEE Prep Portal</h1>
+      <p style="color:var(--ink-mute); font-size:14px; margin-top:4px;">Access curated chapter roadmaps, track syllabus completion, and log mock test improvements.</p>
     </div>
   </div>
 
@@ -296,38 +330,47 @@
       <div style="display:flex; flex-direction:column; gap:24px;">
         
         <!-- Welcome Card -->
-        <div class="glass-card welcome-card" style="background:var(--ink); color:var(--paper); border:1px solid var(--ink); border-radius:0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+        <div class="glass-card welcome-card" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
           <div>
-            <h2 class="display-md" style="color:var(--paper); font-size:1.4rem;">Hello, <span id="welcomeName">Aspirant</span>!</h2>
-            <p style="color:rgba(234,219,192,0.7); font-size:13px; margin-top:6px;">Your preparation is in full swing. Keep pushing daily targets to master the syllabus!</p>
+            <span class="apna-community-badge" style="background:rgba(245,158,11,0.2); color:#FBBF24; margin-bottom:10px; display:inline-block;">
+              <i class="fas fa-fire"></i> Daily Study Streak
+            </span>
+            <h2 class="display-md" style="color:#FFFFFF; font-size:1.5rem; font-weight:900;">Hello, <span id="welcomeName">Aspirant</span>!</h2>
+            <p style="color:rgba(255,255,255,0.8); font-size:13.5px; margin-top:6px; line-height:1.5;">Your preparation is in full swing. Keep pushing daily targets to master the WBJEE syllabus!</p>
           </div>
-          <div style="background:var(--rust); color:white; font-size:1.8rem; width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center;">🎯</div>
+          <div style="background:var(--ac-yellow); color:#090D16; font-size:1.9rem; width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(245,158,11,0.35);">🎯</div>
         </div>
 
         <!-- Overall progress -->
         <div class="glass-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Overall Completion Progress</h3>
-            <span id="overallProgressPercent" style="font-size:1.2rem; font-weight:800; color:var(--rust);">0%</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div>
+              <span style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute);">Syllabus Tracker</span>
+              <h3 style="font-weight:900; font-size:15px; color:var(--ink); margin-top:2px;">Overall Completion Progress</h3>
+            </div>
+            <span id="overallProgressPercent" style="font-size:1.4rem; font-weight:900; color:var(--ac-yellow-dark);">0%</span>
           </div>
-          <div class="progress-bar" style="height:12px; margin-bottom:16px;"><div class="progress-fill" id="overallProgressFill" style="width:0%;"></div></div>
+          <div class="progress-bar" style="height:10px; margin-bottom:20px;"><div class="progress-fill" id="overallProgressFill" style="width:0%;"></div></div>
           
           <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;" class="max-[600px]:grid-cols-1">
-            <div style="border:1px solid var(--ink); padding:14px; border-radius:0; background:var(--paper);">
-              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
-                <strong>Physics</strong><span id="phyProgressText">0%</span>
+            <div style="border:1.5px solid rgba(15,23,42,0.08); padding:16px; border-radius:14px; background:var(--paper-deep);">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:800; margin-bottom:8px;">
+                <span><i class="fas fa-atom" style="color:#3B82F6; margin-right:5px;"></i> Physics</span>
+                <span id="phyProgressText" style="color:var(--ink);">0%</span>
               </div>
               <div class="progress-bar"><div class="progress-fill" id="phyProgressFill" style="width:0%;"></div></div>
             </div>
-            <div style="border:1px solid var(--ink); padding:14px; border-radius:0; background:var(--paper);">
-              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
-                <strong>Chemistry</strong><span id="chemProgressText">0%</span>
+            <div style="border:1.5px solid rgba(15,23,42,0.08); padding:16px; border-radius:14px; background:var(--paper-deep);">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:800; margin-bottom:8px;">
+                <span><i class="fas fa-flask" style="color:#10B981; margin-right:5px;"></i> Chemistry</span>
+                <span id="chemProgressText" style="color:var(--ink);">0%</span>
               </div>
               <div class="progress-bar"><div class="progress-fill" id="chemProgressFill" style="width:0%;"></div></div>
             </div>
-            <div style="border:1px solid var(--ink); padding:14px; border-radius:0; background:var(--paper);">
-              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
-                <strong>Mathematics</strong><span id="mathProgressText">0%</span>
+            <div style="border:1.5px solid rgba(15,23,42,0.08); padding:16px; border-radius:14px; background:var(--paper-deep);">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:800; margin-bottom:8px;">
+                <span><i class="fas fa-square-root-variable" style="color:#F59E0B; margin-right:5px;"></i> Mathematics</span>
+                <span id="mathProgressText" style="color:var(--ink);">0%</span>
               </div>
               <div class="progress-bar"><div class="progress-fill" id="mathProgressFill" style="width:0%;"></div></div>
             </div>
@@ -836,14 +879,15 @@
     listEl.innerHTML = completedArr.slice(0, 5).map(ch => {
       const status = studentProgress[ch.id]?.status || '';
       const color = status === 'mastered' ? '#8B5CF6' : '#10B981';
+      const bg = status === 'mastered' ? 'rgba(139,92,246,0.1)' : 'rgba(16,185,129,0.1)';
       const statusLabel = status.toUpperCase().replace('_', ' ');
       return `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border:1px solid var(--ink); background:var(--paper); border-radius:0; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid rgba(15,23,42,0.08); background:var(--paper-deep); border-radius:12px; font-size:13px;">
           <div>
-            <strong>${ch.name}</strong>
-            <div style="font-size:10px; color:var(--ink-mute); text-transform:uppercase; margin-top:2px;">${ch.subject} · ${ch.category}</div>
+            <strong style="color:var(--ink);">${ch.name}</strong>
+            <div style="font-size:11px; font-weight:700; color:var(--ink-mute); text-transform:uppercase; margin-top:2px;">${ch.subject} · ${ch.category}</div>
           </div>
-          <span style="font-size:10px; font-weight:700; color:${color}; border:1px solid ${color}; padding:2px 6px; border-radius:0;">${statusLabel}</span>
+          <span style="font-size:10.5px; font-weight:800; color:${color}; background:${bg}; padding:4px 10px; border-radius:50px;">${statusLabel}</span>
         </div>
       `;
     }).join('');

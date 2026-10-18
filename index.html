@@ -392,12 +392,12 @@
       </div>
 
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="wbjee-marks-calculator.html" class="btn-apna-yellow" style="font-size: 13.5px;">
+        <button type="button" onclick="handleToolExplore('wbjee-marks-calculator.html')" class="btn-apna-yellow" style="font-size: 13.5px; border:none; cursor:pointer;">
           <i class="fas fa-calculator"></i> Open Full Marks Calculator
-        </a>
-        <a href="wbjee-college-predictor.html" class="btn-apna-dark" style="font-size: 13.5px; border-color: rgba(255,255,255,0.2);">
+        </button>
+        <button type="button" onclick="handleToolExplore('wbjee-college-predictor.html')" class="btn-apna-dark" style="font-size: 13.5px; border-color: rgba(255,255,255,0.2); cursor:pointer;">
           <i class="fas fa-graduation-cap"></i> Predict Colleges
-        </a>
+        </button>
       </div>
     </div>
 
@@ -849,18 +849,22 @@
     });
   }
 
-  // Explore handler: If logged in, go directly to cutoff page. If not, go to login with redirect.
-  function handleCollegeExplore(collegeName) {
-    const targetUrl = collegeName 
-      ? `wbjee-2026-orcr.html?college=${encodeURIComponent(collegeName)}`
-      : `wbjee-2026-orcr.html`;
-
+  // Explore handler: If logged in, go directly to target tool. If not, go to login with redirect.
+  function handleToolExplore(targetUrl) {
     const user = (typeof auth !== 'undefined' && auth.currentUser) || currentAuthUser;
     if (user) {
       window.location.href = targetUrl;
     } else {
       window.location.href = `login.html?redirect=${encodeURIComponent(targetUrl)}`;
     }
+  }
+
+  // Explore handler for colleges: If logged in, go directly to cutoff page. If not, go to login with redirect.
+  function handleCollegeExplore(collegeName) {
+    const targetUrl = collegeName 
+      ? `wbjee-2026-orcr.html?college=${encodeURIComponent(collegeName)}`
+      : `wbjee-2026-orcr.html`;
+    handleToolExplore(targetUrl);
   }
 
   function renderCollegeCards(items) {

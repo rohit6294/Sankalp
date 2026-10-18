@@ -51,6 +51,36 @@
           <i class="fas fa-graduation-cap"></i> Academics <i class="fas fa-chevron-down"></i>
         </button>
         <div class="nav-dropdown-menu">
+          <a href="student/mock-test.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-vial"></i></div>
+            <div>
+              <div class="dropdown-item-title">Mock Tests &amp; PYQs</div>
+              <div class="dropdown-item-desc">Real WBJEE-pattern tests with detailed review</div>
+            </div>
+          </a>
+          <a href="student/notes.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-book-open"></i></div>
+            <div>
+              <div class="dropdown-item-title">Notes Library</div>
+              <div class="dropdown-item-desc">Physics, Chemistry, Maths formula revision packs</div>
+            </div>
+          </a>
+          <a href="student/prep.html" class="dropdown-item">
+            <div class="dropdown-item-icon"><i class="fas fa-laptop-code"></i></div>
+            <div>
+              <div class="dropdown-item-title">Prep Portal</div>
+              <div class="dropdown-item-desc">Structured chapter-wise practice modules</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Non-Academics Dropdown -->
+      <div class="nav-dropdown" id="nonAcademicsDropdown">
+        <button type="button" class="nav-dropdown-toggle" onclick="toggleNavDropdown('nonAcademicsDropdown', event)">
+          <i class="fas fa-users-gear"></i> Non-Academics <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="nav-dropdown-menu">
           <a href="wbjee-college-predictor.html" class="dropdown-item">
             <div class="dropdown-item-icon"><i class="fas fa-university"></i></div>
             <div>
@@ -72,29 +102,6 @@
               <div class="dropdown-item-desc">Official Round 1 &amp; 2 Opening &amp; Closing ranks</div>
             </div>
           </a>
-          <a href="student/mock-test.html" class="dropdown-item">
-            <div class="dropdown-item-icon"><i class="fas fa-vial"></i></div>
-            <div>
-              <div class="dropdown-item-title">Mock Tests &amp; PYQs</div>
-              <div class="dropdown-item-desc">Real WBJEE-pattern tests with detailed review</div>
-            </div>
-          </a>
-          <a href="student/notes.html" class="dropdown-item">
-            <div class="dropdown-item-icon"><i class="fas fa-book-open"></i></div>
-            <div>
-              <div class="dropdown-item-title">Notes Library</div>
-              <div class="dropdown-item-desc">Physics, Chemistry, Maths formula revision packs</div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <!-- Non-Academics Dropdown -->
-      <div class="nav-dropdown" id="nonAcademicsDropdown">
-        <button type="button" class="nav-dropdown-toggle" onclick="toggleNavDropdown('nonAcademicsDropdown', event)">
-          <i class="fas fa-users-gear"></i> Non-Academics <i class="fas fa-chevron-down"></i>
-        </button>
-        <div class="nav-dropdown-menu">
           <a href="student/counselling.html" class="dropdown-item">
             <div class="dropdown-item-icon" style="background: rgba(16,185,129,0.15); color: #10B981;"><i class="fas fa-comments"></i></div>
             <div>
@@ -241,17 +248,18 @@
     <div class="apna-footer-col">
       <h4>Academics</h4>
       <div class="apna-footer-links">
-        <a href="wbjee-college-predictor.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> College Predictor</a>
-        <a href="wbjee-marks-calculator.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Marks Calculator</a>
-        <a href="wbjee-2026-orcr.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> WBJEE 2026 ORCR</a>
         <a href="student/mock-test.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Mock Tests &amp; PYQs</a>
         <a href="student/notes.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Notes Library</a>
+        <a href="student/prep.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Prep Portal</a>
       </div>
     </div>
 
     <div class="apna-footer-col">
       <h4>Non-Academics</h4>
       <div class="apna-footer-links">
+        <a href="wbjee-college-predictor.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> College Predictor</a>
+        <a href="wbjee-marks-calculator.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Marks Calculator</a>
+        <a href="wbjee-2026-orcr.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> WBJEE 2026 ORCR</a>
         <a href="student/counselling.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> 1-on-1 Counselling</a>
         <a href="student/workshops.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Live Workshops</a>
         <a href="student/choice-filling.html"><i class="fas fa-chevron-right" style="font-size:10px;"></i> Choice Filling Guidance</a>

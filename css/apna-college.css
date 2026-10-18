@@ -398,12 +398,12 @@
 
 .apna-shield-badge {
   position: relative;
-  width: 360px;
+  width: 380px;
   max-width: 100%;
-  padding: 28px 22px 52px;
+  padding: 28px 24px 44px;
   background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
   border: 2.5px solid var(--ac-yellow);
-  border-radius: 36px 36px 88px 88px;
+  border-radius: 36px 36px 72px 72px;
   box-shadow: 0 24px 60px rgba(9, 13, 22, 0.12), 0 0 35px var(--ac-yellow-glow);
   text-align: center;
   overflow: visible;
@@ -482,6 +482,8 @@
   gap: 8px;
   margin-top: 6px;
   padding: 0 8px;
+  position: relative;
+  z-index: 5;
 }
 
 .apna-shield-tag {
@@ -509,17 +511,18 @@
   font-weight: 800;
   color: var(--ac-black);
   animation: floatAnim 3.2s ease-in-out infinite alternate;
-  z-index: 3;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .apna-float-left {
   top: 12%;
-  left: -24px;
+  left: -28px;
 }
 
 .apna-float-right {
-  bottom: 16%;
-  right: -24px;
+  top: 50%;
+  right: -32px;
   animation-delay: 1.6s;
 }
 
